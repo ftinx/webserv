@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-02-20T07:16:40.637Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="P9uY74ocHZKuxZO92ol_" version="14.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-20T07:39:26.048Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="abdpW3GT5cRTNdkk-KjJ" version="14.4.2" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="2616" dy="2435" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2381" dy="2245" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -159,7 +159,7 @@
         <mxCell id="rAqE9EoZoIlXoJp64p4v-43" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
           <mxGeometry y="90" width="278.25" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rAqE9EoZoIlXoJp64p4v-44" value="&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig()&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig(const Server &amp;amp;other)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;- HttpConfig&amp;amp; operator=(const HttpConfig &amp;amp;rhs)&lt;span&gt;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;span&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ void configFileToString(ifstream, string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkStartHttp(string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkCurlyBrackets(string)&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkValidHttpConfig()&lt;/div&gt;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
+        <mxCell id="rAqE9EoZoIlXoJp64p4v-44" value="&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig()&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig(const HttpConfig &amp;amp;other)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;- HttpConfig&amp;amp; operator=(const HttpConfig &amp;amp;rhs)&lt;span&gt;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;span&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ void configFileToString(ifstream, string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkStartHttp(string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkCurlyBrackets(string)&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkValidHttpConfig()&lt;/div&gt;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
           <mxGeometry y="98" width="278.25" height="100" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-54" value="Method: ENUM" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
@@ -261,19 +261,19 @@
         <mxCell id="HcZ0qXzVkMRr8X0o47IN-40" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkValidHttpConfigServer&lt;br&gt;( HttpConfigServer 유효성 체크 )&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-880" y="-420" width="230" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-1" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkStartServer ( server로 시작하는지 체크 )&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-1" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkStartServer ( server로 시작하는지 체크 )&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-1120" y="-790" width="460" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-2" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkStartLocation&lt;br&gt;( location으로 시작하는지 체크 )&lt;br&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-2" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkStartLocation&lt;br&gt;( location으로 시작하는지 체크 )&lt;br&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-890" y="-660" width="230" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-3" value="&lt;font style=&quot;font-size: 16px&quot;&gt;HttpConfigServer.hpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-3" value="&lt;font style=&quot;font-size: 16px&quot;&gt;HttpConfigServer.hpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-1010" y="445" width="170" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-4" value="&lt;font style=&quot;font-size: 16px&quot;&gt;HttpConfigLocation.hpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-4" value="&lt;font style=&quot;font-size: 16px&quot;&gt;HttpConfigLocation.hpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-1010" y="515" width="170" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-5" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="WgXUVLj10W7MJ2ATzCZZ-4" target="HcZ0qXzVkMRr8X0o47IN-10">
+        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-5" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="WgXUVLj10W7MJ2ATzCZZ-4" target="HcZ0qXzVkMRr8X0o47IN-10" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="-1010" y="580" as="sourcePoint" />
             <mxPoint x="-960" y="530" as="targetPoint" />
@@ -282,7 +282,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-6" value="" style="endArrow=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" target="WgXUVLj10W7MJ2ATzCZZ-3">
+        <mxCell id="WgXUVLj10W7MJ2ATzCZZ-6" value="" style="endArrow=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="WgXUVLj10W7MJ2ATzCZZ-3" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="-1040" y="400" as="sourcePoint" />
             <mxPoint x="-960" y="530" as="targetPoint" />
