@@ -17,8 +17,8 @@ class HttpConfigServer
 	private:
 		HttpConfigServer();
 		virtual ~HttpConfigServer();
-		HttpConfigServer(const HttpConfigServer &other);
-		HttpConfigServer& operator=(const HttpConfigServer &rhs);
+		HttpConfigServer(HttpConfigServer const &other);
+		HttpConfigServer& operator=(HttpConfigServer const &rhs);
 	public:
 		bool	checkStartServer(std::string);
 		bool	checkValidHttpConfigServer();

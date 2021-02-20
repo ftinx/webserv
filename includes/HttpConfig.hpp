@@ -14,8 +14,8 @@ class HttpConfig
 	private:
 		HttpConfig();
 		virtual ~HttpConfig();
-		HttpConfig(const HttpConfig &other);
-		HttpConfig& operator=(const HttpConfig &rhs);
+		HttpConfig(HttpConfig const &other);
+		HttpConfig& operator=(HttpConfig const &rhs);
 	public:
 		void	configFileToString(std::ifstream, std::string);
 		bool	checkStartHttp(std::string);

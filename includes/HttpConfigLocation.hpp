@@ -27,8 +27,8 @@ class HttpConfigLocation
 	private:
 		HttpConfigLocation();
 		virtual ~HttpConfigLocation();
-		HttpConfigLocation(const HttpConfigLocation &other);
-		HttpConfigLocation& operator=(const HttpConfigLocation &rhs);
+		HttpConfigLocation(HttpConfigLocation const &other);
+		HttpConfigLocation& operator=(HttpConfigLocation const &rhs);
 	public:
 		bool	checkStartLocation(string);
 		bool	checkValidHttpConfigLocation();
