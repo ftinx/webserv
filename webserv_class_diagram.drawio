@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-02-20T06:51:30.677Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="Wdb1PZxUX8wsZz8-P3hB" version="14.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-20T07:01:09.722Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="CGlByU2H278KxgcdfPiL" version="14.4.2" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="2616" dy="2435" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -118,7 +118,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-30" value="Location: Class" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-113.25" y="850" width="240" height="210" as="geometry">
+          <mxGeometry x="-113.25" y="880" width="240" height="210" as="geometry">
             <mxRectangle x="340" y="380" width="170" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -135,7 +135,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-36" value="HttpServer: Class" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-163.25" y="600" width="340" height="180" as="geometry">
+          <mxGeometry x="-163.25" y="650" width="340" height="180" as="geometry">
             <mxRectangle x="340" y="380" width="170" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -149,18 +149,18 @@
           <mxGeometry y="108" width="340" height="50" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-41" value="HttpConfig: Class" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-128.25" y="360" width="270" height="178" as="geometry">
+          <mxGeometry x="-132.37" y="360" width="278.25" height="230" as="geometry">
             <mxRectangle x="340" y="380" width="170" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-42" value="- m_include: string&#xa;- m_root: string&#xa;- m_httpServer: vector&lt;HttpServer&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
-          <mxGeometry y="26" width="270" height="64" as="geometry" />
+          <mxGeometry y="26" width="278.25" height="64" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-43" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
-          <mxGeometry y="90" width="270" height="8" as="geometry" />
+          <mxGeometry y="90" width="278.25" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rAqE9EoZoIlXoJp64p4v-44" value="&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig()&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig(const Server &amp;amp;other)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;- HttpConfig&amp;amp; operator=(const HttpConfig &amp;amp;rhs)&lt;/div&gt;&lt;span&gt;&lt;div style=&quot;text-align: left&quot;&gt;- boolean checkCurlyBrackets(string)&lt;/div&gt;&lt;/span&gt;&lt;span&gt;&lt;div style=&quot;text-align: left&quot;&gt;&amp;nbsp;&lt;/div&gt;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
-          <mxGeometry y="98" width="270" height="80" as="geometry" />
+        <mxCell id="rAqE9EoZoIlXoJp64p4v-44" value="&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig()&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig(const Server &amp;amp;other)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;- HttpConfig&amp;amp; operator=(const HttpConfig &amp;amp;rhs)&lt;span&gt;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;span&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ void configFileToString(ifstream, string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkStartHttp(string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkCurlyBrackets(string)&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkStartServer(string)&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkStartLocation(string)&lt;/div&gt;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
+          <mxGeometry y="98" width="278.25" height="120" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-54" value="Method: ENUM" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-170" y="30" width="140" height="150" as="geometry" />
@@ -252,13 +252,13 @@
         <mxCell id="HcZ0qXzVkMRr8X0o47IN-36" value="&lt;span style=&quot;font-size: 16px&quot;&gt;location 파싱&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-770" y="-540" width="230" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="HcZ0qXzVkMRr8X0o47IN-37" value="&lt;span style=&quot;font-size: 16px&quot;&gt;HttpConfig 유효성 체크&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+        <mxCell id="HcZ0qXzVkMRr8X0o47IN-37" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkValidHttpConfig&lt;br&gt;( HttpConfig 유효성 체크 )&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-1120" y="-350" width="460" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="HcZ0qXzVkMRr8X0o47IN-38" value="&lt;span style=&quot;font-size: 16px&quot;&gt;location 유효성 체크&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+        <mxCell id="HcZ0qXzVkMRr8X0o47IN-38" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkValidLocation&lt;br&gt;( location 유효성 체크 )&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-770" y="-480" width="230" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="HcZ0qXzVkMRr8X0o47IN-40" value="&lt;span style=&quot;font-size: 16px&quot;&gt;HttpServer 유효성 체크&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+        <mxCell id="HcZ0qXzVkMRr8X0o47IN-40" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkValidLocation&lt;br&gt;( HttpServer 유효성 체크 )&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-880" y="-420" width="230" height="50" as="geometry" />
         </mxCell>
         <mxCell id="WgXUVLj10W7MJ2ATzCZZ-1" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkStartServer ( server로 시작하는지 체크 )&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
