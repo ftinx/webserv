@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-02-20T09:05:43.167Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="qE3R2ouqFytiLZP5k4YM" version="14.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-20T10:41:35.989Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="gSLKvBw1fGGs2ryW45h4" version="14.4.2" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="3065" dy="2730" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+    <mxGraphModel dx="3193" dy="2920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -112,7 +112,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-30" value="HttpConfigLocation: Class" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-173.25" y="910" width="360" height="228" as="geometry">
+          <mxGeometry x="-173.25" y="910" width="360" height="238" as="geometry">
             <mxRectangle x="340" y="380" width="170" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -122,14 +122,14 @@
         <mxCell id="rAqE9EoZoIlXoJp64p4v-32" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="rAqE9EoZoIlXoJp64p4v-30" vertex="1">
           <mxGeometry y="140" width="360" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rAqE9EoZoIlXoJp64p4v-33" value="&lt;span&gt;- HttpConfigLocation()&lt;br&gt;- HttpConfigLocation(HttpConfigLocation&amp;nbsp;&lt;/span&gt;const&amp;nbsp;&lt;span&gt;&amp;amp;other)&lt;br&gt;- HttpConfigLocation&amp;amp; operator=(HttpConfigLocation const &amp;amp;rhs)&lt;br&gt;&lt;/span&gt;+ boolean checkStartLocation(string)&lt;br&gt;&lt;span&gt;+ boolean checkValidHttpConfigLocation()&lt;br&gt;&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-30" vertex="1">
-          <mxGeometry y="148" width="360" height="80" as="geometry" />
+        <mxCell id="rAqE9EoZoIlXoJp64p4v-33" value="&lt;span&gt;- HttpConfigLocation()&lt;br&gt;&lt;/span&gt;- ~HttpConfigLocation()&lt;span&gt;&lt;br&gt;- HttpConfigLocation(HttpConfigLocation&amp;nbsp;&lt;/span&gt;const&amp;nbsp;&lt;span&gt;&amp;amp;other)&lt;br&gt;- HttpConfigLocation&amp;amp; operator=(HttpConfigLocation const &amp;amp;rhs)&lt;br&gt;&lt;/span&gt;+ boolean checkStartLocation(string)&lt;br&gt;&lt;span&gt;+ boolean checkValidHttpConfigLocation()&lt;br&gt;&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-30" vertex="1">
+          <mxGeometry y="148" width="360" height="90" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-45" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="rAqE9EoZoIlXoJp64p4v-36" target="rAqE9EoZoIlXoJp64p4v-41" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-36" value="HttpConfigServer: Class" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-163.25" y="650" width="340" height="188" as="geometry">
+          <mxGeometry x="-163.25" y="650" width="340" height="198" as="geometry">
             <mxRectangle x="340" y="380" width="170" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -139,8 +139,8 @@
         <mxCell id="rAqE9EoZoIlXoJp64p4v-38" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="rAqE9EoZoIlXoJp64p4v-36" vertex="1">
           <mxGeometry y="100" width="340" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rAqE9EoZoIlXoJp64p4v-39" value="&lt;span&gt;- HttpConfigServer()&lt;br&gt;- HttpConfigServer(HttpConfigServer const &amp;amp;other)&lt;br&gt;- HttpConfigServer&amp;amp; operator=(HttpConfigServer&amp;nbsp;&lt;/span&gt;const&amp;nbsp;&lt;span&gt;&amp;amp;rhs)&lt;br&gt;&lt;/span&gt;&lt;div&gt;+ boolean checkStartServer(string)&lt;/div&gt;&lt;div&gt;+ boolean checkValidHttpConfigServer()&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-36" vertex="1">
-          <mxGeometry y="108" width="340" height="80" as="geometry" />
+        <mxCell id="rAqE9EoZoIlXoJp64p4v-39" value="&lt;span&gt;- HttpConfigServer()&lt;br&gt;&lt;/span&gt;- ~HttpConfigServer()&lt;span&gt;&lt;br&gt;- HttpConfigServer(HttpConfigServer const &amp;amp;other)&lt;br&gt;- HttpConfigServer&amp;amp; operator=(HttpConfigServer&amp;nbsp;&lt;/span&gt;const&amp;nbsp;&lt;span&gt;&amp;amp;rhs)&lt;br&gt;&lt;/span&gt;&lt;div&gt;+ boolean checkStartServer(string)&lt;/div&gt;&lt;div&gt;+ boolean checkValidHttpConfigServer()&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-36" vertex="1">
+          <mxGeometry y="108" width="340" height="90" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-41" value="HttpConfig: Class" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-132.37" y="360" width="278.25" height="230" as="geometry">
@@ -153,8 +153,8 @@
         <mxCell id="rAqE9EoZoIlXoJp64p4v-43" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
           <mxGeometry y="90" width="278.25" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rAqE9EoZoIlXoJp64p4v-44" value="&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig()&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig(HttpConfig const &amp;amp;other)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;- HttpConfig&amp;amp; operator=(HttpConfig const &amp;amp;rhs)&lt;span&gt;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;span&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ void configFileToString(ifstream, string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkStartHttp(string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkCurlyBrackets(string)&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkValidHttpConfig()&lt;/div&gt;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
-          <mxGeometry y="98" width="278.25" height="100" as="geometry" />
+        <mxCell id="rAqE9EoZoIlXoJp64p4v-44" value="&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig()&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;- ~HttpConfig()&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;&lt;span&gt;- HttpConfig(HttpConfig const &amp;amp;other)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;- HttpConfig&amp;amp; operator=(HttpConfig const &amp;amp;rhs)&lt;span&gt;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;span&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ void configFileToString(ifstream, string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkStartHttp(string)&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkCurlyBrackets(string)&lt;/div&gt;&lt;div style=&quot;text-align: left&quot;&gt;+ boolean checkValidHttpConfig()&lt;/div&gt;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-41" vertex="1">
+          <mxGeometry y="98" width="278.25" height="120" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-54" value="Method: ENUM" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-170" y="30" width="140" height="150" as="geometry" />
