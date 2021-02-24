@@ -15,7 +15,7 @@ class ServerManger
 		HttpConfig m_httpConfig;
 
 	private:
-		ServerManger(ServerManger &const other);
+		ServerManger(ServerManger const &other);
 		ServerManger& operator=(ServerManger const& rhs);
 
 	public:
