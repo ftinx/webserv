@@ -37,6 +37,20 @@ strlen(const char *str)
 	return (idx);
 }
 
+char *
+ft_strchr(const char *str, int c)
+{
+	while (*str)
+	{
+		if (*str == c)
+			return ((char *)str);
+		str++;
+	}
+	if (c == '\0')
+		return ((char *)str);
+	return (0);
+}
+
 void *
 memset(void *str, int c, size_t n)
 {
@@ -51,16 +65,54 @@ memset(void *str, int c, size_t n)
 	return (str);
 }
 
-std::vector<std::string>
-split(std::string const &str, char const c)
+std::string
+ltrim(std::string str, std::string set)
 {
+	size_t n;
 
+	n = str.find_first_not_of(set);
+	if (n == std::string::npos)
+		return (str);
+	else
+		return (str.substr(n, str.length()));
 }
 
 std::string
-getCurrentDateTime()
+rtrim(std::string str, std::string set)
 {
+	size_t n;
 
+	n = str.find_last_not_of(set);
+	if (n == std::string::npos)
+		return (str);
+	else
+		return (str.substr(0, n + 1));
+}
+
+std::string
+trim(std::string str, std::string set)
+{
+	return (rtrim(ltrim(str, set), set));
+}
+
+
+std::vector<std::string>
+split(std::string const &str, std::string set)
+{
+	std::size_t p1;
+	std::size_t p2;
+	std::vector<std::string> ret;
+
+	p2 = 0;
+	while (p2 < str.length())
+	{
+		if ((p1 = str.find_first_not_of(set, p2)) == std::string::npos)
+			return (ret);
+		if ((p2 = str.find_first_of(set, p1)) == std::string::npos)
+			p2 = str.length();
+		ret.push_back(str.substr(p1, (p2 - p1)));
+	}
+	return (ret);
 }
 
 void
@@ -134,6 +186,27 @@ nToHL(unsigned long netlong)
 	else if (BYTE_ORDER == LITTLE_ENDIAN)
 		return (ft::hToNL(netlong));
 	return (0);
+}
+
+std::string
+iNetNtoA(unsigned int addr)
+{
+	std::string ret;
+
+	ret = std::to_string(addr % 256)
+		+ "."
+		+ std::to_string((addr / 256) % 256)
+		+ "."
+		+ std::to_string((addr / 256 / 256) % 256)
+		+ "."
+		+ std::to_string((addr / 256 / 256 / 256));
+	return (ret);
+}
+
+std::string
+getDateTimestamp()
+{
+
 }
 
 }
