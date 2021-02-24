@@ -16,7 +16,7 @@ class ServerManger
 
 	private:
 		ServerManger(ServerManger const &other);
-		ServerManger& operator=(ServerManger const& rhs);
+		ServerManger& operator=(ServerManger const &rhs);
 
 	public:
 		ServerManger();
