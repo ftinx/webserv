@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-02-24T05:40:47.605Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="ZV0u0uCV7rqxFadQZ4Z_" version="14.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-24T05:48:44.587Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="zRdZN_wgpkubqCL9uMfH" version="14.4.2" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="3926" dy="2442" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
       <root>
@@ -69,7 +69,7 @@
         <mxCell id="rAqE9EoZoIlXoJp64p4v-5" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="rAqE9EoZoIlXoJp64p4v-3" vertex="1">
           <mxGeometry y="140" width="200" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="rAqE9EoZoIlXoJp64p4v-16" value="&lt;span&gt;+ void parseMessage(string)&lt;br&gt;+ void getNextLine(string)&lt;br&gt;+ void parseHttpRequest(string)&lt;br&gt;+ void checkCGI(string)&lt;br&gt;+ void parseHeader(string)&lt;br&gt;+ void parseBody(string)&lt;br&gt;+ checkChunked(string)&lt;br&gt;&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-3" vertex="1">
+        <mxCell id="rAqE9EoZoIlXoJp64p4v-16" value="&lt;span&gt;+ void parseMessage(string)&lt;br&gt;+ void getNextLine(string)&lt;br&gt;+ void parseHttpRequest(string)&lt;br&gt;+ void checkCGI(string)&lt;br&gt;+ void parseHeader(string)&lt;br&gt;+ void parseBody(string)&lt;br&gt;+ void checkChunked(string)&lt;br&gt;&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;" parent="rAqE9EoZoIlXoJp64p4v-3" vertex="1">
           <mxGeometry y="148" width="200" height="100" as="geometry" />
         </mxCell>
         <mxCell id="rAqE9EoZoIlXoJp64p4v-23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="rAqE9EoZoIlXoJp64p4v-6" target="zkfFHV4jXpPFQw0GAbJ--13" edge="1">
@@ -415,10 +415,10 @@
         <mxCell id="aNSDNlB7H7mEJmNdHBrU-10" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkCGI (cgi 여부)&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-340" y="-790" width="460" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="hZ9mNN6UY-vNZNd8BxZA-0" value="&lt;font style=&quot;font-size: 16px&quot;&gt;Request.hpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="hZ9mNN6UY-vNZNd8BxZA-0" value="&lt;font style=&quot;font-size: 16px&quot;&gt;Request.hpp&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-2620" y="-490" width="170" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="hZ9mNN6UY-vNZNd8BxZA-2" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="hZ9mNN6UY-vNZNd8BxZA-0" target="HcZ0qXzVkMRr8X0o47IN-10">
+        <mxCell id="hZ9mNN6UY-vNZNd8BxZA-2" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="hZ9mNN6UY-vNZNd8BxZA-0" target="HcZ0qXzVkMRr8X0o47IN-10" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="-2560" y="-430" as="sourcePoint" />
             <mxPoint x="-2510" y="-480" as="targetPoint" />
