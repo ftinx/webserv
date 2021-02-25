@@ -11,15 +11,19 @@
 
 ### 함수
 - 소문자
+
 - 카멜 표기 (중간에 대문자 ex, ```void webServer(void);```)
+
 - getter 함수
 	- prefix: ```get_m_```
 	- 스네이크 표기 ```get_m_variable```
 	- 한 줄로 쓸 수 있는 경우 한줄로 표현
+	
 - setter 함수
 	- prefix: ```set_m_```
 	- 스네이크 표기 ```set_m_variable```
 	- 한 줄로 쓸 수 있는 경우 한줄로 표현
+	
 - return type과 괄호는 함수명과 분리
 	-	>```
 		>char *
@@ -27,6 +31,12 @@
 		>{
 		>}
 		>```
+	
+- hpp 파일에서 \*와 &는 반환값의 경우 자료형 뒤에 붙이고, 매개변수일 경우 변수명 앞에 붙인다.
+
+  >  `char* strdup(const char *s)`
+
+  
 
 ### 클라스
 - Canonical form 준수
