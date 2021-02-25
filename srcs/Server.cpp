@@ -1,5 +1,10 @@
 #include "Server.hpp"
 
+/*
+** TODO: utils 함수 적용하기
+*/ 
+
+
 Server::Server(){};
 Server::~Server(){};
 
@@ -27,37 +32,62 @@ char *bin2hex(const unsigned char *input, size_t len)
     return result;
 }
 
+/*
+**	struct sockaddr_in { 
+**		short sin_family;			// 주소 체계: 항상 AF_INET 
+**		u_short sin_port;			// 16 비트 포트 번호 (0~65535), network byte order (Big Endian)
+**		struct in_addr sin_addr;	// 32 비트 IP 주소 
+**		char sin_zero[8];			// 전체 크기를 16 비트로 맞추기 위한 dummy, 반드시 모두 0으로 채워져야 한다.
+**	};
+**
+**	struct in_addr { 
+**		u_long s_addr; // 32비트 IP 주소를 저장 할 구조체, network byte order (Big Endian)
+**	};
+**
+**	htonl(): long intger 데이터(일반적으로 4byte)를 network byte order로 변경
+**	htons(): short intger 데이터(일반적으로 2byte)를 network byte order로 변경
+**	ntohl(): long intger 데이터를 host byte order로 변경
+**	ntohs(): short intger 데이터를 host byte order로 변경
+*/
 void 
 Server::setServerAddr()
 {
 	memset((void *)&this->m_server_addr, 0x00, sizeof(this->m_server_addr));
 	this->m_server_addr.sin_family = AF_INET;
-	this->m_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	this->m_server_addr.sin_port = htons(PORT);
+	this->m_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 }
 
-int 
+/*
+** socket (
+**		AF_INET || AF_INET6 || AF_UNIX || AF_LOCAL || AF_LINK || AF_PACKET,
+**		SOCK_STREAM(TCP) || SOCK_DGRAM(UDP) || SOCK_RAW,
+**		0(Default Value) || IPPROTO_TCP(TCP) || IPPROTO_UDP(UDP) 
+** )
+*/
+bool
 Server::setServerSocket()
 {
-	if ((this->m_server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	if ((this->m_server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
 	{
 		perror("socket error");
-		return (EXIT_FAILURE);
+		return (false);
 	}  
 	if (bind(
 			this->m_server_socket, 
-			(struct sockaddr *)&this->m_server_addr, sizeof(this->m_server_addr)
+			(struct sockaddr *)&this->m_server_addr, 
+			sizeof(this->m_server_addr)
 		) == -1)
 	{
 		perror("bind error");
-		return (EXIT_FAILURE);
+		return (false);
 	}   
 	if (listen(this->m_server_socket, 5) == -1)
 	{
 		perror("listen error");
-		return (EXIT_FAILURE);
+		return (false);
 	}
-	return (EXIT_SUCCESS);
+	return (true);
 }
 
 void

@@ -7,7 +7,6 @@
 #include <sys/select.h>
 
 #include <unistd.h>
-#include <cstdlib>
 #include <string>
 
 #include <vector>
@@ -54,7 +53,7 @@ class Server
         Server();
         ~Server();
         void setServerAddr();
-        int setServerSocket();
+        bool setServerSocket();
         void runServer();
         void closeServer();
 };
