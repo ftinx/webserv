@@ -32,6 +32,6 @@ class HttpConfigLocation
 	public:
 		bool	checkStartLocation(string);
 		bool	checkValidHttpConfigLocation();
-}
+};
 
 #endif

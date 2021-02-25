@@ -22,6 +22,6 @@ class HttpConfigServer
 	public:
 		bool	checkStartServer(std::string);
 		bool	checkValidHttpConfigServer();
-}
+};
 
 #endif

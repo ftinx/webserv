@@ -10,7 +10,8 @@ FLAGS = -Wall -Wextra -Werror -g3 -fsanitize=address
 DIR_HEADER =	./includes/
 DIR_SRC =		./srcs/
 
-SRC = main.cpp
+SRC =	main.cpp \
+		Server.cpp \
 
 SRCS = $(addprefix $(DIR_SRC), $(SRC))
 OBJS = $(SRCS:%.cpp=%.o)

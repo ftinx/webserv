@@ -21,6 +21,6 @@ class HttpConfig
 		bool	checkStartHttp(std::string);
 		bool	checkCurlyBrackets(std::string);
 		bool	checkValidHttpConfig(void);
-}
+};
 
 #endif

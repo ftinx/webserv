@@ -13,8 +13,8 @@ class Response
         std::string m_body;
 
     private:
-        Response(Response &const other);
-        Response& operator=(Response const& rhs);
+        Response(Response const &other);
+        Response& operator=(Response const &rhs);
     
     public: 
         Response();

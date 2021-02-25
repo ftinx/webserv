@@ -1,5 +1,13 @@
+#include "Server.hpp"
+
 int
 main()
 {
-    return (0);
+    Server server = Server();
+    
+    server.setServerAddr();
+    server.setServerSocket();
+    server.runServer();
+
+    return (EXIT_SUCCESS);
 }

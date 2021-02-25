@@ -20,15 +20,15 @@ class Request
 		Request& operator=(Request const &rhs);
 
 	public:
-		Response();
-		~Response();
-		void parseMessage(string);
-		void getNextLine(string);
-		void parseHttpRequest(string);
-		void checkCGI(string);
-		void parseHeader(string);
-		void parseBody(string);
-		void checkChunked(string);
+		Request();
+		~Request();
+		void parseMessage(std::string);
+		void getNextLine(std::string);
+		void parseHttpRequest(std::string);
+		void checkCGI(std::string);
+		void parseHeader(std::string);
+		void parseBody(std::string);
+		void checkChunked(std::string);
 };
 
 #endif
