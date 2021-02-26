@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-02-24T06:49:36.983Z" agent="5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36" etag="SJYyd-Sp9scwwLzva3aV" version="14.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-26T06:54:09.042Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36" etag="7Dbe9y0At18nP2RgT27x" version="14.4.3" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="4444" dy="3097" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+    <mxGraphModel dx="4484" dy="2674" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -313,7 +313,7 @@
           <mxGeometry x="1179" y="-990" width="460" height="50" as="geometry" />
         </mxCell>
         <mxCell id="evZvtxwcI9RxlRFWVcLF-11" value="&lt;span style=&quot;font-size: 16px&quot;&gt;Request&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-340" y="-370" width="460" height="50" as="geometry" />
+          <mxGeometry x="-340" y="-300" width="460" height="50" as="geometry" />
         </mxCell>
         <mxCell id="iH6IDxIFq755C8yoyHg--3" value="&lt;span style=&quot;font-size: 16px&quot;&gt;CGI&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="170" y="-845" width="230" height="50" as="geometry" />
@@ -403,11 +403,11 @@
         <mxCell id="aNSDNlB7H7mEJmNdHBrU-6" value="&lt;span style=&quot;font-size: 16px&quot;&gt;getNextLine&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-340" y="-580" width="460" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="aNSDNlB7H7mEJmNdHBrU-7" value="&lt;span style=&quot;font-size: 16px&quot;&gt;parseMessage&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-340" y="-510" width="460" height="50" as="geometry" />
+        <mxCell id="aNSDNlB7H7mEJmNdHBrU-7" value="&lt;span style=&quot;font-size: 16px&quot;&gt;parseMessage&lt;br&gt;(위 결과값 false일 경우 &lt;br&gt;content-length만큼 읽기)&lt;br&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-340" y="-440" width="220" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="aNSDNlB7H7mEJmNdHBrU-8" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkChunked (chunck 여부에 따른 로직 분류)&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-340" y="-440" width="460" height="50" as="geometry" />
+        <mxCell id="aNSDNlB7H7mEJmNdHBrU-8" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkChunked&lt;br&gt;(transfer-encoding 헤더의 값이 chunked인지 확인)&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-340" y="-510" width="460" height="50" as="geometry" />
         </mxCell>
         <mxCell id="aNSDNlB7H7mEJmNdHBrU-10" value="&lt;span style=&quot;font-size: 16px&quot;&gt;checkCGI (cgi 여부)&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-340" y="-790" width="460" height="50" as="geometry" />
@@ -445,8 +445,14 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="1TdUF_0Ilj7SXghqeZpa-1" value="&lt;span style=&quot;font-size: 16px&quot;&gt;setServerAddr (m_server_addr 설정)&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="1TdUF_0Ilj7SXghqeZpa-1" value="&lt;span style=&quot;font-size: 16px&quot;&gt;setServerAddr (m_server_addr 설정)&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-1120" y="10" width="460" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="Eyp54MYbYxKgfKx9GJ46-0" value="&lt;span style=&quot;font-size: 16px&quot;&gt;parseChunkedMessage&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="-110" y="-440" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="Eyp54MYbYxKgfKx9GJ46-1" value="&lt;span style=&quot;font-size: 16px&quot;&gt;Server.m_chunked_message&lt;br&gt;에 저장&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="-110" y="-370" width="230" height="50" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
