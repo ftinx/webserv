@@ -59,20 +59,42 @@ Server::setServerAddr()
 }
 
 /*
-** socket (
+**	socket (
 **		AF_INET || AF_INET6 || AF_UNIX || AF_LOCAL || AF_LINK || AF_PACKET,
 **		SOCK_STREAM(TCP) || SOCK_DGRAM(UDP) || SOCK_RAW,
 **		0(Default Value) || IPPROTO_TCP(TCP) || IPPROTO_UDP(UDP) 
-** )
+**	)
+** 
+**	int getsockopt(int  s, int level, int optname, void *optval, socklen_t *optlen);
+**	int setsockopt(int s, int  level,  int  optname,  const  void  *optval, socklen_t optlen);
+**
+**	setsockopt(
+**		socket,
+**		SOL_SOCKET || IPPROTO_TCP,
+**		SO_BROADCAST || SO_DEBUG || SO_DONTLINGER || SO_KEEPALIVE || SO_REUSEADDR (..etc),
+**		socketlen
+**	)
+**
+**	s : 소켓지정번호
+**	level : 소켓의 레벨로 어떤 레벨의 소켓정보를 가져오거나 변경할 것인지를 명시한다. 보통 SOL_SOCKET와 IPPROTO_TCP 중 하나를 사용한다.
+**	optname : 설정을 위한 소켓옵션의 번호
+**	optval : 설정값을 저장하기 위한 버퍼의 포인터 (void * 로 넘기는 이유는 설정하고자 하는 소켓옵션에 따라서 다양한 크기의 데이터 형이 사용되기 떄문이다.)
+**	optlen : optval 버퍼의 크기
+**
+**  SO_REUSEADDR의 상태를 TRUE(1)로 변경하게 되면 TIME_WAIT 상태에 있는 소켓에 할당된 IP주소와 포트를 새로 시작하는 소켓에 할당 해 줄 수 있게 된다.
 */
 bool
 Server::setServerSocket()
 {
+	int option;
+
+	option = true;
 	if ((this->m_server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
 	{
 		perror("socket error");
 		return (false);
 	}  
+    setsockopt(this->m_server_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
 	if (bind(
 			this->m_server_socket, 
 			(struct sockaddr *)&this->m_server_addr, 
