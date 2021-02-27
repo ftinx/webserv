@@ -97,7 +97,7 @@ trim(std::string str, std::string set)
 
 
 std::vector<std::string>
-split(std::string const &str, std::string set)
+split(std::string const &str, char set)
 {
 	std::size_t p1;
 	std::size_t p2;
@@ -109,6 +109,25 @@ split(std::string const &str, std::string set)
 		if ((p1 = str.find_first_not_of(set, p2)) == std::string::npos)
 			return (ret);
 		if ((p2 = str.find_first_of(set, p1)) == std::string::npos)
+			p2 = str.length();
+		ret.push_back(str.substr(p1, (p2 - p1)));
+	}
+	return (ret);
+}
+
+std::vector<std::string>
+split(std::string const &str, std::string set)
+{
+	std::size_t p1;
+	std::size_t p2;
+	std::vector<std::string> ret;
+
+	p2 = 0;
+	while (p2 < str.length())
+	{
+		if ((p1 = str.find_first_not_of(set, p2)) == std::string::npos)
+			return (ret);
+		if ((p2 = str.find(set, p1)) == std::string::npos)
 			p2 = str.length();
 		ret.push_back(str.substr(p1, (p2 - p1)));
 	}
