@@ -103,23 +103,23 @@ void	Response::setHtmlDocument()
 #include <iostream>
 #include <algorithm>
 
-// char*	Response::makeResponseMessage()
-// {
-// 	/* Concat Header */
-// 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
-// 	this->m_headers.insert(std::make_pair("content-length", "0"));
-// 	this->m_headers.insert(std::make_pair("content-language", std::to_string(this->m_status_code)));
-// 	this->m_headers.insert(std::make_pair("content-type", "text/html; charset=UTF-8"));
-// 	this->m_headers.insert(std::make_pair("status", "200"));
-// 	this->m_headers.insert(std::make_pair("server", "ftnix"));
+char*	Response::makeResponseMessage()
+{
+	/* Concat Header */
+	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
+	this->m_headers.insert(std::make_pair("content-length", "0"));
+	this->m_headers.insert(std::make_pair("content-language", std::to_string(this->m_status_code)));
+	this->m_headers.insert(std::make_pair("content-type", "text/html; charset=UTF-8"));
+	this->m_headers.insert(std::make_pair("status", "200"));
+	this->m_headers.insert(std::make_pair("server", "ftnix"));
 
-// 	std::map<std::string, std::string>::iterator it;
+	std::map<std::string, std::string>::iterator it;
 
-// 	for(it=m_headers.begin(); it!=m_headers.end(); ++it)
-// 		std::cout << it->first << ": " << it->second << std::endl;
+	for(it=m_headers.begin(); it!=m_headers.end(); ++it)
+		std::cout << it->first << ": " << it->second << std::endl;
 
-// 	/* Concat Body */
+	/* Concat Body */
 
-// 	/* Concat Message */
-// 	return 0;
-// }
+	/* Concat Message */
+	return 0;
+}
