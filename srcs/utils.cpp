@@ -130,7 +130,7 @@ fdSet(int fd, fd_set *fds)
 	if (fd < 0 || fd >= 1024)
 		return ;
 	mask = 1 << ((unsigned long)fd % (sizeof(__int32_t) * 8));
-	fds->fds_bits[(unsigned long)fd/(sizeof(__int32_t) * 8)] |= mask;
+	fds->fds_bits[(unsigned long)fd / (sizeof(__int32_t) * 8)] |= mask;
 }
 
 void
@@ -141,7 +141,7 @@ fdClr(int fd, fd_set *fds)
 	if (fd < 0 || fd >= 1024)
 		return ;
 	mask = ~(1 << ((unsigned long)fd % (sizeof(__int32_t) * 8)));
-	fds->fds_bits[(unsigned long)fd/(sizeof(__int32_t) * 8)] &= mask;
+	fds->fds_bits[(unsigned long)fd / (sizeof(__int32_t) * 8)] &= mask;
 }
 
 // int
@@ -209,4 +209,4 @@ iNetNtoA(unsigned int addr)
 
 // }
 
-}
+// }
