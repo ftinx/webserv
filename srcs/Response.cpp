@@ -105,6 +105,11 @@ void	Response::setHtmlDocument()
 
 char*	Response::makeResponseMessage()
 {
+	std::string httpResponse;
+	/* Concat status code */
+	// HTTP/1.1 200 OK
+	httpResponse += string("HTTP/1.1 200 OK");
+
 	/* Concat Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
 	this->m_headers.insert(std::make_pair("content-length", "0"));
