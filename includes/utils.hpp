@@ -45,4 +45,4 @@ namespace ft
 	bool isDirExists(std::string path); // not yet
 }
 
-#endif;
+#endif

@@ -7,7 +7,7 @@
 #include "Server.hpp"
 #include "HttpConfig.hpp"
 
-class ServerManger
+class ServerManager
 {
 	private:
 		std::string m_ip_address;
@@ -15,12 +15,12 @@ class ServerManger
 		HttpConfig m_httpConfig;
 
 	private:
-		ServerManger(ServerManger const &other);
-		ServerManger& operator=(ServerManger const &rhs);
+		ServerManager(ServerManager const &other);
+		ServerManager& operator=(ServerManager const &rhs);
 
 	public:
-		ServerManger();
-		~ServerManger();
+		ServerManager();
+		~ServerManager();
 		void checkIPAddress();
 };
 
