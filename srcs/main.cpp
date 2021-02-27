@@ -3,11 +3,11 @@
 int
 main()
 {
-    Server server = Server();
-    
-    server.setServerAddr();
-    server.setServerSocket();
-    server.runServer();
+	Server server = Server();
 
-    return (EXIT_SUCCESS);
+	server.setServerAddr();
+	server.setServerSocket();
+	server.runServer();
+
+	return (EXIT_SUCCESS);
 }
