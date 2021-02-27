@@ -43,15 +43,17 @@ char *bin2hex(const unsigned char *input, size_t len)
 **	struct in_addr { 
 **		u_long s_addr; // 32비트 IP 주소를 저장 할 구조체, network byte order (Big Endian)
 **	};
-**
+**	- - -
 **	htonl(): long intger 데이터(일반적으로 4byte)를 network byte order로 변경
 **	htons(): short intger 데이터(일반적으로 2byte)를 network byte order로 변경
 **	ntohl(): long intger 데이터를 host byte order로 변경
 **	ntohs(): short intger 데이터를 host byte order로 변경
 */
 void 
-Server::setServerAddr()
+Server::setServerAddr(long host, int port)
 {
+	(void) host;
+	(void) port;
 	memset((void *)&this->m_server_addr, 0x00, sizeof(this->m_server_addr));
 	this->m_server_addr.sin_family = AF_INET;
 	this->m_server_addr.sin_port = htons(PORT);
@@ -64,7 +66,7 @@ Server::setServerAddr()
 **		SOCK_STREAM(TCP) || SOCK_DGRAM(UDP) || SOCK_RAW,
 **		0(Default Value) || IPPROTO_TCP(TCP) || IPPROTO_UDP(UDP) 
 **	)
-** 
+** 	 - - -
 **	int getsockopt(int  s, int level, int optname, void *optval, socklen_t *optlen);
 **	int setsockopt(int s, int  level,  int  optname,  const  void  *optval, socklen_t optlen);
 **
@@ -82,6 +84,10 @@ Server::setServerAddr()
 **	optlen : optval 버퍼의 크기
 **
 **  SO_REUSEADDR의 상태를 TRUE(1)로 변경하게 되면 TIME_WAIT 상태에 있는 소켓에 할당된 IP주소와 포트를 새로 시작하는 소켓에 할당 해 줄 수 있게 된다.
+**	On success, a file descriptor for the new socket is returned.
+**	- - -
+**	int bind (int sockfd, const struct sockaddr * addr, socklen_t addrlen);
+**	int listen(int sockfd, int backlog);
 */
 bool
 Server::setServerSocket()
@@ -93,7 +99,7 @@ Server::setServerSocket()
 	{
 		perror("socket error");
 		return (false);
-	}  
+	}
     setsockopt(this->m_server_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
 	if (bind(
 			this->m_server_socket, 
@@ -103,8 +109,8 @@ Server::setServerSocket()
 	{
 		perror("bind error");
 		return (false);
-	}   
-	if (listen(this->m_server_socket, 5) == -1)
+	}
+	if (listen(this->m_server_socket, 10) == -1)
 	{
 		perror("listen error");
 		return (false);
@@ -112,6 +118,50 @@ Server::setServerSocket()
 	return (true);
 }
 
+/*
+**	int new_socket = accept (int sockfd, struct sockaddr * addr, socklen_t * addrlen);
+**	int select(int mafdl, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+**	- - -
+**	struct timeval {
+**		long tv_sec;  // 초
+**		long tv_usec; // 마이크로 초
+**	};
+**
+**	select (
+**		maxfd(점검할 fd 의 개수),
+**		*reafds(자료 읽기가 준비되었는지 확인할 fd 들),
+**		*writefds(쓰기 연산을 끝낼 수 있는지 확인할 fd 들),
+**		*exceptfds(예외가 발생했는지 확인할 fd 들),
+**		NULL || 0 || int
+**	)
+**
+**	maxfd에 1을 더하는 이유는 fd 번호가 0 부터 시작하기 때문이다.
+**	#include<sys/select.h> 에 가장 큰 fd 번호로 FD_SETSIZE 가 정의되어 있다. 
+**	보통 1024가 정의되어 있는데 이 값은 너무 크므로 최대 fd 번호에 1을 더한 값을 넘겨주는 것이 좋다. (성능 저하)
+**
+**	timeout === NULL: 무한정 기다린다. fd 중 하나가 준비되거나 신호가 잡힐 대까지 차단된다.
+**	timeout === 0: 전혀 기다리지 않는다. 차단 없이 fd 상태만 확인할 경우 쓰인다.
+**	timeout !== 0: 지정된 sec 나 usec 만큼 기다린다. fd 중 하나가 준비되거나 시간이 만료되면 반환된다.
+**
+**	return > 0: 준비된 fd 개수
+**	return === 0: 시간 만료, 이 경우 fd 세 집합 비트들은 모두 0이 되버린다.
+**	return === -1: 오류, 이 경우 fd 세 집합의 비트들은 모두 수정되지 않는다.
+**	- - - 
+**	FD_ZERO : 데이터가 변경된 파일의 개수 즉 fd_set에서 비트 값이 1인 필드의 개수를 반환
+**	FD_SET : 집합의 특정 비트를 켤 때 사용
+**	FD_CLR : 집합의 특정 비트를 끌 때 사용
+**	FD_ISSET : 특정 비트가 켜져 있는지 확인 할 경우 사용
+**	- - -
+**	int accept(int s, struct sockaddr *addr, socklen_t *addrlen);
+**	
+**	return > 0: 받아들인 소켓을 위한 파일지정번호 반환
+**	return === -1: 오류
+**	- - -
+**	ssize_t read(int fd, void *buf, size_t nbytes);
+**
+**	return > 0: 수신한 바이트 수
+**	return === -1: 오류
+*/
 void
 Server::runServer()
 {
@@ -121,27 +171,33 @@ Server::runServer()
 	this->maxfd = 0;
 	this->maxfd = this->m_server_socket;
 	memset(this->recvline, 0, MAXLINE);
-
+ 
 	while(1)
 	{
 		this->allfds = this->readfds;
 		printf("Select Wait %d\n", this->maxfd);
-		this->fd_num = select(
-						this->maxfd + 1 , 
-						&this->allfds, 
-						(fd_set *)0,
-						(fd_set *)0, 
-						NULL
-					);
+		this->fd_num = select(this->maxfd + 1 , &this->allfds, (fd_set *)0, (fd_set *)0, NULL);
+		if (this->fd_num == -1)
+		{
+			perror("select error");
+			return ;
+		}
+		else if (this->fd_num == 0)
+		{
+			return ;
+			perror("time out");
+		}
 
 		if (FD_ISSET(this->m_server_socket, &this->allfds))
 		{
-			this->addrlen = sizeof(this->m_client_addr);
+			socklen_t addrlen;
+			
+			addrlen = sizeof(this->m_client_addr);
 			this->m_client_socket = accept(
-					this->m_server_socket,
-					(struct sockaddr *)&this->m_client_addr, 
-					&this->addrlen
-				);
+				this->m_server_socket,
+				(struct sockaddr *)&this->m_client_addr, 
+				&addrlen
+			);
 
 			FD_SET(this->m_client_socket, &this->readfds);
 
@@ -156,10 +212,12 @@ Server::runServer()
 			this->sockfd = i;
 			if (FD_ISSET(this->sockfd, &this->allfds))
 			{
-                while ( (this->readn = read(this->sockfd, this->recvline, MAXLINE-1)) > 0)
+                while ((this->readn = read(this->sockfd, this->recvline, MAXLINE-1)) > 0)
                 {
+					/*
+					**	Request parsing 부분 시작
+					*/
                     fprintf(stdout, "\n%s\n\n%s", bin2hex(this->recvline, readn), this->recvline);
-                    // fprintf(stdout, "%s", this->recvline);
 
                     //hacky way to detect the end of the message.
                     if (this->recvline[readn-1] == '\n')
@@ -167,8 +225,17 @@ Server::runServer()
                         break;
                     }
                     memset(this->recvline, 0, MAXLINE);
+					/*
+					**	Request parsing 부분 끝
+					*/
                 }
+				/*
+				**	Response 부분 시작
+				*/
                 snprintf((char *)this->buff, sizeof(this->buff), "HTTP/1.0 200 OK\r\n\r\nHello");
+				/*
+				**	Response 부분 시작
+				*/
 				write(this->sockfd, this->buff, strlen((char *)this->buff));
                 close(this->sockfd);
 				if (--this->fd_num <= 0)

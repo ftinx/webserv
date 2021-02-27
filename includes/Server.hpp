@@ -16,11 +16,23 @@
 // #include "Request.hpp"
 // #include "utils.hpp"
 
-/* MAXLINE과 SOCK_SETSIZE size 설정 이유 찾기 */
 #define MAXLINE 1024 
 #define SOCK_SETSIZE 1021
-/* config 파일에서 지정될 변수들 추후 삭제 예정 */
 #define PORT 3601
+
+/*
+**  ** TODO
+**
+**  1. MAXLINE과 SOCK_SETSIZE size 설정 이유 찾기
+**  2. perror() => message 함수로 교체하기
+**  3. char *bin2hex 개조
+**
+**
+**  ** Config file 에서 반영해야하는 것들
+**
+**  1. listen(this->m_server_socket, 5) 의 연결 대기열 개수 => 임의로 5개 지정
+**  2. this->m_server_addr.sin_port = htons(PORT);의 PORT => 임의로 #define PORT 3601로 지정
+*/
 
 class Server
 {
@@ -28,7 +40,7 @@ class Server
         /* Socket */
         struct sockaddr_in m_server_addr;
         struct sockaddr_in m_client_addr;
-		socklen_t addrlen;
+		// socklen_t addrlen;
         int m_server_socket;
         int m_client_socket;
 		int fd_num;
@@ -52,7 +64,7 @@ class Server
     public:
         Server();
         ~Server();
-        void setServerAddr();
+        void setServerAddr(long host, int port);
         bool setServerSocket();
         void runServer();
         void closeServer();
