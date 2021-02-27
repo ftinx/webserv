@@ -2,7 +2,7 @@
 
 /*
 ** TODO: utils 함수 적용하기
-*/ 
+*/
 
 
 Server::Server(){};
@@ -15,7 +15,7 @@ char *bin2hex(const unsigned char *input, size_t len)
 
     if (input == NULL || len <= 0)
         return (NULL);
-    
+
     // (2 hexits+space)/chr + NULL
     int resultlength = (len*3)+1;
 
@@ -33,14 +33,14 @@ char *bin2hex(const unsigned char *input, size_t len)
 }
 
 /*
-**	struct sockaddr_in { 
-**		short sin_family;			// 주소 체계: 항상 AF_INET 
+**	struct sockaddr_in {
+**		short sin_family;			// 주소 체계: 항상 AF_INET
 **		u_short sin_port;			// 16 비트 포트 번호 (0~65535), network byte order (Big Endian)
-**		struct in_addr sin_addr;	// 32 비트 IP 주소 
+**		struct in_addr sin_addr;	// 32 비트 IP 주소
 **		char sin_zero[8];			// 전체 크기를 16 비트로 맞추기 위한 dummy, 반드시 모두 0으로 채워져야 한다.
 **	};
 **
-**	struct in_addr { 
+**	struct in_addr {
 **		u_long s_addr; // 32비트 IP 주소를 저장 할 구조체, network byte order (Big Endian)
 **	};
 **	- - -
@@ -49,7 +49,7 @@ char *bin2hex(const unsigned char *input, size_t len)
 **	ntohl(): long intger 데이터를 host byte order로 변경
 **	ntohs(): short intger 데이터를 host byte order로 변경
 */
-void 
+void
 Server::setServerAddr(long host, int port)
 {
 	(void) host;
@@ -64,7 +64,7 @@ Server::setServerAddr(long host, int port)
 **	socket (
 **		AF_INET || AF_INET6 || AF_UNIX || AF_LOCAL || AF_LINK || AF_PACKET,
 **		SOCK_STREAM(TCP) || SOCK_DGRAM(UDP) || SOCK_RAW,
-**		0(Default Value) || IPPROTO_TCP(TCP) || IPPROTO_UDP(UDP) 
+**		0(Default Value) || IPPROTO_TCP(TCP) || IPPROTO_UDP(UDP)
 **	)
 ** 	 - - -
 **	int getsockopt(int  s, int level, int optname, void *optval, socklen_t *optlen);
@@ -102,8 +102,8 @@ Server::setServerSocket()
 	}
     setsockopt(this->m_server_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
 	if (bind(
-			this->m_server_socket, 
-			(struct sockaddr *)&this->m_server_addr, 
+			this->m_server_socket,
+			(struct sockaddr *)&this->m_server_addr,
 			sizeof(this->m_server_addr)
 		) == -1)
 	{
@@ -136,7 +136,7 @@ Server::setServerSocket()
 **	)
 **
 **	maxfd에 1을 더하는 이유는 fd 번호가 0 부터 시작하기 때문이다.
-**	#include<sys/select.h> 에 가장 큰 fd 번호로 FD_SETSIZE 가 정의되어 있다. 
+**	#include<sys/select.h> 에 가장 큰 fd 번호로 FD_SETSIZE 가 정의되어 있다.
 **	보통 1024가 정의되어 있는데 이 값은 너무 크므로 최대 fd 번호에 1을 더한 값을 넘겨주는 것이 좋다. (성능 저하)
 **
 **	timeout === NULL: 무한정 기다린다. fd 중 하나가 준비되거나 신호가 잡힐 대까지 차단된다.
@@ -146,14 +146,14 @@ Server::setServerSocket()
 **	return > 0: 준비된 fd 개수
 **	return === 0: 시간 만료, 이 경우 fd 세 집합 비트들은 모두 0이 되버린다.
 **	return === -1: 오류, 이 경우 fd 세 집합의 비트들은 모두 수정되지 않는다.
-**	- - - 
+**	- - -
 **	FD_ZERO : 데이터가 변경된 파일의 개수 즉 fd_set에서 비트 값이 1인 필드의 개수를 반환
 **	FD_SET : 집합의 특정 비트를 켤 때 사용
 **	FD_CLR : 집합의 특정 비트를 끌 때 사용
 **	FD_ISSET : 특정 비트가 켜져 있는지 확인 할 경우 사용
 **	- - -
 **	int accept(int s, struct sockaddr *addr, socklen_t *addrlen);
-**	
+**
 **	return > 0: 받아들인 소켓을 위한 파일지정번호 반환
 **	return === -1: 오류
 **	- - -
@@ -171,7 +171,7 @@ Server::runServer()
 	this->maxfd = 0;
 	this->maxfd = this->m_server_socket;
 	memset(this->recvline, 0, MAXLINE);
- 
+
 	while(1)
 	{
 		this->allfds = this->readfds;
@@ -191,11 +191,11 @@ Server::runServer()
 		if (FD_ISSET(this->m_server_socket, &this->allfds))
 		{
 			socklen_t addrlen;
-			
+
 			addrlen = sizeof(this->m_client_addr);
 			this->m_client_socket = accept(
 				this->m_server_socket,
-				(struct sockaddr *)&this->m_client_addr, 
+				(struct sockaddr *)&this->m_client_addr,
 				&addrlen
 			);
 
@@ -232,12 +232,12 @@ Server::runServer()
 				/*
 				**	Response 부분 시작
 				*/
-                snprintf((char *)this->buff, sizeof(this->buff), "HTTP/1.0 200 OK\r\n\r\nHello");
+				snprintf((char *)this->buff, sizeof(this->buff), "HTTP/1.0 200 OK\r\n\r\nHello");
 				/*
-				**	Response 부분 시작
+				**	Response 부분 끝
 				*/
 				write(this->sockfd, this->buff, strlen((char *)this->buff));
-                close(this->sockfd);
+				close(this->sockfd);
 				if (--this->fd_num <= 0)
 					break;
 			}

@@ -25,7 +25,7 @@ class Response
 		void	setStatusDescription(std::string statusDescription);
 		void	addHeaders(std::string key, std::string value);
 		void	setHtmlDocument();
-		char*	makeResponseMessage();
+		std::string	makeResponseMessage();
 };
 
 #endif

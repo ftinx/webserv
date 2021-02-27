@@ -12,11 +12,11 @@
 #include <vector>
 #include <map>
 
-// #include "Response.hpp"
+#include "Response.hpp"
 // #include "Request.hpp"
 // #include "utils.hpp"
 
-#define MAXLINE 1024 
+#define MAXLINE 1024
 #define SOCK_SETSIZE 1021
 #define PORT 3601
 

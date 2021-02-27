@@ -103,12 +103,13 @@ void	Response::setHtmlDocument()
 #include <iostream>
 #include <algorithm>
 
-char*	Response::makeResponseMessage()
+std::string
+Response::makeResponseMessage()
 {
 	std::string httpResponse;
 	/* Concat status code */
 	// HTTP/1.1 200 OK
-	httpResponse += string("HTTP/1.1 200 OK");
+	httpResponse += std::string("HTTP/1.1 200 OK\n");
 
 	/* Concat Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
@@ -121,10 +122,16 @@ char*	Response::makeResponseMessage()
 	std::map<std::string, std::string>::iterator it;
 
 	for(it=m_headers.begin(); it!=m_headers.end(); ++it)
-		std::cout << it->first << ": " << it->second << std::endl;
+		httpResponse += std::string(it->first)
+			+ ": "
+			+ std::string(it->second)
+			+ std::string("\n");
 
+	httpResponse += std::string("\r\n\r\n");
 	/* Concat Body */
+	httpResponse += this->m_html_document;
 
 	/* Concat Message */
-	return 0;
+	// printf("%s", httpResponse.c_str());
+	return (httpResponse);
 }

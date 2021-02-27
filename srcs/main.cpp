@@ -4,16 +4,14 @@
 int
 main()
 {
-	// Server server = Server();
+	Server server = Server();
 
-	// server.setServerAddr();
-	// server.setServerSocket();
-	// server.runServer();
+	server.setServerAddr(1,2);
+	server.setServerSocket();
+	server.runServer();
 
-	Response response = Response();
+	// Response response = Response();
 	// response.setHtmlDocument();
-	// printf("%s", response.get_m_html_document().c_str());
-	response.makeResponseMessage();
-
+	// printf("%s", response.makeResponseMessage().c_str());
 	return (EXIT_SUCCESS);
 }
