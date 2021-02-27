@@ -81,24 +81,24 @@ Response::addHeaders(std::string key, std::string value)
 	return ;
 }
 
-// void	Response::setHtmlDocument()
-// {
-// 	std::string body;
+void	Response::setHtmlDocument()
+{
+	std::string body;
 
-// 	body += std::string("<!DOCTYPE html>")
-// 				+ std::string("<html lang=\"en\">")
-// 					+ std::string("<head>")
-// 						+ std::string("<title> Webserv </title>")
-// 					+ std::string("</head>")
-// 					+ std::string("<body>")
-// 						+ std::string("<p> Webserv by ftinx </p>")
-// 						+ std::string("<div>") + this->m_status_description + std::string("</div>")
-// 					+ std::string("</body>")
-// 				+ std::string("</html>");
+	body += std::string("<!DOCTYPE html>")
+				+ std::string("<html lang=\"en\">")
+					+ std::string("<head>")
+						+ std::string("<title> Webserv </title>")
+					+ std::string("</head>")
+					+ std::string("<body>")
+						+ std::string("<p> Webserv by ftinx </p>")
+						+ std::string("<div>") + this->m_status_description + std::string("</div>")
+					+ std::string("</body>")
+				+ std::string("</html>");
 
-// 	this->m_html_document = body;
-// 	return ;
-// }
+	this->m_html_document = body;
+	return ;
+}
 
 #include <iostream>
 #include <algorithm>
