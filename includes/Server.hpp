@@ -30,7 +30,7 @@
 **
 **  ** Config file 에서 반영해야하는 것들
 **
-**  1. listen(this->m_server_socket, 5) 의 연결 대기열 개수 => 임의로 5개 지정
+**  1. listen(this->m_server_socket, 5) 의 연결 대기열 개수 => 임의로 10개 지정
 **  2. this->m_server_addr.sin_port = htons(PORT);의 PORT => 임의로 #define PORT 3601로 지정
 */
 
