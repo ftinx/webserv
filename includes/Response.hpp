@@ -42,6 +42,7 @@ class Response
 		Response& setHtmlDocument();
 		void makeResponseMessage();
 
+		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
 		Response& setAttribute(htmlTag tag, std::string value);
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);

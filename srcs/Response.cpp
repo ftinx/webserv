@@ -166,8 +166,24 @@ Response::setHtmlDocument()
 	return (*this);
 }
 
-#include <iostream>
-#include <algorithm>
+std::string
+Response::httpResponseStartLine(std::string httpVersion, int statusCode)
+{
+	std::string startLine;
+
+	startLine += httpVersion + " ";
+	switch (statusCode)
+	{
+		case 200:
+			startLine += std::to_string(statusCode) + std::string(" OK\n");
+			break;
+		default:
+			perror("Undefined Status Code");
+			break;
+	}
+
+	return (startLine);
+}
 
 void
 Response::makeResponseMessage()
@@ -176,8 +192,9 @@ Response::makeResponseMessage()
 	int contentLength;
 	
 	contentLength = this->m_html_document.length();
-	/* Concat status code */
-	httpResponse += std::string("HTTP/1.1 200 OK\n");
+	/* Concat start line (http version, status code) */
+	httpResponse += httpResponseStartLine("HTTP/1.1", this->m_status_code);
+	// httpResponse += std::string("HTTP/1.1 200 OK\n");
 
 	/* Concat Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));

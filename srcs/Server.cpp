@@ -263,6 +263,7 @@ Server::sendResponse(int clientfd)
 	response.setAttribute(TITLE, "Webserv")
 		.setAttribute(P, "Webserv by ftinx")
 		.setAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
+		.setAttribute(DIV, "빠밤 빠밤")
 		.setHtmlDocument()
 		.makeResponseMessage();
 	
