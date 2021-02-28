@@ -50,13 +50,11 @@ char *bin2hex(const unsigned char *input, size_t len)
 **	ntohs(): short intger 데이터를 host byte order로 변경
 */
 void
-Server::setServerAddr(long host, int port)
+Server::setServerAddr(int port)
 {
-	(void) host;
-	(void) port;
 	memset((void *)&this->m_server_addr, 0x00, sizeof(this->m_server_addr));
 	this->m_server_addr.sin_family = AF_INET;
-	this->m_server_addr.sin_port = htons(PORT);
+	this->m_server_addr.sin_port = htons(port);
 	this->m_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 }
 
@@ -232,11 +230,10 @@ Server::runServer()
 				/*
 				**	Response 부분 시작
 				*/
-				snprintf((char *)this->buff, sizeof(this->buff), "HTTP/1.0 200 OK\r\n\r\nHello");
+				sendResponse(this->sockfd);
 				/*
 				**	Response 부분 끝
 				*/
-				write(this->sockfd, this->buff, strlen((char *)this->buff));
 				close(this->sockfd);
 				if (--this->fd_num <= 0)
 					break;
@@ -250,4 +247,27 @@ void
 Server::closeServer()
 {
 
+}
+
+/*
+**	ssize_t write(int fd, const void *buf, size_t count);
+**
+**	return > 0: the number of bytes written is returned.
+**	return === -1: error
+*/
+void 
+Server::sendResponse(int clientfd)
+{
+	(void) clientfd;
+	// uint8_t buff[MAXLINE+1];
+
+	// snprintf((char *)buff, sizeof(buff), "HTTP/1.0 200 OK\r\n\r\nHello");
+	// write(clientfd, buff, strlen((char *)buff));
+
+	Response response = Response();
+	response.setHtmlDocument();
+	response.makeResponseMessage();
+	// printf("%s", response.makeResponseMessage().c_str());
+	write(this->sockfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
+	return ;
 }

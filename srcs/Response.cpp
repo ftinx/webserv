@@ -11,7 +11,7 @@
 Response::Response()
 {
 	this->m_status_code = 200;
-	this->m_status_description = "we we we post";
+	this->m_status_description = "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!";
 }
 
 Response::Response(Response const &other)
@@ -46,6 +46,18 @@ std::string
 Response::get_m_html_document()
 {
 	return (this->m_html_document);
+}
+
+std::string 
+Response::get_m_reponse_message()
+{
+	return (this->m_response_message);
+}
+
+int 
+Response::get_m_response_size()
+{
+	return (this->m_response_size);
 }
 
 /*============================================================================*/
@@ -103,17 +115,16 @@ void	Response::setHtmlDocument()
 #include <iostream>
 #include <algorithm>
 
-std::string
+void
 Response::makeResponseMessage()
 {
 	std::string httpResponse;
 	/* Concat status code */
-	// HTTP/1.1 200 OK
 	httpResponse += std::string("HTTP/1.1 200 OK\n");
 
 	/* Concat Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
-	this->m_headers.insert(std::make_pair("content-length", "0"));
+	this->m_headers.insert(std::make_pair("content-length", "139"));
 	this->m_headers.insert(std::make_pair("content-language", std::to_string(this->m_status_code)));
 	this->m_headers.insert(std::make_pair("content-type", "text/html; charset=UTF-8"));
 	this->m_headers.insert(std::make_pair("status", "200"));
@@ -132,6 +143,8 @@ Response::makeResponseMessage()
 	httpResponse += this->m_html_document;
 
 	/* Concat Message */
-	// printf("%s", httpResponse.c_str());
-	return (httpResponse);
+	this->m_response_message = httpResponse;
+	this->m_response_size = httpResponse.length();
+
+	return ;
 }
