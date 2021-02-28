@@ -42,7 +42,11 @@ class Response
 		Response& setHtmlDocument();
 		void makeResponseMessage();
 
+		/* HTML Response Util */
 		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
+		std::string setCRLF();
+
+		/* HTML Document Util */
 		Response& setAttribute(htmlTag tag, std::string value);
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);

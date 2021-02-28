@@ -185,6 +185,12 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 	return (startLine);
 }
 
+std::string
+	Response::setCRLF()
+{
+	return (std::string("\r\n"));
+}
+
 void
 Response::makeResponseMessage()
 {
@@ -194,7 +200,6 @@ Response::makeResponseMessage()
 	contentLength = this->m_html_document.length();
 	/* Concat start line (http version, status code) */
 	httpResponse += httpResponseStartLine("HTTP/1.1", this->m_status_code);
-	// httpResponse += std::string("HTTP/1.1 200 OK\n");
 
 	/* Concat Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
@@ -212,7 +217,7 @@ Response::makeResponseMessage()
 			+ std::string(it->second)
 			+ std::string("\n");
 
-	httpResponse += std::string("\r\n\r\n");
+	httpResponse += setCRLF() + setCRLF();
 	/* Concat Body */
 	httpResponse += this->m_html_document;
 
