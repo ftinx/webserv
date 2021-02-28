@@ -208,11 +208,11 @@ Response::httpResponseHeader()
 void
 Response::makeResponseMessage()
 {
-	std::string httpResponse;
 	int contentLength;
 	
 	contentLength = this->m_html_document.length();
-	/* Concat Header */
+
+	/* Set Temp Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
 	this->m_headers.insert(std::make_pair("content-length", std::to_string(contentLength)));
 	this->m_headers.insert(std::make_pair("content-language", std::to_string(this->m_status_code)));
@@ -220,15 +220,14 @@ Response::makeResponseMessage()
 	this->m_headers.insert(std::make_pair("status", "200"));
 	this->m_headers.insert(std::make_pair("server", "ftnix"));
 
-	/* Concat start line (http version, status code) */
-	httpResponse += httpResponseStartLine("HTTP/1.1", this->m_status_code);
-	httpResponse += httpResponseHeader();
-	httpResponse += setCRLF() + setCRLF();
-	httpResponse += this->m_html_document;
+	/* Concat HTTP Response  */
+	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
+		+ httpResponseHeader()
+		+ setCRLF() + setCRLF()
+		+ this->m_html_document;
 
-	/* Concat Message */
-	this->m_response_message = httpResponse;
-	this->m_response_size = httpResponse.length();
+	/* Set Response Config */
+	this->m_response_size = this->m_response_message.length();
 
 	return ;
 }
