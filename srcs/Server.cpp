@@ -259,9 +259,15 @@ void
 Server::sendResponse(int clientfd)
 {
 	Response response = Response();
-	response.setHtmlDocument();
-	response.makeResponseMessage();
+
+	response.setAttribute(TITLE, "Webserv")
+		.setAttribute(P, "Webserv by ftinx")
+		.setAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
+		.setHtmlDocument()
+		.makeResponseMessage();
 	
+	printf("%s\n", response.get_m_reponse_message().c_str());
+
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;
 }

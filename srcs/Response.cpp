@@ -10,8 +10,10 @@
 
 Response::Response()
 {
+	this->m_body = "";
+	this->m_head = "";
 	this->m_status_code = 200;
-	this->m_status_description = "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!";
+	this->m_status_description = "";
 }
 
 Response::Response(Response const &other)
@@ -60,6 +62,12 @@ Response::get_m_response_size()
 	return (this->m_response_size);
 }
 
+std::string 
+Response::get_m_body()
+{
+	return (this->m_body);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -93,23 +101,69 @@ Response::addHeaders(std::string key, std::string value)
 	return ;
 }
 
-void	Response::setHtmlDocument()
+void
+Response::setTitleTag(std::string value)
+{
+	this->m_head += std::string("<title>") 
+		+ value
+		+ std::string("</title>");
+}
+
+void
+Response::setPTag(std::string value)
+{
+	this->m_body += std::string("<p>") 
+		+ value
+		+ std::string("</p>");
+}
+
+void
+Response::setDivTag(std::string value)
+{
+	this->m_body += std::string("<div>") 
+		+ value
+		+ std::string("</div>");
+	return ;
+}
+
+Response &
+Response::setAttribute(htmlTag tag, std::string value)
+{
+	switch (tag)
+	{
+		case TITLE:
+			setTitleTag(value);
+			break;
+		case P:
+			setPTag(value);
+			break;
+		case DIV:
+			setDivTag(value);
+			break;
+		default:
+			perror("Undefined HTML Element");
+			break;
+	}
+	return (*this);
+}
+
+Response &	
+Response::setHtmlDocument()
 {
 	std::string body;
 
 	body += std::string("<!DOCTYPE html>")
 				+ std::string("<html lang=\"en\">")
 					+ std::string("<head>")
-						+ std::string("<title> Webserv </title>")
+						+ this->m_head
 					+ std::string("</head>")
 					+ std::string("<body>")
-						+ std::string("<p> Webserv by ftinx </p>")
-						+ std::string("<div>") + this->m_status_description + std::string("</div>")
+						+ this->m_body
 					+ std::string("</body>")
 				+ std::string("</html>");
 
 	this->m_html_document = body;
-	return ;
+	return (*this);
 }
 
 #include <iostream>
@@ -119,12 +173,15 @@ void
 Response::makeResponseMessage()
 {
 	std::string httpResponse;
+	int contentLength;
+	
+	contentLength = this->m_html_document.length();
 	/* Concat status code */
 	httpResponse += std::string("HTTP/1.1 200 OK\n");
 
 	/* Concat Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
-	this->m_headers.insert(std::make_pair("content-length", "139"));
+	this->m_headers.insert(std::make_pair("content-length", std::to_string(contentLength)));
 	this->m_headers.insert(std::make_pair("content-language", std::to_string(this->m_status_code)));
 	this->m_headers.insert(std::make_pair("content-type", "text/html; charset=UTF-8"));
 	this->m_headers.insert(std::make_pair("status", "200"));

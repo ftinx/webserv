@@ -4,6 +4,13 @@
 #include <string>
 #include <map>
 
+enum htmlTag 
+{
+	TITLE,
+	P,
+	DIV
+};
+
 class Response
 {
 	private:
@@ -11,6 +18,8 @@ class Response
 		std::string m_status_description;
 		std::map<std::string, std::string> m_headers;
 		std::string m_html_document;
+		std::string m_body;
+		std::string m_head;
 		
 		std::string m_response_message;
 		int m_response_size;
@@ -24,13 +33,19 @@ class Response
 		std::string get_m_html_document();
 		std::string get_m_reponse_message();
 		int get_m_response_size();
+		std::string get_m_body();
 
-		bool	parseCgiResponse(std::string&);
-		void	setStatusCode(int statusCode);
-		void	setStatusDescription(std::string statusDescription);
-		void	addHeaders(std::string key, std::string value);
-		void	setHtmlDocument();
-		void	makeResponseMessage();
+		bool parseCgiResponse(std::string&);
+		void setStatusCode(int statusCode);
+		void setStatusDescription(std::string statusDescription);
+		void addHeaders(std::string key, std::string value);
+		Response& setHtmlDocument();
+		void makeResponseMessage();
+
+		Response& setAttribute(htmlTag tag, std::string value);
+		void setTitleTag(std::string value);
+		void setPTag(std::string value);
+		void setDivTag(std::string value);
 };
 
 #endif
