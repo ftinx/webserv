@@ -44,6 +44,7 @@ class Response
 
 		/* HTML Response Util */
 		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
+		std::string httpResponseHeader();
 		std::string setCRLF();
 
 		/* HTML Document Util */

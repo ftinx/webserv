@@ -186,9 +186,23 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 }
 
 std::string
-	Response::setCRLF()
+Response::setCRLF()
 {
 	return (std::string("\r\n"));
+}
+
+std::string
+Response::httpResponseHeader()
+{
+	std::string header;
+	std::map<std::string, std::string>::iterator it;
+
+	for (it = this->m_headers.begin(); it != this->m_headers.end(); ++it)
+		header += std::string(it->first)
+			+ ": "
+			+ std::string(it->second)
+			+ std::string("\n");
+	return (header);
 }
 
 void
@@ -198,9 +212,6 @@ Response::makeResponseMessage()
 	int contentLength;
 	
 	contentLength = this->m_html_document.length();
-	/* Concat start line (http version, status code) */
-	httpResponse += httpResponseStartLine("HTTP/1.1", this->m_status_code);
-
 	/* Concat Header */
 	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
 	this->m_headers.insert(std::make_pair("content-length", std::to_string(contentLength)));
@@ -209,16 +220,10 @@ Response::makeResponseMessage()
 	this->m_headers.insert(std::make_pair("status", "200"));
 	this->m_headers.insert(std::make_pair("server", "ftnix"));
 
-	std::map<std::string, std::string>::iterator it;
-
-	for(it=m_headers.begin(); it!=m_headers.end(); ++it)
-		httpResponse += std::string(it->first)
-			+ ": "
-			+ std::string(it->second)
-			+ std::string("\n");
-
+	/* Concat start line (http version, status code) */
+	httpResponse += httpResponseStartLine("HTTP/1.1", this->m_status_code);
+	httpResponse += httpResponseHeader();
 	httpResponse += setCRLF() + setCRLF();
-	/* Concat Body */
 	httpResponse += this->m_html_document;
 
 	/* Concat Message */
