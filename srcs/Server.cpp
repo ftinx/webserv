@@ -258,16 +258,10 @@ Server::closeServer()
 void 
 Server::sendResponse(int clientfd)
 {
-	(void) clientfd;
-	// uint8_t buff[MAXLINE+1];
-
-	// snprintf((char *)buff, sizeof(buff), "HTTP/1.0 200 OK\r\n\r\nHello");
-	// write(clientfd, buff, strlen((char *)buff));
-
 	Response response = Response();
 	response.setHtmlDocument();
 	response.makeResponseMessage();
-	// printf("%s", response.makeResponseMessage().c_str());
-	write(this->sockfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
+	
+	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;
 }
