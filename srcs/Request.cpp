@@ -227,7 +227,6 @@ Request::checkBlankLine(std::string str)
 {
     if (str.empty())
     {
-        std::cout << "caught blank line\n" << std::endl;
         return (true);
     }
     return (false);
