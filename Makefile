@@ -13,6 +13,9 @@ DIR_SRC =		./srcs/
 SRC =	main.cpp \
 		Server.cpp \
 		Response.cpp \
+		Request.cpp \
+		Uri.cpp \
+		Utils.cpp \
 
 SRCS = $(addprefix $(DIR_SRC), $(SRC))
 OBJS = $(SRCS:%.cpp=%.o)
