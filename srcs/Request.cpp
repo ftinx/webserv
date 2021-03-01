@@ -144,7 +144,7 @@ Request::parseRequestLine(std::string request_line)
 
     if (pieces.size() != 3)
     {
-        m_error_code = 400;
+        this->m_error_code = 400;
         return (false);
     }
     this->m_method = pieces[0];
