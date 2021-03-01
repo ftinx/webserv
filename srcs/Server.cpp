@@ -314,12 +314,13 @@ Server::sendResponse(int clientfd)
 		.setAttribute(DIV, "빠밤 빠밤")
 		.setHtmlDocument()
 		.setStatusCode(200)
-		.setHttpResponseHeader("date", "Sat, 27 Feb 2021 12:01:27 GMT")
+		.setCurrentDate()
+		.setHttpResponseHeader("date", response.get_m_date())
 		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-		.setHttpResponseHeader("content-language", "ko, en")
+		.setHttpResponseHeader("content-language", response.get_m_content_language())
 		.setHttpResponseHeader("content-type", "text/html; charset=UTF-8")
 		.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-		.setHttpResponseHeader("server", "ftnix")
+		.setHttpResponseHeader("server", "ftnix/1.0 (MacOS)")
 		.makeHttpResponseMessage();
 
 	printf("%s\n", response.get_m_reponse_message().c_str());

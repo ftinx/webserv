@@ -13,6 +13,7 @@ Response::Response()
 	this->m_body = "";
 	this->m_head = "";
 	this->m_status_code = 200;
+	this->m_content_language = "ko, en";
 	this->m_status_description = "";
 }
 
@@ -80,6 +81,18 @@ int
 Response::get_m_content_length()
 {
 	return (this->m_content_length);
+}
+
+std::string
+Response::get_m_date()
+{
+	return (this->m_date);
+}
+
+std::string
+Response::get_m_content_language()
+{
+	return (this->m_content_language);
 }
 
 /*============================================================================*/
@@ -242,5 +255,56 @@ Response::makeHttpResponseMessage()
 	/* Set Response Config */
 	this->m_response_size = this->m_response_message.length();
 
+	return (*this);
+}
+
+/*
+**	gettimeofday()은 time(2)와 매우 비슷하지만 마이크로초 단위의 시간 까지 되돌려준다.
+**	현재는 time(2)를 대신해서 쓰이고 있으며, 가능한 time(2)대신 이 함수를 사용하는 걸 권장한다.
+**
+**	int gettimeofday(struct timeval *tv, struct timezone *tz);
+**
+**	<< tv >>
+**	struct timeval
+**	{
+**		long tv_sec;		// 초
+**		long tv_usec;		// 마이크로초
+**	}
+**
+**	<< tz >>
+**	struct timezone
+**	{
+**		int tz_minuteswest;	// 그리니치 서측분차
+**		int tz_dsttime;		// DST 보정타입(일광 절약시간)
+**	}
+**	현재 timezone 구조체는 사용되지 않고 있으며, 앞으로도 지원되지 않을 것이다.
+**	간혹 커널 소스등에서 이 필드가 사용되는 경우가 있는데, 모든 경우에 버그로 판단되어서 무시한다.
+**	tz은 NULL을 사용하도록 한다.
+**
+**	return === 0: success
+**	return === -1: fail
+**
+**	시간 구조체 함수 관계 참고: https://venture21.tistory.com/22
+*/
+#include <sys/time.h>
+
+std::string
+Response::getDate()
+{
+	struct timeval currentTime;
+	struct tm *tm;
+	char buf[64];
+
+	gettimeofday(&currentTime, NULL);
+	tm = localtime(&currentTime.tv_sec);
+	strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", tm);
+	free(tm);
+	return (buf);
+}
+
+Response&
+Response::setCurrentDate()
+{
+	this->m_date = getDate();
 	return (*this);
 }

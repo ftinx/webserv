@@ -15,6 +15,8 @@ class Response
 {
 	private:
 		int m_status_code;
+		std::string m_date;
+		std::string m_content_language;
 		std::string m_status_description;
 
 		/* HTML document */
@@ -41,16 +43,18 @@ class Response
 		int get_m_response_size();
 		std::string get_m_body();
 		int get_m_content_length();
+		std::string get_m_date();
+		std::string get_m_content_language();
 
 		/* setter */
 		void set_m_status_code(int statusCode);
 		void set_m_status_description(std::string statusDescription);
 
+		/* CGI */
 		bool parseCgiResponse(std::string&);
-		Response& setHtmlDocument();
-		Response& makeHttpResponseMessage();
 
 		/* HTTP Response Util */
+		Response& makeHttpResponseMessage();
 		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
 		std::string httpResponseHeader();
 		std::string setCRLF();
@@ -58,10 +62,15 @@ class Response
 		Response& setStatusCode(int statusCode);
 
 		/* HTML Document Util */
+		Response& setHtmlDocument();
 		Response& setAttribute(htmlTag tag, std::string value);
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);
 		void setDivTag(std::string value);
+
+		/* util */
+		std::string getDate();
+		Response& setCurrentDate();
 };
 
 #endif
