@@ -318,7 +318,7 @@ Server::sendResponse(int clientfd)
 		.setHttpResponseHeader("date", response.get_m_date())
 		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 		.setHttpResponseHeader("content-language", response.get_m_content_language())
-		.setHttpResponseHeader("content-type", "text/html; charset=UTF-8")
+		.setHttpResponseHeader("content-type", response.get_m_content_type())
 		.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 		.setHttpResponseHeader("server", "ftnix/1.0 (MacOS)")
 		.makeHttpResponseMessage();

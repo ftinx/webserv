@@ -17,6 +17,8 @@ class Response
 		int m_status_code;
 		std::string m_date;
 		std::string m_content_language;
+		std::string m_content_type;
+		std::string m_server;
 		std::string m_status_description;
 
 		/* HTML document */
@@ -45,6 +47,8 @@ class Response
 		int get_m_content_length();
 		std::string get_m_date();
 		std::string get_m_content_language();
+		std::string get_m_content_type();
+		std::string get_m_server();
 
 		/* setter */
 		void set_m_status_code(int statusCode);

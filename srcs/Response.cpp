@@ -14,6 +14,8 @@ Response::Response()
 	this->m_head = "";
 	this->m_status_code = 200;
 	this->m_content_language = "ko, en";
+	this->m_content_type = "text/html; charset=UTF-8";
+	this->m_server = "ftnix/1.0 (MacOS)";
 	this->m_status_description = "";
 }
 
@@ -93,6 +95,18 @@ std::string
 Response::get_m_content_language()
 {
 	return (this->m_content_language);
+}
+
+std::string
+Response::get_m_content_type()
+{
+	return (this->m_content_type);
+}
+
+std::string
+Response::get_m_server()
+{
+	return (this->m_server);
 }
 
 /*============================================================================*/
