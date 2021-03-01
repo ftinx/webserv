@@ -40,16 +40,16 @@ class Response
 		Response& operator=(Response const &rhs);
 
 		/* getter */
-		int get_m_status_code();
-		std::string get_m_html_document();
-		std::string get_m_reponse_message();
-		int get_m_response_size();
-		std::string get_m_body();
-		int get_m_content_length();
-		std::string get_m_date();
-		std::string get_m_content_language();
-		std::string get_m_content_type();
-		std::string get_m_server();
+		int get_m_status_code() const;
+		std::string get_m_html_document() const;
+		std::string get_m_reponse_message() const;
+		int get_m_response_size() const;
+		std::string get_m_body() const;
+		int get_m_content_length() const;
+		std::string get_m_date() const;
+		std::string get_m_content_language() const;
+		std::string get_m_content_type() const;
+		std::string get_m_server() const;
 
 		/* setter */
 		void set_m_status_code(int statusCode);

@@ -50,61 +50,61 @@ Response::~Response()
 /*============================================================================*/
 
 int
-Response::get_m_status_code()
+Response::get_m_status_code() const
 {
 	return (this->m_status_code);
 }
 
 std::string
-Response::get_m_html_document()
+Response::get_m_html_document() const
 {
 	return (this->m_html_document);
 }
 
 std::string
-Response::get_m_reponse_message()
+Response::get_m_reponse_message() const
 {
 	return (this->m_response_message);
 }
 
 int
-Response::get_m_response_size()
+Response::get_m_response_size() const
 {
 	return (this->m_response_size);
 }
 
 std::string
-Response::get_m_body()
+Response::get_m_body() const
 {
 	return (this->m_body);
 }
 
 int
-Response::get_m_content_length()
+Response::get_m_content_length() const
 {
 	return (this->m_content_length);
 }
 
 std::string
-Response::get_m_date()
+Response::get_m_date() const
 {
 	return (this->m_date);
 }
 
 std::string
-Response::get_m_content_language()
+Response::get_m_content_language() const
 {
 	return (this->m_content_language);
 }
 
 std::string
-Response::get_m_content_type()
+Response::get_m_content_type() const
 {
 	return (this->m_content_type);
 }
 
 std::string
-Response::get_m_server()
+Response::get_m_server() const
 {
 	return (this->m_server);
 }
