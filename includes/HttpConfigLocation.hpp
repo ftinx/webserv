@@ -13,7 +13,7 @@ enum Method
 	DELETE,
 	OPTIONS,
 	TRACE
-}
+};
 
 class HttpConfigLocation
 {
@@ -30,8 +30,8 @@ class HttpConfigLocation
 		HttpConfigLocation(HttpConfigLocation const &other);
 		HttpConfigLocation& operator=(HttpConfigLocation const &rhs);
 	public:
-		bool	checkStartLocation(string);
-		bool	checkValidHttpConfigLocation();
+		bool checkStartLocation(std::string);
+		bool checkValidHttpConfigLocation();
 };
 
 #endif
