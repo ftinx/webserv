@@ -270,7 +270,7 @@ Server::closeServer()
 
 // Response &
 // Server::methodPOST()
-// {	
+// {
 // 	return ;
 // }
 
@@ -301,7 +301,7 @@ Server::closeServer()
 **	return > 0: the number of bytes written is returned.
 **	return === -1: error
 */
-void 
+void
 Server::sendResponse(int clientfd)
 {
 	Response response = Response();
@@ -315,12 +315,12 @@ Server::sendResponse(int clientfd)
 		.setHtmlDocument()
 		.setHttpResponseHeader("date", "Sat, 27 Feb 2021 12:01:27 GMT")
 		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-		.setHttpResponseHeader("content-language", "ko")
+		.setHttpResponseHeader("content-language", "ko, en")
 		.setHttpResponseHeader("content-type", "text/html; charset=UTF-8")
 		.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 		.setHttpResponseHeader("server", "ftnix")
 		.makeHttpResponseMessage();
-	
+
 	printf("%s\n", response.get_m_reponse_message().c_str());
 
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());

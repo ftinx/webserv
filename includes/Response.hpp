@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-enum htmlTag 
+enum htmlTag
 {
 	TITLE,
 	P,
@@ -23,7 +23,7 @@ class Response
 		std::string m_body;
 		std::string m_head;
 		int m_content_length;
-		
+
 		/* response message */
 		std::string m_response_message;
 		int m_response_size;
@@ -42,9 +42,11 @@ class Response
 		std::string get_m_body();
 		int get_m_content_length();
 
+		/* setter */
+		void set_m_status_code(int statusCode);
+		void set_m_status_description(std::string statusDescription);
+
 		bool parseCgiResponse(std::string&);
-		void setStatusCode(int statusCode);
-		void setStatusDescription(std::string statusDescription);
 		Response& setHtmlDocument();
 		Response& makeHttpResponseMessage();
 

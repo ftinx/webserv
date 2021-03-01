@@ -46,7 +46,7 @@ Response::~Response()
 /********************************  Getter  ************************************/
 /*============================================================================*/
 
-int 
+int
 Response::get_m_status_code()
 {
 	return (this->m_status_code);
@@ -58,25 +58,25 @@ Response::get_m_html_document()
 	return (this->m_html_document);
 }
 
-std::string 
+std::string
 Response::get_m_reponse_message()
 {
 	return (this->m_response_message);
 }
 
-int 
+int
 Response::get_m_response_size()
 {
 	return (this->m_response_size);
 }
 
-std::string 
+std::string
 Response::get_m_body()
 {
 	return (this->m_body);
 }
 
-int 
+int
 Response::get_m_content_length()
 {
 	return (this->m_content_length);
@@ -85,6 +85,20 @@ Response::get_m_content_length()
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
+
+void
+Response::set_m_status_code(int statusCode)
+{
+	this->m_status_code = statusCode;
+	return ;
+}
+
+void
+Response::set_m_status_description(std::string statusDescription)
+{
+	this->m_status_description = statusDescription;
+	return ;
+}
 
 /*============================================================================*/
 /******************************  Exception  ***********************************/
@@ -95,23 +109,9 @@ Response::get_m_content_length()
 /*============================================================================*/
 
 void
-Response::setStatusCode(int statusCode)
-{
-	this->m_status_code = statusCode;
-	return ;
-}
-
-void
-Response::setStatusDescription(std::string statusDescription)
-{
-	this->m_status_description = statusDescription;
-	return ;
-}
-
-void
 Response::setTitleTag(std::string value)
 {
-	this->m_head += std::string("<title>") 
+	this->m_head += std::string("<title>")
 		+ value
 		+ std::string("</title>");
 }
@@ -119,7 +119,7 @@ Response::setTitleTag(std::string value)
 void
 Response::setPTag(std::string value)
 {
-	this->m_body += std::string("<p>") 
+	this->m_body += std::string("<p>")
 		+ value
 		+ std::string("</p>");
 }
@@ -127,7 +127,7 @@ Response::setPTag(std::string value)
 void
 Response::setDivTag(std::string value)
 {
-	this->m_body += std::string("<div>") 
+	this->m_body += std::string("<div>")
 		+ value
 		+ std::string("</div>");
 	return ;
@@ -154,7 +154,7 @@ Response::setAttribute(htmlTag tag, std::string value)
 	return (*this);
 }
 
-Response &	
+Response &
 Response::setHtmlDocument()
 {
 	std::string body;
