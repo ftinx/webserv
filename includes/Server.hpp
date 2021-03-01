@@ -12,24 +12,13 @@
 #include <vector>
 #include <map>
 
-#include "Response.hpp"
+// #include "Response.hpp"
 // #include "Request.hpp"
 // #include "utils.hpp"
 
-#define MAXLINE 1024
+#define MAXLINE 1024 
 #define SOCK_SETSIZE 1021
-
-enum Method
-{
-	HEAD,
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    OPTIONS,
-    TRACE
-};
-
+#define PORT 3601
 
 /*
 **  ** TODO
@@ -58,6 +47,7 @@ class Server
 		int sockfd;
 		int readn;
 		int maxfd;
+		uint8_t buff[MAXLINE+1];
 		uint8_t recvline[MAXLINE+1];
     	fd_set readfds, allfds;
 
@@ -74,22 +64,10 @@ class Server
     public:
         Server();
         ~Server();
-
-        void setServerAddr(int port);
+        void setServerAddr(long host, int port);
         bool setServerSocket();
         void runServer();
         void closeServer();
-
-        void sendResponse(int clientfd);
-
-        /* METHOD */
-        Response& methodHEAD();
-        Response& methodGET();
-        Response& methodPOST();
-        Response& methodPUT();
-        Response& methodDELETE();
-        Response& methodOPTIONS();
-        Response& methodTRACE();
 };
 
 #endif
