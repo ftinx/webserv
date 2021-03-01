@@ -65,6 +65,14 @@ memset(void *str, int c, size_t n)
 	return (str);
 }
 
+bool
+checkBlankLine(std::string str)
+{
+	if (str.empty())
+		return (true);
+	return (false);
+}
+
 std::string
 ltrim(std::string str, std::string set)
 {
@@ -229,5 +237,20 @@ iNetNtoA(unsigned int addr)
 // {
 
 // }
+
+std::string
+getDateTimestamp()
+{
+	struct timeval currentTime;
+	struct tm *tm;
+	char buf[64];
+
+	gettimeofday(&currentTime, NULL);
+	tm = localtime(&currentTime.tv_sec);
+	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm);
+	free(tm);
+	return (buf);
+}
+
 
 }

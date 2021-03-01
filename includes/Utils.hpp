@@ -6,7 +6,7 @@
 # include <algorithm>
 # include <vector>
 # include <sys/socket.h>
-# include <time.h>
+# include <sys/time.h>
 
 namespace ft
 {
@@ -19,6 +19,7 @@ namespace ft
 	void* memset(void *str, int c, size_t n);
 
 	/* LIBFT C++ */
+	bool checkBlankLine(std::string str);
 	std::string ltrim(std::string str, std::string set);
 	std::string rtrim(std::string str, std::string set);
 	std::string trim(std::string str, std::string set);
