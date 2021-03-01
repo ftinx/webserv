@@ -25,8 +25,9 @@ std::string fileToString(std::string file_path)
 int
 main()
 {
-	// Server server = Server();
+	Server server = Server();
 
+	server.init();
 	server.setServerAddr(3601);
 	server.setServerSocket();
 	server.runServer();

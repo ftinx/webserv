@@ -32,6 +32,15 @@ char *bin2hex(const unsigned char *input, size_t len)
     return result;
 }
 
+
+void
+Server::init()
+{
+	this->m_requests = std::vector<Request>(SOCK_SETSIZE);
+	this->m_responses = std::vector<Response>(SOCK_SETSIZE);
+}
+
+
 /*
 **	struct sockaddr_in {
 **		short sin_family;			// 주소 체계: 항상 AF_INET
@@ -210,23 +219,21 @@ Server::runServer()
 			this->sockfd = i;
 			if (FD_ISSET(this->sockfd, &this->allfds))
 			{
+				/*
+				** Request Message 수신
+				*/ 
                 while ((this->readn = read(this->sockfd, this->recvline, MAXLINE-1)) > 0)
                 {
-					/*
-					**	Request parsing 부분 시작
-					*/
-                    fprintf(stdout, "\n%s\n\n%s", bin2hex(this->recvline, readn), this->recvline);
-
-                    //hacky way to detect the end of the message.
                     if (this->recvline[readn-1] == '\n')
                     {
                         break;
                     }
                     memset(this->recvline, 0, MAXLINE);
-					/*
-					**	Request parsing 부분 끝
-					*/
                 }
+				/*
+				** Request Message 파싱 
+				*/
+
 				/*
 				**	Response 부분 시작
 				*/

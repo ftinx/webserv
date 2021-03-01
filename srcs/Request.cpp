@@ -6,8 +6,8 @@
 /*============================================================================*/
 
 Request::Request()
-: m_http_version(""), m_cgi_version(""), m_check_cgi(false),
-m_method(""), m_body(""), m_error_code(0)
+: m_request_message(""), m_http_version(""), m_cgi_version(""),
+m_check_cgi(false), m_method(""), m_body(""), m_error_code(0)
 {
 }
 
@@ -44,19 +44,6 @@ Uri
 Request::get_m_uri() const
 {
     return (this->m_uri);
-}
-
-void
-Request::printHeaders() const
-{
-    std::map<std::string, std::string> m;
-    std::map<std::string, std::string>::iterator i;
-    std::vector<std::string> ret;
-
-    for (i = m.begin(); i != m.end(); i++)
-    {
-        std::cout << i->first << ": " << i->second << std::endl;
-    }
 }
 
 std::string
@@ -227,6 +214,19 @@ Request::checkBlankLine(std::string str)
         return (true);
     }
     return (false);
+}
+
+void
+Request::printHeaders() const
+{
+    std::map<std::string, std::string> m;
+    std::map<std::string, std::string>::iterator i;
+    std::vector<std::string> ret;
+
+    for (i = m.begin(); i != m.end(); i++)
+    {
+        std::cout << i->first << ": " << i->second << std::endl;
+    }
 }
 
 std::ostream& operator<<(std::ostream &os, Request const& ref)

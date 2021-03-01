@@ -13,7 +13,7 @@
 #include <map>
 
 #include "Response.hpp"
-// #include "Request.hpp"
+#include "Request.hpp"
 // #include "utils.hpp"
 
 #define MAXLINE 1024
@@ -22,12 +22,12 @@
 enum Method
 {
 	HEAD,
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    OPTIONS,
-    TRACE
+	GET,
+	POST,
+	PUT,
+	DELETE,
+	OPTIONS,
+	TRACE
 };
 
 
@@ -47,49 +47,52 @@ enum Method
 
 class Server
 {
-    private:
-        /* Socket */
-        struct sockaddr_in m_server_addr;
-        struct sockaddr_in m_client_addr;
+	private:
+		/* Socket */
+		struct sockaddr_in m_server_addr;
+		struct sockaddr_in m_client_addr;
 		// socklen_t addrlen;
-        int m_server_socket;
-        int m_client_socket;
+		std::vector<Request> m_requests;
+		std::vector<Response> m_responses;
+		int m_server_socket;
+		int m_client_socket;
 		int fd_num;
 		int sockfd;
 		int readn;
 		int maxfd;
 		uint8_t recvline[MAXLINE+1];
-    	fd_set readfds, allfds;
+		fd_set readfds, allfds;
 
-        /* Request, Response */
-        // std::vector<Request> m_request;
-        // std::vector<Response> m_response;
-        // std::map<std::string, std::string> m_chunked_message;
+		/* Request, Response */
+		// std::vector<Request> m_request;
+		// std::vector<Response> m_response;
+		// std::map<std::string, std::string> m_chunked_message;
 
-    /* 우선 실험을 위해 private에서 public으로 변경 */
-    public:
-        Server(Server const &other);
-        Server& operator=(Server const &ref);
+	/* 우선 실험을 위해 private에서 public으로 변경 */
+	public:
+		Server(Server const &other);
+		Server& operator=(Server const &ref);
 
-    public:
-        Server();
-        ~Server();
+	public:
+		Server();
+		~Server();
 
-        void setServerAddr(int port);
-        bool setServerSocket();
-        void runServer();
-        void closeServer();
+		void init();
+		void setServerAddr(int port);
+		bool setServerSocket();
+		void runServer();
+		void closeServer();
 
-        void sendResponse(int clientfd);
+		void sendResponse(int clientfd);
 
-        /* METHOD */
-        Response& methodHEAD();
-        Response& methodGET();
-        Response& methodPOST();
-        Response& methodPUT();
-        Response& methodDELETE();
-        Response& methodOPTIONS();
-        Response& methodTRACE();
+		/* METHOD */
+		Response& methodHEAD();
+		Response& methodGET();
+		Response& methodPOST();
+		Response& methodPUT();
+		Response& methodDELETE();
+		Response& methodOPTIONS();
+		Response& methodTRACE();
 };
 
 #endif

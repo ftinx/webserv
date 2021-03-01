@@ -12,6 +12,7 @@
 class Request
 {
 	private:
+		std::string m_request_message;
 		std::string m_http_version;
 		std::string m_cgi_version;
 		bool m_check_cgi;
@@ -33,14 +34,12 @@ class Request
 		bool get_m_check_cgi() const;
 		std::string get_m_method() const;
 		Uri get_m_uri() const;
-		void printHeaders() const;
 		std::string get_m_body() const;
 		int	get_m_error_code() const;
 		void set_m_http_version(std::string);
 		void set_m_cgi_version(std::string);
 		void set_m_check_cgi(bool);
 		void set_m_method(std::string);
-		//setHeaders
 		void set_m_body(std::string);
 		void set_m_error_code(int);
 		bool parseMessage(std::string);
@@ -51,6 +50,7 @@ class Request
 		bool checkBlankLine(std::string);
 		bool parseBody(std::string);
 		void checkChunked(std::string);
+		void printHeaders() const;
 };
 
 std::ostream& operator<<(std::ostream &os, const Request &ref);
