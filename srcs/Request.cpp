@@ -124,14 +124,11 @@ Request::parseMessage(std::string message)
         if (parseHeader(ft::rtrim(lines[i], "\r\n")) == false)
             return (false);
     }
-    if (i < lines.size())
+    while (i < lines.size())
     {
-        while (i < lines.size())
-        {
-            if (parseBody(lines[i]) == false)
-                return (false);
-            i++;
-        }
+        if (parseBody(lines[i]) == false)
+            return (false);
+        i++;
     }
     return (true);
 }
