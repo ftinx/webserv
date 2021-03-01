@@ -168,7 +168,7 @@ Request::parseRequestLine(std::string request_line)
 bool
 Request::parseHeader(std::string line)
 {
-    std::vector<std::string> key_value = ft::split(line, ":");
+    std::vector<std::string> key_value = ft::split(line, ':');
     
     if (key_value.size() != 2)
     {
