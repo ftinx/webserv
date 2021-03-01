@@ -24,12 +24,30 @@ Response::Response(Response const &other)
 	*this = other;
 }
 
-Response&
+Response &
 Response::operator=(Response const &rhs)
 {
-	if (this == &rhs)
-        return (*this);
-    *this = Response(rhs);
+	(void) rhs;
+	// if (this == &rhs)
+	// 	return (*this);
+	// *this = Response(rhs);
+	m_status_code = rhs.m_status_code;
+	m_date = rhs.m_date;
+	m_content_language = rhs.m_content_language;
+	m_content_type = rhs.m_content_type;
+	m_server = rhs.m_server;
+	m_status_description = rhs.m_status_description;
+
+	/* HTML document */
+	m_headers = rhs.m_headers;
+	m_html_document = rhs.m_html_document;
+	m_body = rhs.m_body;
+	m_head = rhs.m_head;
+	m_content_length = rhs.m_content_length;
+
+	/* response message */
+	m_response_message = rhs.m_response_message;
+	m_response_size = rhs.m_response_size;
 	return (*this);
 }
 
