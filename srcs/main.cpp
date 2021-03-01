@@ -25,18 +25,18 @@ std::string fileToString(std::string file_path)
 int
 main()
 {
-	// Server server = Server();
+	Server server = Server();
 
 	server.setServerAddr(3601);
 	server.setServerSocket();
 	server.runServer();
 
-	std::string message = fileToString("./request_msg.txt");
-	Request request;
-	request.parseMessage(message);
+	// std::string message = fileToString("./request_msg.txt");
+	// Request request;
+	// request.parseMessage(message);
 
-	std::cout << request << std::endl;
-	request.printHeaders();
+	// std::cout << request << std::endl;
+	// request.printHeaders();
 
 	return (EXIT_SUCCESS);
 }

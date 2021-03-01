@@ -9,16 +9,6 @@
 #include <map>
 #include "Uri.hpp"
 
-enum Method{
-	GET,
-	HEAD,
-	POST,
-	PUT,
-	DELETE,
-	OPTIONS,
-	TRACE
-};
-
 class Request
 {
 	private:
