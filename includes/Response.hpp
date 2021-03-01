@@ -55,6 +55,7 @@ class Response
 		std::string httpResponseHeader();
 		std::string setCRLF();
 		Response& setHttpResponseHeader(std::string key, std::string value);
+		Response& setStatusCode(int statusCode);
 
 		/* HTML Document Util */
 		Response& setAttribute(htmlTag tag, std::string value);

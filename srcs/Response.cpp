@@ -108,6 +108,13 @@ Response::set_m_status_description(std::string statusDescription)
 /*********************************  Util  *************************************/
 /*============================================================================*/
 
+Response &
+Response::setStatusCode(int statusCode)
+{
+	this->m_status_code = statusCode;
+	return (*this);
+}
+
 void
 Response::setTitleTag(std::string value)
 {
@@ -184,6 +191,9 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 	{
 		case 200:
 			startLine += std::to_string(statusCode) + std::string(" OK\n");
+			break;
+		case 404:
+			startLine += std::to_string(statusCode) + std::string(" Not Found\n");
 			break;
 		default:
 			perror("Undefined Status Code");
