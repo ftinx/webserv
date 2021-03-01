@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Response.hpp"
 #include "Request.hpp"
 #include "fcntl.h"
 #include <string>
@@ -26,9 +27,10 @@ main()
 {
 	// Server server = Server();
 
-	// server.setServerAddr();
-	// server.setServerSocket();
-	// server.runServer();
+	server.setServerAddr(3601);
+	server.setServerSocket();
+	server.runServer();
+
 	std::string message = fileToString("./request_msg.txt");
 	Request request;
 	request.parseMessage(message);
