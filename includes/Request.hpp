@@ -38,6 +38,14 @@ class Request
 	public:
 		Request();
 		~Request();
+		std::string getHttpVersion() const;
+		//getCgiVersion
+		bool getCheckCgi() const;
+		std::string getMethod() const;
+		Uri getUri() const;
+		void printHeaders() const;
+		std::string getBody() const;
+		int	getErrorCode() const;
 		void setHttpVersion(std::string);
 		void setCgiVersion(std::string);
 		void setCheckCgi(bool);
@@ -45,7 +53,6 @@ class Request
 		//setHeaders
 		void setBody(std::string);
 		void setErrorCode(int);
-
 		bool parseMessage(std::string);
 		bool parseRequestLine(std::string);
 		bool checkMethod();
@@ -55,5 +62,7 @@ class Request
 		bool parseBody(std::string);
 		void checkChunked(std::string);
 };
+
+std::ostream& operator<<(std::ostream &os, const Request &ref);
 
 #endif

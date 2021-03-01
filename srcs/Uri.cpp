@@ -9,6 +9,25 @@ Uri::Uri()
 : m_uri(""), m_scheme(""), m_host(""), m_port("80"), m_path("")
 {}
 
+Uri::Uri(Uri const &other)
+{
+    *this = other;
+}
+
+Uri& Uri::operator=(Uri const &rhs)
+{
+    if (this == &rhs)
+        return (*this);
+    this->m_uri = rhs.getUri();
+    this->m_scheme = rhs.getScheme();
+    this->m_host = rhs.getHost();
+    this->m_port = rhs.getPort();
+    this->m_path = rhs.getPath();
+    this->m_query = rhs.getQuery();
+    return (*this);
+}
+
+
 /*============================================================================*/
 /******************************  Destructor  **********************************/
 /*============================================================================*/
@@ -31,31 +50,37 @@ Uri::setUri(std::string uri)
 /*============================================================================*/
 
 std::string
-Uri::getUri()
+Uri::getUri() const
 {
     return (this->m_uri);
 }
 
 std::string
-Uri::getHost()
+Uri::getScheme() const
+{
+    return (this->m_scheme);
+}
+
+std::string
+Uri::getHost() const
 {
     return (this->m_host);
 }
 
 std::string
-Uri::getPort()
+Uri::getPort() const
 {
     return (this->m_port);
 }
 
 std::string
-Uri::getPath()
+Uri::getPath() const
 {
     return (this->m_path);
 }
 
 std::map<std::string, std::string>
-Uri::getQuery()
+Uri::getQuery() const
 {
     return (this->m_query);
 }
@@ -69,7 +94,7 @@ Uri::parseUri()
 {
     std::vector<std::string> pieces = ft::split(this->m_uri, "://");
     
-    if (pieces.size < 2 || pieces.size > 2)
+    if (pieces.size() < 2 || pieces.size() > 2)
         return (400);
     this->m_scheme = pieces[0];
     return (this->parseHostPort(pieces[1]));
@@ -88,7 +113,7 @@ Uri::parseHostPort(std::string str)
     else
     {
         this->m_host = str.substr(0, colon_pos);
-        this->m_port = str.substr(colon_pos + 1, slash_pos);
+        this->m_port = str.substr(colon_pos + 1, slash_pos - colon_pos - 1);
     }
     if (slash_pos == std::string::npos)
         return (0);
@@ -111,7 +136,7 @@ Uri::parseQuery(std::string str)
 {
     std::vector<std::string> pieces = ft::split(str, "&");
 
-    for (int i = 0; i < pieces.size(); i++)
+    for (size_t i = 0; i < pieces.size(); i++)
     {
         std::vector<std::string> queries = ft::split(pieces[i], "=");
         if (queries.size() != 2)

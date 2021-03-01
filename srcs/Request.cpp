@@ -17,6 +17,60 @@ m_method(""), m_body(""), m_error_code(0)
 
 Request::~Request(){}
 
+
+/*============================================================================*/
+/********************************  Getter  ************************************/
+/*============================================================================*/
+
+std::string
+Request::getHttpVersion() const
+{
+    return (this->m_http_version);
+}
+
+bool
+Request::getCheckCgi() const
+{
+    return (this->m_check_cgi);
+}
+
+std::string
+Request::getMethod() const
+{
+    return (this->m_method);
+}
+
+Uri
+Request::getUri() const
+{
+    return (this->m_uri);
+}
+
+void
+Request::printHeaders() const
+{
+    std::map<std::string, std::string> m;
+    std::map<std::string, std::string>::iterator i;
+    std::vector<std::string> ret;
+
+    for (i = m.begin(); i != m.end(); i++)
+    {
+        std::cout << i->first << ": " << i->second << std::endl;
+    }
+}
+
+std::string
+Request::getBody() const
+{
+    return (this->m_body);
+}
+
+int
+Request::getErrorCode() const
+{
+    return (this->m_error_code);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -58,35 +112,37 @@ Request::setErrorCode(int error_code)
 bool
 Request::parseMessage(std::string message)
 {
-    int i;
+    size_t i;
     std::vector<std::string> lines = ft::split(message, "\n");
 
     if (parseRequestLine(lines[0]) == false)
         return (false);
     for (i = 1; i < lines.size(); i++)
     {
-        if (parseHeader(ft::rtrim(lines[i], "\r\n")) == false)
-            return (false);
         if (checkBlankLine(lines[i]))
             break;
+        if (parseHeader(ft::rtrim(lines[i], "\r\n")) == false)
+            return (false);
     }
     if (i < lines.size())
     {
-        for (i = i ; i < lines.size(); i++)
+        while (i < lines.size())
         {
-            if (parseBody(lines) == false)
+            if (parseBody(lines[i]) == false)
                 return (false);
+            i++;
         }
     }
+    return (true);
 }
 
 bool
 Request::parseRequestLine(std::string request_line)
 {
     int error_code;
-    std::vector<std::string> pieces = ft::split(request_line, ' ');
+    std::vector<std::string> pieces = ft::split(request_line, " ");
 
-    if (pieces.size != 3)
+    if (pieces.size() != 3)
     {
         m_error_code = 400;
         return (false);
@@ -100,18 +156,19 @@ Request::parseRequestLine(std::string request_line)
         this->m_error_code = 501;
         return (false);
     }
-    if (error_code = m_uri.parseUri())
+    if ((error_code = m_uri.parseUri()))
     {
         this->m_error_code = error_code;
         return(false);
     }
     checkCGI();
+    return (true);
 }
 
 bool
 Request::parseHeader(std::string line)
 {
-    std::vector key_value = ft::split(line, ':');
+    std::vector<std::string> key_value = ft::split(line, ":");
     
     if (key_value.size() != 2)
     {
@@ -125,7 +182,7 @@ Request::parseHeader(std::string line)
         this->m_error_code = 400;
         return (false);
     }
-    this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1]));
+    this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " ")));
     return (true);
 }
 
@@ -158,7 +215,7 @@ Request::checkCGI()
 {
     int p;
 
-    p = this->m_uri.getPath.find("cgi-bin/");
+    p = this->m_uri.getPath().find("cgi-bin/");
     if (p == 0)
         m_check_cgi = true;
     else
@@ -168,7 +225,26 @@ Request::checkCGI()
 bool
 Request::checkBlankLine(std::string str)
 {
-    if (str.length() == 2 && str[0] == '\r' && str[1] == '\n')
+    if (str[0] == '\0')
+    {
+        std::cout << "caught blank line\n" << std::endl;
         return (true);
+    }
     return (false);
+}
+
+std::ostream& operator<<(std::ostream &os, Request const& ref)
+{
+    Uri uri;
+
+    uri = ref.getUri();
+    return (os << "error code: " << ref.getErrorCode() << std::endl
+    << "http version: "<< ref.getHttpVersion() << std::endl
+    << "method: " << ref.getMethod() << std::endl
+    << "uri: " << uri.getUri() << std::endl
+    << "> scheme: " << uri.getScheme() << std::endl
+    << "> host: " << uri.getHost() << std::endl
+    << "> port: " << uri.getPort() << std::endl
+    << "> path: " << uri.getPath() << std::endl
+    << "body: " << ref.getBody() << std::endl);
 }

@@ -20,20 +20,18 @@ class Uri
     std::string m_path;
     std::map<std::string, std::string> m_query;
 
-    private:
-    Uri& operator=(Uri const &rhs);
-    Uri(Uri const &other);
-
     public:
     Uri();
+    Uri(Uri const &other);
+    Uri& operator=(Uri const &rhs);
     ~Uri();
     void setUri(std::string);
-    std::string getUri();
-    std::string getScheme();
-    std::string getHost();
-    std::string getPort();
-    std::string getPath();
-    std::map<std::string, std::string> getQuery();
+    std::string getUri() const;
+    std::string getScheme() const;
+    std::string getHost() const;
+    std::string getPort() const;
+    std::string getPath() const;
+    std::map<std::string, std::string> getQuery() const;
     int parseUri();
     int parseHostPort(std::string);
     int parsePath(std::string);
