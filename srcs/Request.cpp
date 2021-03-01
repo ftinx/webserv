@@ -23,25 +23,25 @@ Request::~Request(){}
 /*============================================================================*/
 
 std::string
-Request::getHttpVersion() const
+Request::get_m_http_version() const
 {
     return (this->m_http_version);
 }
 
 bool
-Request::getCheckCgi() const
+Request::get_m_check_cgi() const
 {
     return (this->m_check_cgi);
 }
 
 std::string
-Request::getMethod() const
+Request::get_m_method() const
 {
     return (this->m_method);
 }
 
 Uri
-Request::getUri() const
+Request::get_m_uri() const
 {
     return (this->m_uri);
 }
@@ -60,13 +60,13 @@ Request::printHeaders() const
 }
 
 std::string
-Request::getBody() const
+Request::get_m_body() const
 {
     return (this->m_body);
 }
 
 int
-Request::getErrorCode() const
+Request::get_m_error_code() const
 {
     return (this->m_error_code);
 }
@@ -76,31 +76,31 @@ Request::getErrorCode() const
 /*============================================================================*/
 
 void
-Request::setHttpVersion(std::string http_version)
+Request::set_m_http_version(std::string http_version)
 {
     this->m_http_version = http_version;
 }
 
 void
-Request::setCgiVersion(std::string cgi_version)
+Request::set_m_cgi_version(std::string cgi_version)
 {
     this->m_cgi_version = cgi_version;
 }
 
 void
-Request::setCheckCgi(bool flag)
+Request::set_m_check_cgi(bool flag)
 {
     this->m_check_cgi = flag;
 }
 
 void
-Request::setMethod(std::string method)
+Request::set_m_method(std::string method)
 {
     this->m_method = method;
 }
 
 void
-Request::setErrorCode(int error_code)
+Request::set_m_error_code(int error_code)
 {
     this->m_error_code = error_code;
 }
@@ -145,7 +145,7 @@ Request::parseRequestLine(std::string request_line)
         return (false);
     }
     this->m_method = pieces[0];
-    this->m_uri.setUri(pieces[1]);
+    this->m_uri.set_m_uri(pieces[1]);
     this->m_http_version = pieces[2];
 
     if (checkMethod() == false)
@@ -212,7 +212,7 @@ Request::checkCGI()
 {
     int p;
 
-    p = this->m_uri.getPath().find("cgi-bin/");
+    p = this->m_uri.get_m_path().find("cgi-bin/");
     if (p == 0)
         this->m_check_cgi = true;
     else
@@ -233,14 +233,14 @@ std::ostream& operator<<(std::ostream &os, Request const& ref)
 {
     Uri uri;
 
-    uri = ref.getUri();
-    return (os << "error code: " << ref.getErrorCode() << std::endl
-    << "http version: "<< ref.getHttpVersion() << std::endl
-    << "method: " << ref.getMethod() << std::endl
-    << "uri: " << uri.getUri() << std::endl
-    << "> scheme: " << uri.getScheme() << std::endl
-    << "> host: " << uri.getHost() << std::endl
-    << "> port: " << uri.getPort() << std::endl
-    << "> path: " << uri.getPath() << std::endl
-    << "body: " << ref.getBody() << std::endl);
+    uri = ref.get_m_uri();
+    return (os << "error code: " << ref.get_m_error_code() << std::endl
+    << "http version: "<< ref.get_m_http_version() << std::endl
+    << "method: " << ref.get_m_method() << std::endl
+    << "uri: " << uri.get_m_uri() << std::endl
+    << "> scheme: " << uri.get_m_scheme() << std::endl
+    << "> host: " << uri.get_m_host() << std::endl
+    << "> port: " << uri.get_m_port() << std::endl
+    << "> path: " << uri.get_m_path() << std::endl
+    << "body: " << ref.get_m_body() << std::endl);
 }

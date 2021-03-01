@@ -18,12 +18,12 @@ Uri& Uri::operator=(Uri const &rhs)
 {
     if (this == &rhs)
         return (*this);
-    this->m_uri = rhs.getUri();
-    this->m_scheme = rhs.getScheme();
-    this->m_host = rhs.getHost();
-    this->m_port = rhs.getPort();
-    this->m_path = rhs.getPath();
-    this->m_query = rhs.getQuery();
+    this->m_uri = rhs.get_m_uri();
+    this->m_scheme = rhs.get_m_scheme();
+    this->m_host = rhs.get_m_host();
+    this->m_port = rhs.get_m_port();
+    this->m_path = rhs.get_m_path();
+    this->m_query = rhs.get_m_query();
     return (*this);
 }
 
@@ -40,7 +40,7 @@ Uri::~Uri()
 /*============================================================================*/
 
 void
-Uri::setUri(std::string uri)
+Uri::set_m_uri(std::string uri)
 {
     this->m_uri = uri;
 }
@@ -50,37 +50,37 @@ Uri::setUri(std::string uri)
 /*============================================================================*/
 
 std::string
-Uri::getUri() const
+Uri::get_m_uri() const
 {
     return (this->m_uri);
 }
 
 std::string
-Uri::getScheme() const
+Uri::get_m_scheme() const
 {
     return (this->m_scheme);
 }
 
 std::string
-Uri::getHost() const
+Uri::get_m_host() const
 {
     return (this->m_host);
 }
 
 std::string
-Uri::getPort() const
+Uri::get_m_port() const
 {
     return (this->m_port);
 }
 
 std::string
-Uri::getPath() const
+Uri::get_m_path() const
 {
     return (this->m_path);
 }
 
 std::map<std::string, std::string>
-Uri::getQuery() const
+Uri::get_m_query() const
 {
     return (this->m_query);
 }
