@@ -24,7 +24,7 @@ Response::Response(Response const &other)
 	*this = other;
 }
 
-Response&
+Response &
 Response::operator=(Response const &rhs)
 {
 	(void) rhs;
