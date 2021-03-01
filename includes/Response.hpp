@@ -16,11 +16,15 @@ class Response
 	private:
 		int m_status_code;
 		std::string m_status_description;
+
+		/* HTML document */
 		std::map<std::string, std::string> m_headers;
 		std::string m_html_document;
 		std::string m_body;
 		std::string m_head;
+		int m_content_length;
 		
+		/* response message */
 		std::string m_response_message;
 		int m_response_size;
 
@@ -30,22 +34,26 @@ class Response
 		Response(Response const &other);
 		Response& operator=(Response const &rhs);
 
+		/* getter */
+		int get_m_status_code();
 		std::string get_m_html_document();
 		std::string get_m_reponse_message();
 		int get_m_response_size();
 		std::string get_m_body();
+		int get_m_content_length();
 
 		bool parseCgiResponse(std::string&);
 		void setStatusCode(int statusCode);
 		void setStatusDescription(std::string statusDescription);
 		void addHeaders(std::string key, std::string value);
 		Response& setHtmlDocument();
-		void makeResponseMessage();
+		Response& makeHttpResponseMessage();
 
 		/* HTML Response Util */
 		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
 		std::string httpResponseHeader();
 		std::string setCRLF();
+		Response& setHttpResponseHeader(std::string key, std::string value);
 
 		/* HTML Document Util */
 		Response& setAttribute(htmlTag tag, std::string value);

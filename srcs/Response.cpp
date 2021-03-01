@@ -24,7 +24,9 @@ Response::Response(Response const &other)
 Response&
 Response::operator=(Response const &rhs)
 {
-	(void) rhs;
+	if (this == &rhs)
+        return (*this);
+    *this = Response(rhs);
 	return (*this);
 }
 
@@ -43,6 +45,12 @@ Response::~Response()
 /*============================================================================*/
 /********************************  Getter  ************************************/
 /*============================================================================*/
+
+int 
+Response::get_m_status_code()
+{
+	return (this->m_status_code);
+}
 
 std::string
 Response::get_m_html_document()
@@ -66,6 +74,12 @@ std::string
 Response::get_m_body()
 {
 	return (this->m_body);
+}
+
+int 
+Response::get_m_content_length()
+{
+	return (this->m_content_length);
 }
 
 /*============================================================================*/
@@ -163,6 +177,7 @@ Response::setHtmlDocument()
 				+ std::string("</html>");
 
 	this->m_html_document = body;
+	this->m_content_length = body.length();
 	return (*this);
 }
 
@@ -205,21 +220,16 @@ Response::httpResponseHeader()
 	return (header);
 }
 
-void
-Response::makeResponseMessage()
+Response &
+Response::setHttpResponseHeader(std::string key, std::string value)
 {
-	int contentLength;
-	
-	contentLength = this->m_html_document.length();
+	this->m_headers.insert(std::make_pair(key, value));
+	return (*this);
+}
 
-	/* Set Temp Header */
-	this->m_headers.insert(std::make_pair("date", "Sat, 27 Feb 2021 12:01:27 GMT"));
-	this->m_headers.insert(std::make_pair("content-length", std::to_string(contentLength)));
-	this->m_headers.insert(std::make_pair("content-language", std::to_string(this->m_status_code)));
-	this->m_headers.insert(std::make_pair("content-type", "text/html; charset=UTF-8"));
-	this->m_headers.insert(std::make_pair("status", "200"));
-	this->m_headers.insert(std::make_pair("server", "ftnix"));
-
+Response &
+Response::makeHttpResponseMessage()
+{
 	/* Concat HTTP Response  */
 	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
 		+ httpResponseHeader()
@@ -229,5 +239,5 @@ Response::makeResponseMessage()
 	/* Set Response Config */
 	this->m_response_size = this->m_response_message.length();
 
-	return ;
+	return (*this);
 }

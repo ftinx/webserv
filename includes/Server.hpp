@@ -69,6 +69,15 @@ class Server
         void closeServer();
 
         void sendResponse(int clientfd);
+
+        /* METHOD */
+        Response& methodHEAD();
+        Response& methodGET();
+        Response& methodPOST();
+        Response& methodPUT();
+        Response& methodDELETE();
+        Response& methodOPTIONS();
+        Response& methodTRACE();
 };
 
 #endif

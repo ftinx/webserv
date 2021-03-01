@@ -246,8 +246,54 @@ Server::runServer()
 void
 Server::closeServer()
 {
-
+	return ;
 }
+
+// Response &
+// Server::methodHEAD()
+// {
+// 	return ;
+// }
+
+// Response &
+// Server::methodGET()
+// {
+// 	Response response = Response();
+
+// 	return (response.setAttribute(TITLE, "Webserv")
+// 		.setAttribute(P, "Webserv by ftinx")
+// 		.setAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
+// 		.setAttribute(DIV, "빠밤 빠밤")
+// 		.setHtmlDocument()
+// 		.makeResponseMessage());
+// }
+
+// Response &
+// Server::methodPOST()
+// {	
+// 	return ;
+// }
+
+// Response &
+// Server::methodPUT()
+// {
+// 	return ;
+// }
+
+// Response &
+// Server::methodDELETE()
+// {
+// }
+
+// Response &
+// Server::methodOPTIONS()
+// {
+// }
+
+// Response &
+// Server::methodTRACE()
+// {
+// }
 
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
@@ -260,12 +306,20 @@ Server::sendResponse(int clientfd)
 {
 	Response response = Response();
 
-	response.setAttribute(TITLE, "Webserv")
+	// response = methodGET();
+	response
+		.setAttribute(TITLE, "Webserv")
 		.setAttribute(P, "Webserv by ftinx")
 		.setAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
 		.setAttribute(DIV, "빠밤 빠밤")
 		.setHtmlDocument()
-		.makeResponseMessage();
+		.setHttpResponseHeader("date", "Sat, 27 Feb 2021 12:01:27 GMT")
+		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+		.setHttpResponseHeader("content-language", "ko")
+		.setHttpResponseHeader("content-type", "text/html; charset=UTF-8")
+		.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+		.setHttpResponseHeader("server", "ftnix")
+		.makeHttpResponseMessage();
 	
 	printf("%s\n", response.get_m_reponse_message().c_str());
 
