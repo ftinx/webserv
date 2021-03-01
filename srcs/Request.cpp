@@ -113,7 +113,7 @@ bool
 Request::parseMessage(std::string message)
 {
     size_t i;
-    std::vector<std::string> lines = ft::split(message, "\n");
+    std::vector<std::string> lines = ft::split(message, '\n');
 
     if (parseRequestLine(lines[0]) == false)
         return (false);
@@ -140,7 +140,7 @@ bool
 Request::parseRequestLine(std::string request_line)
 {
     int error_code;
-    std::vector<std::string> pieces = ft::split(request_line, " ");
+    std::vector<std::string> pieces = ft::split(request_line, ' ');
 
     if (pieces.size() != 3)
     {
@@ -225,7 +225,7 @@ Request::checkCGI()
 bool
 Request::checkBlankLine(std::string str)
 {
-    if (str[0] == '\0')
+    if (str.empty())
     {
         std::cout << "caught blank line\n" << std::endl;
         return (true);
