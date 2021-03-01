@@ -219,7 +219,7 @@ Request::checkCGI()
     if (p == 0)
         m_check_cgi = true;
     else
-        m_check_cgi = false;
+        this->m_check_cgi = false;
 }
 
 bool
