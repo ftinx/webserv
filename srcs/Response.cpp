@@ -258,6 +258,27 @@ Response::setHttpResponseHeader(std::string key, std::string value)
 }
 
 Response &
+Response::setContentLanguage(std::string contentLanguage)
+{
+	this->m_content_language = contentLanguage;
+	return (*this);
+}
+
+Response &
+Response::setContentType(std::string contentType)
+{
+	this->m_content_type = contentType;
+	return (*this);
+}
+
+Response &
+Response::setServer(std::string server)
+{
+	this->m_server = server;
+	return (*this);
+}
+
+Response &
 Response::makeHttpResponseMessage()
 {
 	/* Concat HTTP Response  */

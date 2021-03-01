@@ -315,12 +315,15 @@ Server::sendResponse(int clientfd)
 		.setHtmlDocument()
 		.setStatusCode(200)
 		.setCurrentDate()
+		.setContentLanguage("ko, en")
+		.setContentType("text/html; charset=UTF-8")
+		.setServer("ftnix/1.0 (MacOS)")
 		.setHttpResponseHeader("date", response.get_m_date())
 		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 		.setHttpResponseHeader("content-language", response.get_m_content_language())
 		.setHttpResponseHeader("content-type", response.get_m_content_type())
 		.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-		.setHttpResponseHeader("server", "ftnix/1.0 (MacOS)")
+		.setHttpResponseHeader("server", response.get_m_server())
 		.makeHttpResponseMessage();
 
 	printf("%s\n", response.get_m_reponse_message().c_str());
