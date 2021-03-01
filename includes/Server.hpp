@@ -77,7 +77,10 @@ class Server
 		Server();
 		~Server();
 
+<<<<<<< HEAD
 		void init();
+=======
+>>>>>>> 8c7c12852d176074cfb26aabd0ed9e0c3643fd9b
 		void setServerAddr(int port);
 		bool setServerSocket();
 		void runServer();
@@ -86,13 +89,16 @@ class Server
 		void sendResponse(int clientfd);
 
 		/* METHOD */
-		Response& methodHEAD();
-		Response& methodGET();
-		Response& methodPOST();
-		Response& methodPUT();
-		Response& methodDELETE();
-		Response& methodOPTIONS();
-		Response& methodTRACE();
+		Response methodHEAD();
+		Response methodGET();
+		Response methodPOST();
+		Response methodPUT();
+		Response methodDELETE();
+		Response methodOPTIONS();
+		Response methodTRACE();
+
+		Response page200();
+		Response page404();
 };
 
 #endif

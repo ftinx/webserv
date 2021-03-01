@@ -256,51 +256,101 @@ Server::closeServer()
 	return ;
 }
 
-// Response &
-// Server::methodHEAD()
-// {
-// 	return ;
-// }
+Response
+Server::page200()
+{
+	Response response = Response();
 
-// Response &
-// Server::methodGET()
-// {
-// 	Response response = Response();
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHtmlAttribute(TITLE, "Webserv")
+			.setHtmlAttribute(P, "Webserv by ftinx")
+			.setHtmlAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
+			.setHtmlAttribute(DIV, "빠밤 빠밤")
+			.setHtmlDocument()
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
 
-// 	return (response.setAttribute(TITLE, "Webserv")
-// 		.setAttribute(P, "Webserv by ftinx")
-// 		.setAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
-// 		.setAttribute(DIV, "빠밤 빠밤")
-// 		.setHtmlDocument()
-// 		.makeResponseMessage());
-// }
+Response
+Server::page404()
+{
+	Response response = Response();
 
-// Response &
-// Server::methodPOST()
-// {
-// 	return ;
-// }
+	return (
+		response
+			.setStatusCode(404)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHtmlAttribute(TITLE, "Webserv")
+			.setHtmlDocument()
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
 
-// Response &
-// Server::methodPUT()
-// {
-// 	return ;
-// }
+Response
+Server::methodHEAD()
+{
+	return (page404());
+}
 
-// Response &
-// Server::methodDELETE()
-// {
-// }
+Response
+Server::methodGET()
+{
+	if (true)
+		return (page404());
+	else if (true)
+		return (page200());
+}
 
-// Response &
-// Server::methodOPTIONS()
-// {
-// }
+Response
+Server::methodPOST()
+{
+	return (page404());
+}
 
-// Response &
-// Server::methodTRACE()
-// {
-// }
+Response
+Server::methodPUT()
+{
+	return (page404());
+}
+
+Response
+Server::methodDELETE()
+{
+	return (page404());
+}
+
+Response
+Server::methodOPTIONS()
+{
+	return (page404());
+}
+
+Response
+Server::methodTRACE()
+{
+	return (page404());
+}
 
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
@@ -313,43 +363,10 @@ Server::sendResponse(int clientfd)
 {
 	Response response = Response();
 
-	// response = methodGET();
-	// response
-	// 	.setStatusCode(200)
-	// 	.setCurrentDate()
-	// 	.setContentLanguage("ko, en")
-	// 	.setContentType("text/html; charset=UTF-8")
-	// 	.setServer("ftnix/1.0 (MacOS)")
-	// 	.setHtmlAttribute(TITLE, "Webserv")
-	// 	.setHtmlAttribute(P, "Webserv by ftinx")
-	// 	.setHtmlAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
-	// 	.setHtmlAttribute(DIV, "빠밤 빠밤")
-	// 	.setHtmlDocument()
-	// 	.setHttpResponseHeader("date", response.get_m_date())
-	// 	.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-	// 	.setHttpResponseHeader("content-language", response.get_m_content_language())
-	// 	.setHttpResponseHeader("content-type", response.get_m_content_type())
-	// 	.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-	// 	.setHttpResponseHeader("server", response.get_m_server())
-	// 	.makeHttpResponseMessage();
+	response = methodGET();
 
-	response
-		.setStatusCode(404)
-		.setCurrentDate()
-		.setContentLanguage("ko, en")
-		.setContentType("text/html; charset=UTF-8")
-		.setServer("ftnix/1.0 (MacOS)")
-		.setHtmlAttribute(TITLE, "Webserv")
-		.setHtmlDocument()
-		.setHttpResponseHeader("date", response.get_m_date())
-		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-		.setHttpResponseHeader("content-language", response.get_m_content_language())
-		.setHttpResponseHeader("content-type", response.get_m_content_type())
-		.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-		.setHttpResponseHeader("server", response.get_m_server())
-		.makeHttpResponseMessage();
-
-	printf("%s\n", response.get_m_reponse_message().c_str());
+	/* 전체 Response Message 확인 할 수 있음 */
+	// printf("%s\n", response.get_m_reponse_message().c_str());
 
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;
