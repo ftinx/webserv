@@ -109,13 +109,6 @@ Response::setStatusDescription(std::string statusDescription)
 }
 
 void
-Response::addHeaders(std::string key, std::string value)
-{
-	this->m_headers.insert(make_pair(key, value));
-	return ;
-}
-
-void
 Response::setTitleTag(std::string value)
 {
 	this->m_head += std::string("<title>") 

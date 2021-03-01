@@ -19,6 +19,18 @@
 #define MAXLINE 1024
 #define SOCK_SETSIZE 1021
 
+enum Method
+{
+	HEAD,
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    OPTIONS,
+    TRACE
+};
+
+
 /*
 **  ** TODO
 **

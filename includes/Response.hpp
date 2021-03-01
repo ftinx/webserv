@@ -45,11 +45,10 @@ class Response
 		bool parseCgiResponse(std::string&);
 		void setStatusCode(int statusCode);
 		void setStatusDescription(std::string statusDescription);
-		void addHeaders(std::string key, std::string value);
 		Response& setHtmlDocument();
 		Response& makeHttpResponseMessage();
 
-		/* HTML Response Util */
+		/* HTTP Response Util */
 		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
 		std::string httpResponseHeader();
 		std::string setCRLF();
