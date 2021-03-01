@@ -3,7 +3,7 @@
 
 # include <string>
 
-#include "HttpConfigLocation"
+# include "HttpConfigLocation.hpp"
 
 class HttpConfigServer
 {
@@ -12,7 +12,7 @@ class HttpConfigServer
 		int m_listen;
 		std::string m_default_error_page;
 		int m_content_length;
-		vector<HttpConfigLocation> m_location();
+		std::vector<HttpConfigLocation> m_location();
 
 	private:
 		HttpConfigServer();
