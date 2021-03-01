@@ -217,7 +217,7 @@ Request::checkCGI()
 
     p = this->m_uri.getPath().find("cgi-bin/");
     if (p == 0)
-        m_check_cgi = true;
+        this->m_check_cgi = true;
     else
         this->m_check_cgi = false;
 }
