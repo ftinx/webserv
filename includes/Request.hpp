@@ -9,16 +9,6 @@
 #include <map>
 #include "Uri.hpp"
 
-enum Method{
-	GET,
-	HEAD,
-	POST,
-	PUT,
-	DELETE,
-	OPTIONS,
-	TRACE
-};
-
 class Request
 {
 	private:
@@ -38,21 +28,21 @@ class Request
 	public:
 		Request();
 		~Request();
-		std::string getHttpVersion() const;
+		std::string get_m_http_version() const;
 		//getCgiVersion
-		bool getCheckCgi() const;
-		std::string getMethod() const;
-		Uri getUri() const;
+		bool get_m_check_cgi() const;
+		std::string get_m_method() const;
+		Uri get_m_uri() const;
 		void printHeaders() const;
-		std::string getBody() const;
-		int	getErrorCode() const;
-		void setHttpVersion(std::string);
-		void setCgiVersion(std::string);
-		void setCheckCgi(bool);
-		void setMethod(std::string);
+		std::string get_m_body() const;
+		int	get_m_error_code() const;
+		void set_m_http_version(std::string);
+		void set_m_cgi_version(std::string);
+		void set_m_check_cgi(bool);
+		void set_m_method(std::string);
 		//setHeaders
-		void setBody(std::string);
-		void setErrorCode(int);
+		void set_m_body(std::string);
+		void set_m_error_code(int);
 		bool parseMessage(std::string);
 		bool parseRequestLine(std::string);
 		bool checkMethod();
