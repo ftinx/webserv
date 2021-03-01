@@ -70,7 +70,7 @@ class Response
 
 		/* HTML Document Util */
 		Response& setHtmlDocument();
-		Response& setAttribute(htmlTag tag, std::string value);
+		Response& setHtmlAttribute(htmlTag tag, std::string value);
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);
 		void setDivTag(std::string value);

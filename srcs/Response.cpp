@@ -168,7 +168,7 @@ Response::setDivTag(std::string value)
 }
 
 Response &
-Response::setAttribute(htmlTag tag, std::string value)
+Response::setHtmlAttribute(htmlTag tag, std::string value)
 {
 	switch (tag)
 	{
