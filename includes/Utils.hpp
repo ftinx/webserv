@@ -22,6 +22,7 @@ namespace ft
 	std::string ltrim(std::string str, std::string set);
 	std::string rtrim(std::string str, std::string set);
 	std::string trim(std::string str, std::string set);
+	std::vector<std::string> split(std::string const &str, char set);
 	std::vector<std::string> split(std::string const &str, std::string set);
 
 	/* FD SET */
