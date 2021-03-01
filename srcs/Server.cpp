@@ -307,16 +307,32 @@ Server::sendResponse(int clientfd)
 	Response response = Response();
 
 	// response = methodGET();
+	// response
+	// 	.setStatusCode(200)
+	// 	.setCurrentDate()
+	// 	.setContentLanguage("ko, en")
+	// 	.setContentType("text/html; charset=UTF-8")
+	// 	.setServer("ftnix/1.0 (MacOS)")
+	// 	.setHtmlAttribute(TITLE, "Webserv")
+	// 	.setHtmlAttribute(P, "Webserv by ftinx")
+	// 	.setHtmlAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
+	// 	.setHtmlAttribute(DIV, "빠밤 빠밤")
+	// 	.setHtmlDocument()
+	// 	.setHttpResponseHeader("date", response.get_m_date())
+	// 	.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+	// 	.setHttpResponseHeader("content-language", response.get_m_content_language())
+	// 	.setHttpResponseHeader("content-type", response.get_m_content_type())
+	// 	.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+	// 	.setHttpResponseHeader("server", response.get_m_server())
+	// 	.makeHttpResponseMessage();
+
 	response
-		.setStatusCode(200)
+		.setStatusCode(404)
 		.setCurrentDate()
 		.setContentLanguage("ko, en")
 		.setContentType("text/html; charset=UTF-8")
 		.setServer("ftnix/1.0 (MacOS)")
 		.setHtmlAttribute(TITLE, "Webserv")
-		.setHtmlAttribute(P, "Webserv by ftinx")
-		.setHtmlAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
-		.setHtmlAttribute(DIV, "빠밤 빠밤")
 		.setHtmlDocument()
 		.setHttpResponseHeader("date", response.get_m_date())
 		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))

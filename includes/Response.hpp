@@ -71,6 +71,7 @@ class Response
 
 		/* HTML Document Util */
 		Response& setHtmlDocument();
+		std::string set404HtmlDocument();
 		Response& setHtmlAttribute(htmlTag tag, std::string value);
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);
