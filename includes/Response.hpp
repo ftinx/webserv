@@ -1,6 +1,7 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
+#include <sys/time.h>
 #include <string>
 #include <map>
 

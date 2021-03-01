@@ -188,11 +188,19 @@ Response::setHtmlAttribute(htmlTag tag, std::string value)
 	return (*this);
 }
 
+// void
+// set404HtmlDocument
+
+
 Response &
 Response::setHtmlDocument()
 {
 	std::string body;
 
+	if (this->m_status_code == 404)
+	{
+
+	}
 	body += std::string("<!DOCTYPE html>")
 				+ std::string("<html lang=\"en\">")
 					+ std::string("<head>")
@@ -297,6 +305,7 @@ Response::makeHttpResponseMessage()
 **	gettimeofday()은 time(2)와 매우 비슷하지만 마이크로초 단위의 시간 까지 되돌려준다.
 **	현재는 time(2)를 대신해서 쓰이고 있으며, 가능한 time(2)대신 이 함수를 사용하는 걸 권장한다.
 **
+**	#include <sys/time.h>
 **	int gettimeofday(struct timeval *tv, struct timezone *tz);
 **
 **	<< tv >>
@@ -321,7 +330,6 @@ Response::makeHttpResponseMessage()
 **
 **	시간 구조체 함수 관계 참고: https://venture21.tistory.com/22
 */
-#include <sys/time.h>
 
 std::string
 Response::getDate()
