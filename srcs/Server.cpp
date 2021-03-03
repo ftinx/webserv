@@ -359,10 +359,33 @@ Server::methodOPTIONS()
 	return (OptionsPathRoot());
 }
 
+/*
+**	<< TRACE >>
+**	Request has body: No
+**	Successful response has body: No
+**	Safe: No
+**	Idempotent: No
+**	Cacheable: No
+**	Allowed in HTML forms: No
+*/
 Response
 Server::methodTRACE()
 {
-	return (page404());
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-type", "message/http")
+			.setHttpResponseHeader("connection", "close")
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
 }
 
 Response
