@@ -334,15 +334,53 @@ Server::methodDELETE()
 }
 
 Response
+Server::OptionsPathRoot()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("allow", "OPTIONS, GET, POST, HEAD")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
 Server::methodOPTIONS()
 {
-	return (page404());
+	/* PATH에 따라 다른 Options응 답을 주어야함. */
+	return (OptionsPathRoot());
 }
 
 Response
 Server::methodTRACE()
 {
 	return (page404());
+}
+
+Response
+Server::methodNotAllow()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(405)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
 }
 
 /*

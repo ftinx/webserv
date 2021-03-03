@@ -90,6 +90,8 @@ class Server
 		Response methodDELETE();
 		Response methodOPTIONS();
 		Response methodTRACE();
+		Response methodNotAllow();
+		Response OptionsPathRoot();
 
 		Response page200();
 		Response page404();
