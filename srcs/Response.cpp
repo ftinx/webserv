@@ -262,6 +262,9 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 		case 200:
 			startLine += std::to_string(statusCode) + std::string(" OK\n");
 			break;
+		case 403:
+			startLine += std::to_string(statusCode) + std::string(" Forbidden\n");
+			break;
 		case 404:
 			startLine += std::to_string(statusCode) + std::string(" Not Found\n");
 			break;
