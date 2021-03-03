@@ -271,6 +271,10 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 			break;
 		case 405:
 			startLine += std::to_string(statusCode) + std::string(" Method Not Allowed\n");
+			break;
+		case 501:
+			startLine += std::to_string(statusCode) + std::string(" Not Implemented\n");
+			break;
 		default:
 			perror("Undefined Status Code");
 			break;

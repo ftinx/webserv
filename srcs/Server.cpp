@@ -383,6 +383,24 @@ Server::methodNotAllow()
 	);
 }
 
+Response
+Server::methodNotImplemented()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(501)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
 **

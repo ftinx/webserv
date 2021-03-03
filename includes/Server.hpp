@@ -91,10 +91,11 @@ class Server
 		Response methodOPTIONS();
 		Response methodTRACE();
 		Response methodNotAllow();
-		Response OptionsPathRoot();
+		Response methodNotImplemented();
 
 		Response page200();
 		Response page404();
+		Response OptionsPathRoot();
 };
 
 #endif
