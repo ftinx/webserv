@@ -10,29 +10,50 @@
 # include "HttpConfigServer.hpp"
 # include "Utils.hpp"
 
-# define BUFFER_SIZE 4096
-
 class HttpConfig
 {
 	private:
-		std::string m_config_file; // config파일이 통째로 저장될 문자열
+		std::string m_file_path; // config file addr
+		std::string m_config_file; // config file -> string
+		std::vector<std::string> m_lines; // m_config_file -> lines(\n)
+
+		std::string m_name;
+		std::string m_version;
 		std::string m_include;
 		std::string m_root;
-		std::vector<HttpConfigServer> m_httpServer();
+		std::vector<HttpConfigServer> m_server_block;
 
 	private:
 		HttpConfig();
-		virtual ~HttpConfig();
 		HttpConfig(HttpConfig const &other);
 		HttpConfig& operator=(HttpConfig const &rhs);
 
+		/* utils */
+		bool checkStartHttp(); // m_liens의 시작이 "http" 인지 여부 확인
+		bool checkCurlyBracketsFaired(); // 중괄호의 갯수와 열고 닫음에 에러가 없는지 확인
+		bool checkCurlyBracketsDouble(std::string line); // 한 라인에 브라켓이 여러개 있는지 확인
+		bool checkValidHttpConfig();
+
+		/* debug */
+		// void printParseInfo();
+
 	public:
 		HttpConfig(std::string file_path);
+		virtual ~HttpConfig();
 
-		void saveConfigFileToString(std::string file_path); // 파일을 읽어서 m_config_file에 저장 (가공하지 않은 상태)
-		bool checkStartHttp(); // m_config_file의 시작이 "http" 인지 여부 확인 -> 꼭 필요할까? 전체 문법 확인할 때 거를까?
-		bool checkCurlyBrackets(); // 중괄호의 갯수와 열고 닫음에 에러가 없는지 확인
-		bool checkValidHttpConfig();
+		/* getter */
+		std::string get_m_name() const;
+		std::string get_m_version() const;
+		std::string get_m_include() const;
+		std::string get_m_root() const;
+
+		/* setter */
+		// void set_m_lines();
+		void setConfigFile();
+		void setConfigLines();
+
+		/* key func. */
+		void parseHttpBlock();
 };
 
 #endif
