@@ -17,6 +17,7 @@ Response::Response()
 	this->m_content_type = "text/html; charset=UTF-8";
 	this->m_server = "ftnix/1.0 (MacOS)";
 	this->m_status_description = "";
+	this->m_content_length = 0;
 }
 
 Response::Response(Response const &other)
@@ -267,6 +268,12 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 			break;
 		case 404:
 			startLine += std::to_string(statusCode) + std::string(" Not Found\n");
+			break;
+		case 405:
+			startLine += std::to_string(statusCode) + std::string(" Method Not Allowed\n");
+			break;
+		case 501:
+			startLine += std::to_string(statusCode) + std::string(" Not Implemented\n");
 			break;
 		default:
 			perror("Undefined Status Code");
