@@ -1,66 +1,112 @@
 #include "HttpConfig.hpp"
 
-HttpConfig::HttpConfig(std::string file_path)
+/*============================================================================*/
+/******************************  Constructor  *********************************/
+/*============================================================================*/
+
+HttpConfig::HttpConfig():
+	m_name(),
+	m_version(),
+	m_include(),
+	m_root()
 {
-	saveConfigFileToString(file_path);
+}
+
+HttpConfig::HttpConfig(std::string file_path):
+	m_file_path(file_path),
+	m_name(),
+	m_version(),
+	m_include(),
+	m_root()
+{
+	setConfigFile();
+	setConfigLines();
 	if (checkStartHttp() == false)
 		throw std::exception();
-	if (checkCurlyBrackets() == false)
+	if (checkCurlyBracketsFaired() == false)
 		throw std::exception();
-
-	std::vector<std::string> lines;
-	lines = ft::split(this->m_config_file, "\n");
-	for (int i = 0; i < lines.size(); ++i)
-	{
-		std::string tmp;
-		lines[i] = ft::trim(lines[i], " ");
-		if (!lines[i].compare("http {"))
-			continue ;
-		else if (!lines[i].compare("server {"))
-			continue ;
-		else if (!lines[i].compare("}"))
-			continue ;
-		else if (lines[i].length() > 9)
-		{
-			tmp = lines[i].substr(0, 9);
-			if (!tmp.compare("location "))
-				continue ;
-		}
-
-	}
-
+	parseHttpBlock();
 }
 
-void
-HttpConfig::saveConfigFileToString(std::string file_path)
+HttpConfig::HttpConfig(HttpConfig const &other):
+	m_name(),
+	m_version(),
+	m_include(),
+	m_root()
 {
-	int fd;
-	int bytes;
-	char buffer[BUFFER_SIZE];
-
-	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
-		throw std::exception();
-	ft::memset(buffer, 0, BUFFER_SIZE);
-	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
-		this->m_config_file += std::string(buffer);
-	if (bytes < 0)
-		throw std::exception();
-	ft::trim(this->m_config_file, " ");
+	*this = other;
 }
+
+HttpConfig&
+HttpConfig::operator=(HttpConfig const &rhs)
+{
+	m_file_path = rhs.m_file_path;
+	m_name = rhs.m_name;
+	m_version = rhs.m_version;
+	m_include = rhs.m_include;
+	m_root = rhs.m_root;
+	return (*this);
+}
+
+/*============================================================================*/
+/******************************  Destructor  **********************************/
+/*============================================================================*/
+
+HttpConfig::~HttpConfig(){}
+
+/*============================================================================*/
+/********************************  Getter  ************************************/
+/*============================================================================*/
+
+std::string
+HttpConfig::get_m_name() const
+{
+	return (this->m_name);
+}
+
+std::string
+HttpConfig::get_m_version() const
+{
+	return (this->m_version);
+}
+
+std::string
+HttpConfig::get_m_include() const
+{
+	return (this->m_include);
+}
+
+std::string
+HttpConfig::get_m_root() const
+{
+	return (this->m_root);
+}
+
+/*============================================================================*/
+/********************************  Setter  ************************************/
+/*============================================================================*/
+
+/*============================================================================*/
+/******************************  Exception  ***********************************/
+/*============================================================================*/
+
+/*============================================================================*/
+/*********************************  Util  *************************************/
+/*============================================================================*/
 
 bool
 HttpConfig::checkStartHttp()
 {
-	std::string tmp;
+	std::vector<std::string> first_line;
 
-	tmp = this->m_config_file.substr(0, 4);
-	if (tmp.compare("http") == 0)
-		return (true);
-	return (false);
+	first_line = ft::split(m_lines[0], " ");
+	if (first_line[0].compare("http"))
+		return (false);
+	return (true);
 }
 
 bool
-HttpConfig::checkCurlyBrackets()
+HttpConfig::checkCurlyBracketsFaired()
 {
 	std::stack<char> stack;
 
@@ -78,8 +124,69 @@ HttpConfig::checkCurlyBrackets()
 				return (false);
 		}
 	}
-	if (stack.empty())
-		return (true);
-	else
+	if (stack.empty() == false)
 		return (false);
+	return (true);
+}
+
+bool
+HttpConfig::checkCurlyBracketsDouble(std::string line)
+{
+	int cnt = 0;
+
+	for (int i = 0 ; i < line.length() ; i++)
+	{
+		if (line[i] == '{' || line[i] == '}')
+			cnt++;
+		if (cnt > 1)
+			return (false);
+	}
+	return (true);
+}
+
+void
+HttpConfig::setConfigFile()
+{
+	this->m_config_file = ft::fileToString(m_file_path);
+}
+
+void
+HttpConfig::setConfigLines()
+{
+	this->m_lines = ft::split(ft::trim(this->m_config_file, " "), '\n');
+}
+
+void
+HttpConfig::parseHttpBlock()
+{
+	int idx = 0;
+	bool server_block_exist = false;
+
+	while (idx < this->m_lines.size())
+	{
+		std::vector<std::string> line;
+		line.clear();
+		line = ft::split(ft::trim(ft::rtrim(this->m_lines[idx], ";")," "), ' ');
+		if (line.front().compare("software_name") == 0)
+			this->m_name = line.back();
+		else if (line.front().compare("software_version") == 0)
+			this->m_version = line.back();
+		else if (line.front().compare("include") == 0)
+			this->m_include = line.back();
+		else if (line.front().compare("root") == 0)
+			this->m_root = line.back();
+		else if (line.front().compare("server") == 0)
+		{
+			server_block_exist = true;
+			HttpConfigServer server = HttpConfigServer();
+			idx = server.parseServerBlock(this->m_lines, idx);
+			this->m_server_block.push_back(server);
+			continue ;
+		}
+		else if (line.front().compare("}") == 0)
+			break ;
+		idx++;
+	}
+	if (server_block_exist == false)
+		throw std::exception();
 }

@@ -7,6 +7,16 @@
 # include <vector>
 # include <sys/socket.h>
 # include <sys/time.h>
+# include <fcntl.h>
+# include <unistd.h>
+
+# define BUFFER_SIZE 4096
+
+enum Bracket
+{
+	OPEN,
+	CLOSE,
+};
 
 namespace ft
 {
@@ -19,7 +29,6 @@ namespace ft
 	void* memset(void *str, int c, size_t n);
 
 	/* LIBFT C++ */
-	bool checkBlankLine(std::string str);
 	std::string ltrim(std::string str, std::string set);
 	std::string rtrim(std::string str, std::string set);
 	std::string trim(std::string str, std::string set);
@@ -40,11 +49,13 @@ namespace ft
 	std::string iNetNtoA(unsigned int addr);
 
 	/* TIME */
-	std::string getDateTimestamp(); // not yet
+	std::string getDateTimestamp();
 
 	/* ETC */
 	bool isFileExists(std::string path); // not yet
 	bool isDirExists(std::string path); // not yet
+	bool checkBlankLine(std::string str);
+	std::string fileToString(std::string file_path);
 }
 
 #endif

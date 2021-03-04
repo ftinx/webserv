@@ -2,6 +2,7 @@
 # define HTTPCONFIGLOCATION_HPP
 
 # include <string>
+# include "Utils.hpp"
 
 enum Method
 {
@@ -12,26 +13,39 @@ enum Method
 	PUT,
 	DELETE,
 	OPTIONS,
-	TRACE
+	TRACE,
+	ERROR,
 };
 
 class HttpConfigLocation
 {
 	private:
 		std::string m_path;
-		Method m_limit_except;
+		std::vector<Method> m_limit_except;
 		std::string m_root;
-		std::string m_index;
-		std::string m_cgi;
+		std::vector<std::string> m_index;
+		std::vector<std::string> m_cgi;
 		std::string m_cgi_path;
+
 	private:
-		HttpConfigLocation();
-		virtual ~HttpConfigLocation();
 		HttpConfigLocation(HttpConfigLocation const &other);
 		HttpConfigLocation& operator=(HttpConfigLocation const &rhs);
+
+		Method convertStringToMethod(std::string str);
+
 	public:
-		bool checkStartLocation(std::string);
-		bool checkValidHttpConfigLocation();
+		HttpConfigLocation();
+		virtual ~HttpConfigLocation();
+
+		/* getter */
+		std::string get_m_path() const;
+		std::string get_m_root() const;
+		std::string get_m_cgi_path() const;
+
+		/* setter */
+
+		/* key func. */
+		int parseLocationBlock(std::vector<std::string> lines, int idx);
 };
 
 #endif
