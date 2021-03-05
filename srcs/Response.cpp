@@ -28,10 +28,6 @@ Response::Response(Response const &other)
 Response &
 Response::operator=(Response const &rhs)
 {
-	(void) rhs;
-	// if (this == &rhs)
-	// 	return (*this);
-	// *this = Response(rhs);
 	m_status_code = rhs.m_status_code;
 	m_date = rhs.m_date;
 	m_content_language = rhs.m_content_language;
