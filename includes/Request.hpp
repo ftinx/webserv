@@ -12,6 +12,7 @@
 class Request
 {
 	private:
+		std::string m_message;
 		std::string m_http_version;
 		std::string m_cgi_version;
 		bool m_check_cgi;
@@ -28,6 +29,7 @@ class Request
 	public:
 		Request();
 		~Request();
+		std::string get_m_message() const;
 		std::string get_m_http_version() const;
 		//getCgiVersion
 		bool get_m_check_cgi() const;

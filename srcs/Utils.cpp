@@ -260,7 +260,7 @@ fileToString(std::string file_path)
 	char buffer[BUFFER_SIZE];
 	std::string ret;
 
-	if ((fd == open(file_path.c_str(), O_RDONLY)) < 0)
+	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
 		throw std::exception();
 	ft::memset(buffer, 0, BUFFER_SIZE);
 	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
