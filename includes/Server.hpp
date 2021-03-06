@@ -15,6 +15,8 @@
 #include "Response.hpp"
 #include "Request.hpp"
 
+#define MAX_SOCK_NUM 1024
+
 
 enum Method
 {
