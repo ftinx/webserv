@@ -166,7 +166,9 @@ HttpConfig::parseHttpBlock()
 	{
 		std::vector<std::string> line;
 		line.clear();
-		line = ft::split(ft::trim(ft::rtrim(this->m_lines[idx], ";")," "), ' ');
+		line = ft::split(ft::trim(this->m_lines[idx]," "), ' ');
+		if (ft::checkAnnotateLine(line[0]))
+			continue ;
 		if (line.front().compare("software_name") == 0)
 			this->m_name = line.back();
 		else if (line.front().compare("software_version") == 0)

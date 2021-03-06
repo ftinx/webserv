@@ -82,7 +82,9 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, int idx)
 	{
 		std::vector<std::string> line;
 		line.clear();
-		line = ft::split(ft::ltrim(ft::rtrim(lines[idx], ";")," "), ' ');
+		line = ft::split(ft::trim(lines[idx]," "), ' ');
+		if (ft::checkAnnotateLine(line[0]))
+			continue ;
 		if (line.front().compare("server_name") == 0)
 			this->m_server_name = line.back();
 		else if (line.front().compare("listen") == 0)

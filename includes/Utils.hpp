@@ -12,10 +12,16 @@
 
 # define BUFFER_SIZE 4096
 
-enum Bracket
+enum Method
 {
-	OPEN,
-	CLOSE,
+	DEFAULT,
+	GET,
+	HEAD,
+	POST,
+	PUT,
+	DELETE,
+	OPTIONS,
+	TRACE,
 };
 
 namespace ft
@@ -55,7 +61,9 @@ namespace ft
 	bool isFileExists(std::string path); // not yet
 	bool isDirExists(std::string path); // not yet
 	bool checkBlankLine(std::string str);
+	bool checkAnnotateLine(std::string str);
 	std::string fileToString(std::string file_path);
+
 }
 
 #endif

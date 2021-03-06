@@ -65,14 +65,6 @@ memset(void *str, int c, size_t n)
 	return (str);
 }
 
-bool
-checkBlankLine(std::string str)
-{
-	if (str.empty())
-		return (true);
-	return (false);
-}
-
 std::string
 ltrim(std::string str, std::string set)
 {
@@ -252,6 +244,24 @@ getDateTimestamp()
 	return (buf);
 }
 
+bool
+checkBlankLine(std::string str)
+{
+    if (str.empty() == false)
+        return (false);
+    return (true);
+}
+
+bool
+checkAnnotateLine(std::string str)
+{
+	if (str.find("#") == 0)
+		return (true);
+	if (str.find("//") == 0)
+		return (true);
+	return (false);
+}
+
 std::string
 fileToString(std::string file_path)
 {
@@ -260,7 +270,7 @@ fileToString(std::string file_path)
 	char buffer[BUFFER_SIZE];
 	std::string ret;
 
-	if ((fd == open(file_path.c_str(), O_RDONLY)) < 0)
+	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
 		throw std::exception();
 	ft::memset(buffer, 0, BUFFER_SIZE);
 	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
@@ -269,6 +279,5 @@ fileToString(std::string file_path)
 		throw std::exception();
 	return (ret);
 }
-
 
 }

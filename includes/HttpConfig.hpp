@@ -25,20 +25,21 @@ class HttpConfig
 
 	private:
 		HttpConfig();
-		HttpConfig(HttpConfig const &other);
+
 		HttpConfig& operator=(HttpConfig const &rhs);
 
 		/* utils */
 		bool checkStartHttp(); // m_liens의 시작이 "http" 인지 여부 확인
 		bool checkCurlyBracketsFaired(); // 중괄호의 갯수와 열고 닫음에 에러가 없는지 확인
 		bool checkCurlyBracketsDouble(std::string line); // 한 라인에 브라켓이 여러개 있는지 확인
-		bool checkValidHttpConfig();
+		// bool checkValidHttpConfig();
 
 		/* debug */
 		// void printParseInfo();
 
 	public:
 		HttpConfig(std::string file_path);
+		HttpConfig(HttpConfig const &other);
 		virtual ~HttpConfig();
 
 		/* getter */
