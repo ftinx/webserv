@@ -4,7 +4,8 @@
 /******************************  Constructor  *********************************/
 /*============================================================================*/
 
-HttpConfig::HttpConfig():
+HttpConfig::HttpConfig()
+:
 	m_name(),
 	m_version(),
 	m_include(),
@@ -12,19 +13,15 @@ HttpConfig::HttpConfig():
 {
 }
 
-HttpConfig::HttpConfig(std::string file_path):
+HttpConfig::HttpConfig(std::string file_path)
+:
 	m_file_path(file_path),
 	m_name(),
 	m_version(),
 	m_include(),
-	m_root()
+	m_root(),
+	m_server_block()
 {
-	setConfigFile();
-	setConfigLines();
-	if (checkStartHttp() == false)
-		throw std::exception();
-	if (checkCurlyBracketsFaired() == false)
-		throw std::exception();
 	parseHttpBlock();
 }
 
@@ -32,7 +29,8 @@ HttpConfig::HttpConfig(HttpConfig const &other):
 	m_name(),
 	m_version(),
 	m_include(),
-	m_root()
+	m_root(),
+	m_server_block()
 {
 	*this = other;
 }
@@ -45,6 +43,7 @@ HttpConfig::operator=(HttpConfig const &rhs)
 	m_version = rhs.m_version;
 	m_include = rhs.m_include;
 	m_root = rhs.m_root;
+	m_server_block = rhs.m_server_block;
 	return (*this);
 }
 
@@ -52,7 +51,10 @@ HttpConfig::operator=(HttpConfig const &rhs)
 /******************************  Destructor  **********************************/
 /*============================================================================*/
 
-HttpConfig::~HttpConfig(){}
+HttpConfig::~HttpConfig()
+{
+	// std::cout << "HttpConfig Destructor Called" << std::endl;
+}
 
 /*============================================================================*/
 /********************************  Getter  ************************************/
@@ -82,6 +84,12 @@ HttpConfig::get_m_root() const
 	return (this->m_root);
 }
 
+std::vector<HttpConfigServer>
+HttpConfig::get_m_server_block() const
+{
+	return (this->m_server_block);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -103,6 +111,14 @@ HttpConfig::checkStartHttp()
 	if (first_line[0].compare("http"))
 		return (false);
 	return (true);
+}
+
+bool
+HttpConfig::checkBlankLine(std::string str)
+{
+    if (str.empty() == false)
+        return (false);
+    return (true);
 }
 
 bool
@@ -130,18 +146,18 @@ HttpConfig::checkCurlyBracketsFaired()
 }
 
 bool
-HttpConfig::checkCurlyBracketsDouble(std::string line)
+HttpConfig::checkCurlyBracketsDouble(std::string str)
 {
 	int cnt = 0;
 
-	for (int i = 0 ; i < line.length() ; i++)
+	for (int i = 0 ; i < str.size() ; i++)
 	{
-		if (line[i] == '{' || line[i] == '}')
+		if (str[i] == '{' || str[i] == '}')
 			cnt++;
 		if (cnt > 1)
-			return (false);
+			return (true);
 	}
-	return (true);
+	return (false);
 }
 
 void
@@ -153,7 +169,31 @@ HttpConfig::setConfigFile()
 void
 HttpConfig::setConfigLines()
 {
-	this->m_lines = ft::split(ft::trim(this->m_config_file, " "), '\n');
+	int idx = 0;
+
+	this->m_lines = ft::split(this->m_config_file, '\n');
+	while (idx < this->m_lines.size())
+	{
+		this->m_lines[idx] = ft::trim(this->m_lines[idx], " ");
+		if (checkCurlyBracketsDouble(this->m_lines[idx]))
+			throw std::exception();
+		if (checkBlankLine(this->m_lines[idx]) ||
+			HttpConfigLocation::checkAnnotateLine(this->m_lines[idx]))
+		{
+			this->m_lines.erase(this->m_lines.begin() + idx);
+			continue ;
+		}
+		idx++;
+	}
+}
+
+void
+HttpConfig::checkValidHttpBlock()
+{
+	if (checkStartHttp() == false)
+		throw std::exception();
+	if (checkCurlyBracketsFaired() == false)
+		throw std::exception();
 }
 
 void
@@ -162,13 +202,16 @@ HttpConfig::parseHttpBlock()
 	int idx = 0;
 	bool server_block_exist = false;
 
+	setConfigFile();
+	setConfigLines();
+	checkValidHttpBlock();
 	while (idx < this->m_lines.size())
 	{
 		std::vector<std::string> line;
 		line.clear();
-		line = ft::split(ft::trim(this->m_lines[idx]," "), ' ');
-		if (ft::checkAnnotateLine(line[0]))
-			continue ;
+		line = ft::split(m_lines[idx], ' ');
+		if (HttpConfigLocation::checkAnnotateLine(line.back()))
+			line.pop_back();
 		if (line.front().compare("software_name") == 0)
 			this->m_name = line.back();
 		else if (line.front().compare("software_version") == 0)
@@ -181,8 +224,7 @@ HttpConfig::parseHttpBlock()
 		{
 			server_block_exist = true;
 			HttpConfigServer server = HttpConfigServer();
-			idx = server.parseServerBlock(this->m_lines, idx);
-			this->m_server_block.push_back(server);
+			this->m_server_block.push_back(server.parseServerBlock(this->m_lines, idx));
 			continue ;
 		}
 		else if (line.front().compare("}") == 0)
