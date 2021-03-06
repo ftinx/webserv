@@ -39,8 +39,8 @@ char *bin2hex(const unsigned char *input, size_t len)
 void
 Server::init()
 {
-	this->m_requests = std::vector<Request>(1024);
-	this->m_responses = std::vector<Response>(1024);
+	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
+	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
 }
 
 
