@@ -23,6 +23,13 @@ Request::~Request(){}
 /*============================================================================*/
 
 std::string
+Request::get_m_message() const
+{
+    return (this->m_message);
+}
+
+
+std::string
 Request::get_m_http_version() const
 {
     return (this->m_http_version);
@@ -115,6 +122,7 @@ Request::parseMessage(std::string message)
     size_t i;
     std::vector<std::string> lines = ft::split(message, '\n');
 
+    this->m_message = message;
     if (parseRequestLine(lines[0]) == false)
         return (false);
     for (i = 1; i < lines.size(); i++)
