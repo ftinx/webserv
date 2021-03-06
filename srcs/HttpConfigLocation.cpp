@@ -84,7 +84,7 @@ HttpConfigLocation::convertStringToMethod(std::string str)
 	else if (str == "TRACE")
 		return (TRACE);
 	else
-		return (ERROR);
+		return (DEFAULT);
 }
 
 int
@@ -94,7 +94,9 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int idx)
 	{
 		std::vector<std::string> line;
 		line.clear();
-		line = ft::split(ft::ltrim(ft::rtrim(lines[idx], ";")," "), ' ');
+		line = ft::split(ft::trim(lines[idx]," "), ' ');
+		if (ft::checkAnnotateLine(line[0]))
+			continue ;
 		if (line.front().compare("location") == 0)
 		{
 			for (int i = 1 ; i < line.size() ; i++)
@@ -138,6 +140,13 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int idx)
 		}
 		else if (line.front().compare("cgi_path") == 0)
 			this->m_cgi_path = line.back();
+		else if (line.front().compare("autoindex") == 0)
+		{
+			if (line.back().compare("on"))
+				this->m_autoindex = true;
+			else
+				this->m_autoindex = false;
+		}
 		else if (line.front().compare("}") == 0)
 			return (idx + 1);
 		idx++;

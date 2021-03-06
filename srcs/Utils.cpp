@@ -26,6 +26,29 @@ isprint(int c)
 	return (false);
 }
 
+int
+atoi(const char *str)
+{
+	int sign;
+	int value;
+
+	sign = 1;
+	value = 0;
+	while (ft::isspace(*str))
+		str++;
+	if (*str == '-')
+		sign = -1;
+	if (*str == '-' || *str == '+')
+		++str;
+	while (ft::isdigit(*str))
+	{
+		value = value * 10 + (*str - '0');
+		str++;
+	}
+	value = sign == 1 ? value : -value;
+	return (value);
+}
+
 size_t
 strlen(const char *str)
 {
@@ -65,12 +88,13 @@ memset(void *str, int c, size_t n)
 	return (str);
 }
 
-bool
-checkBlankLine(std::string str)
+int
+stoi(const std::string &str)
 {
-	if (str.empty())
-		return (true);
-	return (false);
+	int value;
+
+	value = ft::atoi(str.c_str());
+	return (value);
 }
 
 std::string
@@ -282,6 +306,5 @@ fileToString(std::string file_path)
 		throw std::exception();
 	return (ret);
 }
-
 
 }

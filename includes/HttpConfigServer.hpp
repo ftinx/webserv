@@ -1,7 +1,6 @@
 #ifndef HTTPCONFIGSERVER_HPP
 # define HTTPCONFIGSERVER_HPP
 
-# include <string>
 # include "HttpConfigLocation.hpp"
 # include "Utils.hpp"
 
@@ -17,6 +16,8 @@ class HttpConfigServer
 	private:
 		HttpConfigServer(HttpConfigServer const &other);
 		HttpConfigServer& operator=(HttpConfigServer const &rhs);
+
+		/* utils */
 
 	public:
 		HttpConfigServer();

@@ -4,19 +4,6 @@
 # include <string>
 # include "Utils.hpp"
 
-enum Method
-{
-	DEFAULT,
-	GET,
-	HEAD,
-	POST,
-	PUT,
-	DELETE,
-	OPTIONS,
-	TRACE,
-	ERROR,
-};
-
 class HttpConfigLocation
 {
 	private:
@@ -26,6 +13,7 @@ class HttpConfigLocation
 		std::vector<std::string> m_index;
 		std::vector<std::string> m_cgi;
 		std::string m_cgi_path;
+		bool m_autoindex;
 
 	private:
 		HttpConfigLocation(HttpConfigLocation const &other);
