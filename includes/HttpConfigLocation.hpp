@@ -16,24 +16,28 @@ class HttpConfigLocation
 		bool m_autoindex;
 
 	private:
-		HttpConfigLocation(HttpConfigLocation const &other);
-		HttpConfigLocation& operator=(HttpConfigLocation const &rhs);
-
 		Method convertStringToMethod(std::string str);
 
 	public:
 		HttpConfigLocation();
-		virtual ~HttpConfigLocation();
+		HttpConfigLocation(HttpConfigLocation const &other);
+		HttpConfigLocation& operator=(HttpConfigLocation const &rhs);
+		~HttpConfigLocation();
 
 		/* getter */
 		std::string get_m_path() const;
 		std::string get_m_root() const;
+		std::vector<std::string> get_m_index() const;
+		std::vector<std::string> get_m_cgi() const;
 		std::string get_m_cgi_path() const;
 
 		/* setter */
 
+		/* utils */
+		static bool checkAnnotateLine(std::string str);
+
 		/* key func. */
-		int parseLocationBlock(std::vector<std::string> lines, int idx);
+		HttpConfigLocation& parseLocationBlock(std::vector<std::string> lines, int &idx);
 };
 
 #endif

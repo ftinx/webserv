@@ -16,6 +16,7 @@ HttpConfigLocation::HttpConfigLocation(HttpConfigLocation const &other):
 	m_root(),
 	m_cgi_path()
 {
+	*this = other;
 }
 
 HttpConfigLocation&
@@ -24,6 +25,7 @@ HttpConfigLocation::operator=(HttpConfigLocation const &rhs)
 	m_path = rhs.m_path;
 	m_root = rhs.m_root;
 	m_cgi_path = rhs.m_cgi_path;
+	return (*this);
 }
 
 /*============================================================================*/
@@ -46,6 +48,18 @@ std::string
 HttpConfigLocation::get_m_root() const
 {
 	return (this->m_root);
+}
+
+std::vector<std::string>
+HttpConfigLocation::get_m_index() const
+{
+	return (this->m_index);
+}
+
+std::vector<std::string>
+HttpConfigLocation::get_m_cgi() const
+{
+	return (this->m_cgi);
 }
 
 std::string
@@ -87,16 +101,24 @@ HttpConfigLocation::convertStringToMethod(std::string str)
 		return (DEFAULT);
 }
 
-int
-HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int idx)
+bool
+HttpConfigLocation::checkAnnotateLine(std::string str)
+{
+	if (str.find("#") != 0)
+		return (false);
+	return (true);
+}
+
+HttpConfigLocation&
+HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 {
 	while (42)
 	{
 		std::vector<std::string> line;
 		line.clear();
-		line = ft::split(ft::trim(lines[idx]," "), ' ');
-		if (ft::checkAnnotateLine(line[0]))
-			continue ;
+		line = ft::split(lines[idx], ' ');
+		if (checkAnnotateLine(line.back()))
+			line.pop_back();
 		if (line.front().compare("location") == 0)
 		{
 			for (int i = 1 ; i < line.size() ; i++)
@@ -142,14 +164,17 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int idx)
 			this->m_cgi_path = line.back();
 		else if (line.front().compare("autoindex") == 0)
 		{
-			if (line.back().compare("on"))
+			if (line.back().compare("on") == 0)
 				this->m_autoindex = true;
 			else
 				this->m_autoindex = false;
 		}
 		else if (line.front().compare("}") == 0)
-			return (idx + 1);
+		{
+			idx++;
+			break ;
+		}
 		idx++;
 	}
-	return (idx);
+	return (*this);
 }
