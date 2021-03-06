@@ -482,7 +482,7 @@ Server::sendResponse(int clientfd)
 	response = methodGET();
 
 	/* 전체 Response Message 확인 할 수 있음 */
-	printf("%s\n", response.get_m_reponse_message().c_str());
+	// printf("%s\n", response.get_m_reponse_message().c_str());
 
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;
