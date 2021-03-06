@@ -373,10 +373,8 @@ Response::makeHttpResponseMessage()
 */
 
 Response&
-Response::setCurrentDate()
+Response::setCurrentDate(int hour, int minute, int second)
 {
-	this->m_date = ft::getDateTimestamp();
-	printf("%s\n", this->m_date.c_str());
-	printf("%s", ft::setDateTimestamp(1,0,0).c_str());
+	this->m_date = ft::getDateTimestamp(hour, minute, second);
 	return (*this);
 }

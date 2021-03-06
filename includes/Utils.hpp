@@ -49,8 +49,7 @@ namespace ft
 	std::string iNetNtoA(unsigned int addr);
 
 	/* TIME */
-	std::string setDateTimestamp(int hour, int minute, int second);
-	std::string getDateTimestamp();
+	std::string getDateTimestamp(int hour, int minute, int second);
 
 	/* ETC */
 	bool isFileExists(std::string path); // not yet
