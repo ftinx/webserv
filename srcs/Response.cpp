@@ -221,6 +221,24 @@ Response::set404HtmlDocument()
 	return (body);
 }
 
+Response &
+Response::setPublicFileDocument(std::string publicPath)
+{
+	std::string body;
+
+	try
+	{
+		body = ft::publicFileToString(publicPath);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		body = "";
+	}
+	this->m_html_document = body;
+	this->m_content_length = body.length();
+	return (*this);
+}
 
 Response &
 Response::setHtmlDocument()
@@ -370,6 +388,8 @@ Response::makeHttpResponseMessage()
 **	return === -1: fail
 **
 **	시간 구조체 함수 관계 참고: https://venture21.tistory.com/22
+**
+**	getDateTimestamp함수 Util.hpp 로 옮김.
 */
 
 Response&

@@ -56,6 +56,7 @@ namespace ft
 	bool isDirExists(std::string path); // not yet
 	bool checkBlankLine(std::string str);
 	std::string fileToString(std::string file_path);
+	std::string publicFileToString(std::string file_path);
 }
 
 #endif
