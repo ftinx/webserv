@@ -58,8 +58,8 @@ class Server
 	fd_set m_main_fds, m_copy_fds;
 
 		/* Request, Response */
-		std::vector<Request> m_requests;
-		std::vector<Response> m_responses;
+	std::vector<Request> m_requests;
+	std::vector<Response> m_responses;
 
 	/* 우선 실험을 위해 private에서 public으로 변경 */
 	public:
