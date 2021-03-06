@@ -248,6 +248,24 @@ getDateTimestamp(int hour, int minute, int second)
 }
 
 std::string
+publicFileToString(std::string file_path)
+{
+	int fd;
+	int bytes;
+	char buffer[BUFFER_SIZE];
+	std::string ret;
+
+	if ((fd = open(("./www/" + file_path).c_str(), O_RDONLY)) < 0)
+		throw std::exception();
+	ft::memset(buffer, 0, BUFFER_SIZE);
+	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
+		ret += std::string(buffer);
+	if (bytes < 0)
+		throw std::exception();
+	return (ret);
+}
+
+std::string
 fileToString(std::string file_path)
 {
 	int fd;
