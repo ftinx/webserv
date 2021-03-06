@@ -52,9 +52,9 @@ class Server
         int m_server_socket;
         int m_client_socket;
 		int fd_num;
-		int sockfd;
-		int readn;
-		int maxfd;
+	int sockfd;
+	int readn;
+	int maxfd;
 		fd_set m_main_fds, m_copy_fds;
 
 		/* Request, Response */
