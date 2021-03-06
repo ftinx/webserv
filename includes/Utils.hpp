@@ -55,7 +55,7 @@ namespace ft
 	std::string iNetNtoA(unsigned int addr);
 
 	/* TIME */
-	std::string getDateTimestamp();
+	std::string getDateTimestamp(int hour, int minute, int second);
 
 	/* ETC */
 	bool isFileExists(std::string path); // not yet
@@ -63,7 +63,7 @@ namespace ft
 	bool checkBlankLine(std::string str);
 	bool checkAnnotateLine(std::string str);
 	std::string fileToString(std::string file_path);
-
+	std::string publicFileToString(std::string file_path);
 }
 
 #endif

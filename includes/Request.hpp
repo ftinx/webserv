@@ -9,9 +9,13 @@
 #include <map>
 #include "Uri.hpp"
 
+#define MAXLINE 1024
+#define SOCK_SETSIZE 1021
+
 class Request
 {
 	private:
+		std::string m_message;
 		std::string m_http_version;
 		std::string m_cgi_version;
 		bool m_check_cgi;
@@ -21,19 +25,20 @@ class Request
 		std::string m_body;
 		int m_error_code;
 
-	private:
-		Request(Request const &other);
-		Request& operator=(Request const &rhs);
-
 	public:
 		Request();
+		Request(Request const &other);
+		Request& operator=(Request const &rhs);
 		~Request();
+
+		/* getter */
+		std::string get_m_message() const;
 		std::string get_m_http_version() const;
-		//getCgiVersion
+		std::string get_m_cgi_version() const;
 		bool get_m_check_cgi() const;
 		std::string get_m_method() const;
 		Uri get_m_uri() const;
-		void printHeaders() const;
+		std::map<std::string, std::string> get_m_headers() const;
 		std::string get_m_body() const;
 		int	get_m_error_code() const;
 		void set_m_http_version(std::string);
@@ -43,7 +48,9 @@ class Request
 		//setHeaders
 		void set_m_body(std::string);
 		void set_m_error_code(int);
-		bool parseMessage(std::string);
+		bool isBreakCondition(std::string, bool*, int);
+		bool getMessage(int);
+		bool parseMessage();
 		bool parseRequestLine(std::string);
 		bool checkMethod();
 		void checkCGI();
@@ -51,6 +58,7 @@ class Request
 		bool checkBlankLine(std::string);
 		bool parseBody(std::string);
 		void checkChunked(std::string);
+		void printHeaders() const;
 };
 
 std::ostream& operator<<(std::ostream &os, const Request &ref);

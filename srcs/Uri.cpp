@@ -6,7 +6,7 @@
 /*============================================================================*/
 
 Uri::Uri()
-: m_uri(""), m_scheme(""), m_host(""), m_port("80"), m_path("")
+: m_uri(""), m_check_abs_uri(true), m_scheme("http"), m_host(""), m_port("80"), m_path("")
 {}
 
 Uri::Uri(Uri const &other)
@@ -19,6 +19,7 @@ Uri& Uri::operator=(Uri const &rhs)
     if (this == &rhs)
         return (*this);
     this->m_uri = rhs.get_m_uri();
+    this->m_check_abs_uri = rhs.get_m_check_abs_uri();
     this->m_scheme = rhs.get_m_scheme();
     this->m_host = rhs.get_m_host();
     this->m_port = rhs.get_m_port();
@@ -45,6 +46,18 @@ Uri::set_m_uri(std::string uri)
     this->m_uri = uri;
 }
 
+void
+Uri::set_m_host(std::string host)
+{
+    this->m_host = host;
+}
+
+void
+Uri::set_m_port(std::string port)
+{
+    this->m_port = port;
+}
+
 /*============================================================================*/
 /********************************  Getter  ************************************/
 /*============================================================================*/
@@ -53,6 +66,12 @@ std::string
 Uri::get_m_uri() const
 {
     return (this->m_uri);
+}
+
+bool
+Uri::get_m_check_abs_uri() const
+{
+    return (this->m_check_abs_uri);
 }
 
 std::string
@@ -92,12 +111,16 @@ Uri::get_m_query() const
 int
 Uri::parseUri()
 {
-    std::vector<std::string> pieces = ft::split(this->m_uri, "://");
+    size_t scheme_pos = this->m_uri.find("://");
     
-    if (pieces.size() < 2 || pieces.size() > 2)
-        return (400);
-    this->m_scheme = pieces[0];
-    return (this->parseHostPort(pieces[1]));
+    if (scheme_pos == std::string::npos)
+    {
+        this->m_scheme = "http";
+        this->m_check_abs_uri = false;
+        return (parsePath(this->m_uri));
+    }
+    this->m_scheme = this->m_uri.substr(0, scheme_pos);
+    return (this->parseHostPort(this->m_uri.substr(scheme_pos + 3, std::string::npos)));
 }
 
 int

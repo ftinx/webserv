@@ -224,20 +224,15 @@ iNetNtoA(unsigned int addr)
 	return (ret);
 }
 
-// std::string
-// getDateTimestamp()
-// {
-
-// }
-
 std::string
-getDateTimestamp()
+getDateTimestamp(int hour, int minute, int second)
 {
 	struct timeval currentTime;
 	struct tm *tm;
 	char buf[64];
 
 	gettimeofday(&currentTime, NULL);
+	currentTime.tv_sec += 3600 * hour + 60 * minute + second;
 	tm = localtime(&currentTime.tv_sec);
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm);
 	free(tm);
@@ -260,6 +255,24 @@ checkAnnotateLine(std::string str)
 	if (str.find("//") == 0)
 		return (true);
 	return (false);
+}
+
+std::string
+publicFileToString(std::string file_path)
+{
+	int fd;
+	int bytes;
+	char buffer[BUFFER_SIZE];
+	std::string ret;
+
+	if ((fd = open(("./www/" + file_path).c_str(), O_RDONLY)) < 0)
+		throw std::exception();
+	ft::memset(buffer, 0, BUFFER_SIZE);
+	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
+		ret += std::string(buffer);
+	if (bytes < 0)
+		throw std::exception();
+	return (ret);
 }
 
 std::string

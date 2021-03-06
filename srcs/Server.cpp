@@ -33,6 +33,20 @@ char *bin2hex(const unsigned char *input, size_t len)
 }
 
 /*
+**
+*/
+
+void
+Server::init()
+{
+	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
+	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
+}
+
+
+
+
+/*
 **	struct sockaddr_in {
 **		short sin_family;			// 주소 체계: 항상 AF_INET
 **		u_short sin_port;			// 16 비트 포트 번호 (0~65535), network byte order (Big Endian)
@@ -157,90 +171,55 @@ Server::setServerSocket()
 **	- - -
 **	ssize_t read(int fd, void *buf, size_t nbytes);
 **
+**	len 바이트 만큼 읽으라고 요청하였지만 읽은 데이터가 없다면, read() 함수는 읽은 바이트가 생길 때 까지 블록된다.
+**
 **	return > 0: 수신한 바이트 수
+**	return === 0: EOF
 **	return === -1: 오류
 */
+#include <bitset>
+#include <iostream>
+
 void
 Server::runServer()
 {
-	FD_ZERO(&this->readfds);
-	FD_SET(this->m_server_socket, &this->readfds);
+	// struct    timeval tv;
+	// tv.tv_sec = 2;
+	// tv.tv_usec = 0;
+
+	FD_ZERO(&this->m_main_fds);
+	FD_SET(this->m_server_socket, &this->m_main_fds);
 
 	this->maxfd = 0;
 	this->maxfd = this->m_server_socket;
-	memset(this->recvline, 0, MAXLINE);
 
-	while(1)
+	while (42)
 	{
-		this->allfds = this->readfds;
+		this->m_copy_fds = this->m_main_fds;
 		printf("Select Wait %d\n", this->maxfd);
-		this->fd_num = select(this->maxfd + 1 , &this->allfds, (fd_set *)0, (fd_set *)0, NULL);
-		if (this->fd_num == -1)
-		{
-			perror("select error");
-			return ;
+		for (int i=0; i<1; i++) {
+			std::cout << "-----0-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
 		}
-		else if (this->fd_num == 0)
-		{
-			return ;
-			perror("time out");
+		this->fd_num = select(this->maxfd + 1 , &this->m_copy_fds, (fd_set *)0, (fd_set *)0, NULL);
+
+		for (int i=0; i<1; i++) {
+			std::cout << "-----1-----" << this->fd_num << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
 		}
-
-		if (FD_ISSET(this->m_server_socket, &this->allfds))
+		switch (this->fd_num)
 		{
-			socklen_t addrlen;
-
-			addrlen = sizeof(this->m_client_addr);
-			this->m_client_socket = accept(
-				this->m_server_socket,
-				(struct sockaddr *)&this->m_client_addr,
-				&addrlen
-			);
-
-			FD_SET(this->m_client_socket, &this->readfds);
-
-			if (this->m_client_socket > this->maxfd)
-				this->maxfd = this->m_client_socket;
-			printf("Accept OK\n");
-			continue;
-		}
-
-		for (int i = 0; i <= this->maxfd; i++)
-		{
-			this->sockfd = i;
-			if (FD_ISSET(this->sockfd, &this->allfds))
-			{
-                while ((this->readn = read(this->sockfd, this->recvline, MAXLINE-1)) > 0)
-                {
-					/*
-					**	Request parsing 부분 시작
-					*/
-                    fprintf(stdout, "\n%s\n\n%s", bin2hex(this->recvline, readn), this->recvline);
-
-                    //hacky way to detect the end of the message.
-                    if (this->recvline[readn-1] == '\n')
-                    {
-                        break;
-                    }
-                    memset(this->recvline, 0, MAXLINE);
-					/*
-					**	Request parsing 부분 끝
-					*/
-                }
-				/*
-				**	Response 부분 시작
-				*/
-				sendResponse(this->sockfd);
-				/*
-				**	Response 부분 끝
-				*/
-				close(this->sockfd);
-				if (--this->fd_num <= 0)
-					break;
-			}
+			case -1:
+				perror("select error");
+				return ;
+			case 0:
+				perror("timeout error");
+				return ;
+			default:
+				getRequest();
 		}
 	}
-
+	return ;
 }
 
 void
@@ -249,51 +228,247 @@ Server::closeServer()
 	return ;
 }
 
-// Response &
-// Server::methodHEAD()
-// {
-// 	return ;
-// }
+/*============================================================================*/
+/*******************************  Request  ************************************/
+/*============================================================================*/
 
-// Response &
-// Server::methodGET()
-// {
-// 	Response response = Response();
+#include <bitset>
+#include <iostream>
 
-// 	return (response.setAttribute(TITLE, "Webserv")
-// 		.setAttribute(P, "Webserv by ftinx")
-// 		.setAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
-// 		.setAttribute(DIV, "빠밤 빠밤")
-// 		.setHtmlDocument()
-// 		.makeResponseMessage());
-// }
+void
+Server::getRequest()
+{
+	if (FD_ISSET(this->m_server_socket, &this->m_copy_fds))
+	{
+		for (int i=0; i<1; i++) {
+			std::cout << "-----2-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
+		}
+		socklen_t addrlen;
 
-// Response &
-// Server::methodPOST()
-// {
-// 	return ;
-// }
+		addrlen = sizeof(this->m_client_addr);
+		this->m_client_socket = accept(
+			this->m_server_socket,
+			(struct sockaddr *)&this->m_client_addr,
+			&addrlen
+		);
 
-// Response &
-// Server::methodPUT()
-// {
-// 	return ;
-// }
+		FD_SET(this->m_client_socket, &this->m_main_fds);
 
-// Response &
-// Server::methodDELETE()
-// {
-// }
+		if (this->m_client_socket > this->maxfd)
+			this->maxfd = this->m_client_socket;
+		for (int i=0; i<1; i++) {
+			std::cout << "-----3-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
+		}
+		printf("Accept OK\n");
+		return ;
+	}
 
-// Response &
-// Server::methodOPTIONS()
-// {
-// }
+	for (int i=0; i<1; i++) {
+		std::cout << "-----4-----" << std::endl;
+		std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
+	}
 
-// Response &
-// Server::methodTRACE()
-// {
-// }
+	for (int i = 0; i <= this->maxfd; i++)
+	{
+		this->sockfd = i;
+		if (FD_ISSET(this->sockfd, &this->m_copy_fds))
+		{
+			/*
+			** Request 부분 시작, false시 에러 받아줘야
+			*/
+			this->m_requests[this->sockfd].getMessage(this->sockfd);
+			/*
+			**	Response 부분 시작
+			*/
+			sendResponse(this->sockfd);
+			/*
+			**	Response 부분 끝
+			*/
+			close(this->sockfd);
+			if (--this->fd_num <= 0)
+				break;
+		}
+	}
+	// FD_ZERO(&this->m_main_fds);
+	return ;
+}
+
+/*============================================================================*/
+/*******************************  Response  ***********************************/
+/*============================================================================*/
+
+Response
+Server::page200()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setPublicFileDocument("index.html")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::page404()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(404)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHtmlAttribute(TITLE, "Webserv")
+			.setHtmlDocument()
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::methodHEAD()
+{
+	return (page404());
+}
+
+Response
+Server::methodGET()
+{
+	if (true)
+		return (page200());
+	else if (true)
+		return (page404());
+}
+
+Response
+Server::methodPOST()
+{
+	return (page404());
+}
+
+Response
+Server::methodPUT()
+{
+	return (page404());
+}
+
+Response
+Server::methodDELETE()
+{
+	return (page404());
+}
+
+Response
+Server::OptionsPathRoot()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("allow", "OPTIONS, GET, POST, HEAD")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::methodOPTIONS()
+{
+	/* PATH에 따라 다른 Options응 답을 주어야함. */
+	return (OptionsPathRoot());
+}
+
+/*
+**	<< TRACE >>
+**	Request has body: No
+**	Successful response has body: No
+**	Safe: No
+**	Idempotent: No
+**	Cacheable: No
+**	Allowed in HTML forms: No
+*/
+Response
+Server::methodTRACE()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-type", "message/http")
+			.setHttpResponseHeader("connection", "close")
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::methodNotAllow()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(405)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::methodNotImplemented()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(501)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
 
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
@@ -306,43 +481,10 @@ Server::sendResponse(int clientfd)
 {
 	Response response = Response();
 
-	// response = methodGET();
-	// response
-	// 	.setStatusCode(200)
-	// 	.setCurrentDate()
-	// 	.setContentLanguage("ko, en")
-	// 	.setContentType("text/html; charset=UTF-8")
-	// 	.setServer("ftnix/1.0 (MacOS)")
-	// 	.setHtmlAttribute(TITLE, "Webserv")
-	// 	.setHtmlAttribute(P, "Webserv by ftinx")
-	// 	.setHtmlAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
-	// 	.setHtmlAttribute(DIV, "빠밤 빠밤")
-	// 	.setHtmlDocument()
-	// 	.setHttpResponseHeader("date", response.get_m_date())
-	// 	.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-	// 	.setHttpResponseHeader("content-language", response.get_m_content_language())
-	// 	.setHttpResponseHeader("content-type", response.get_m_content_type())
-	// 	.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-	// 	.setHttpResponseHeader("server", response.get_m_server())
-	// 	.makeHttpResponseMessage();
+	response = methodGET();
 
-	response
-		.setStatusCode(404)
-		.setCurrentDate()
-		.setContentLanguage("ko, en")
-		.setContentType("text/html; charset=UTF-8")
-		.setServer("ftnix/1.0 (MacOS)")
-		.setHtmlAttribute(TITLE, "Webserv")
-		.setHtmlDocument()
-		.setHttpResponseHeader("date", response.get_m_date())
-		.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-		.setHttpResponseHeader("content-language", response.get_m_content_language())
-		.setHttpResponseHeader("content-type", response.get_m_content_type())
-		.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-		.setHttpResponseHeader("server", response.get_m_server())
-		.makeHttpResponseMessage();
-
-	printf("%s\n", response.get_m_reponse_message().c_str());
+	/* 전체 Response Message 확인 할 수 있음 */
+	// printf("%s\n", response.get_m_reponse_message().c_str());
 
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;

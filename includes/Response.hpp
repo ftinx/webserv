@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 
+#include "Utils.hpp"
+
 enum htmlTag
 {
 	TITLE,
@@ -12,6 +14,18 @@ enum htmlTag
 	DIV
 };
 
+/*
+**	<< General headers >>
+**	- 메세지 전체에 적용
+**	- Connection, Date, Keep-Alive, Transfer-Encoding
+**	<< Entity headers >>
+**	- 요청 본문에 적용
+**	- Content-Encoding, Content-Type, Last-Modified
+**	<< Response headers >>
+**	- 서버에 대한 추가 정보
+**	- Access-Control-Allow-Origin, Etag, Server, Set-Cookie, Vary
+**	- Allow: GET, POST, HEAD
+*/
 class Response
 {
 	private:
@@ -76,10 +90,11 @@ class Response
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);
 		void setDivTag(std::string value);
+		Response& setPublicFileDocument(std::string publicPath);
+		Response& setBodyDocument(std::string body);
 
 		/* util */
-		std::string getDate();
-		Response& setCurrentDate();
+		Response& setCurrentDate(int hour=0, int minute=0, int second=0);
 };
 
 #endif

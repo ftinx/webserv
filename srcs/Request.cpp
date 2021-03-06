@@ -1,15 +1,39 @@
 #include "Request.hpp"
 #include "Utils.hpp"
+#include <string>
 
 /*============================================================================*/
 /******************************  Constructor  *********************************/
 /*============================================================================*/
 
 Request::Request()
-: m_http_version(""), m_cgi_version(""), m_check_cgi(false),
-m_method(""), m_body(""), m_error_code(0)
+: m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
+m_method(""), m_uri(), m_headers(), m_body(""), m_error_code(0)
 {
 }
+
+Request::Request(Request const &other)
+{
+	*this = other; 
+}
+
+Request& Request::operator=(Request const &rhs)
+{
+	if (this == &rhs)
+		return (*this);
+	this->m_message = rhs.get_m_message();
+	this->m_http_version = rhs.get_m_http_version();
+	this->m_cgi_version = rhs.get_m_cgi_version();
+	this->m_check_cgi = rhs.get_m_check_cgi();
+	this->m_method = rhs.get_m_method();
+	this->m_uri = rhs.get_m_uri();
+	this->m_headers = rhs.get_m_headers();
+	this->m_body = rhs.get_m_body();
+	this->m_error_code = rhs.get_m_error_code();
+	return (*this);
+}
+
+
 
 /*============================================================================*/
 /******************************  Destructor  **********************************/
@@ -23,10 +47,24 @@ Request::~Request(){}
 /*============================================================================*/
 
 std::string
+Request::get_m_message() const
+{
+    return (this->m_message);
+}
+
+
+std::string
 Request::get_m_http_version() const
 {
     return (this->m_http_version);
 }
+
+std::string
+Request::get_m_cgi_version() const
+{
+    return (this->m_cgi_version);
+}
+
 
 bool
 Request::get_m_check_cgi() const
@@ -46,18 +84,12 @@ Request::get_m_uri() const
     return (this->m_uri);
 }
 
-void
-Request::printHeaders() const
+std::map<std::string, std::string>
+Request::get_m_headers() const
 {
-    std::map<std::string, std::string> m;
-    std::map<std::string, std::string>::iterator i;
-    std::vector<std::string> ret;
-
-    for (i = m.begin(); i != m.end(); i++)
-    {
-        std::cout << i->first << ": " << i->second << std::endl;
-    }
+	return (this->m_headers);
 }
+
 
 std::string
 Request::get_m_body() const
@@ -110,18 +142,75 @@ Request::set_m_error_code(int error_code)
 /*============================================================================*/
 
 bool
-Request::parseMessage(std::string message)
+Request::isBreakCondition(std::string str, bool *chunked, int read_bytes)
+{
+	std::string header;
+	std::string value;
+	static int content_length = 0;
+	size_t colon_pos = str.find_first_of(':');
+
+	if (colon_pos != std::string::npos)
+	{
+		header = ft::trim(str.substr(0, colon_pos), " ");
+		value = ft::trim(str.substr(colon_pos + 1, std::string::npos), " ");
+		if (header == "Transfer-Encoding" && value == "chunked")
+		{	
+			*chunked = true;
+			return(false);
+		}
+		else if (header == "Content-Length")
+		{
+			content_length = std::stoi(value);
+			return (false);
+		}
+	}
+	if (*chunked == true && str == "\r\n")
+		return (true);
+	else if (content_length == read_bytes)
+		return (true);
+	else if (str.find_first_of("\r\n\r\n") != std::string::npos)
+		return (true);
+	return (false);
+}
+
+bool
+Request::getMessage(int fd)
+{
+	bool chunked = false;
+    int ret;
+	int read_bytes = 0; 
+    char recvline[MAXLINE + 1];
+
+    while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
+    {
+		read_bytes += ret;
+		std::string str(recvline);
+        this->m_message.append(str);
+		if (isBreakCondition(str, &chunked, read_bytes))
+			break;
+		memset(recvline, 0, MAXLINE);
+    }
+    std::cout << this->m_message << std::endl;
+	if (this->parseMessage() == false)
+		return (false);
+	return (true);
+}
+
+bool
+Request::parseMessage()
 {
     size_t i;
-    std::vector<std::string> lines = ft::split(message, '\n');
+    std::vector<std::string> lines = ft::split(this->m_message, "\n");
 
-    if (parseRequestLine(lines[0]) == false)
-        return (false);
+    if (parseRequestLine(ft::rtrim(lines[0], "\r")) == false)
+	{
+	    return (false);
+	}
     for (i = 1; i < lines.size(); i++)
     {
-        if (checkBlankLine(lines[i]))
+        if (checkBlankLine(ft::rtrim(lines[i], "\r")))
             break;
-        if (parseHeader(ft::rtrim(lines[i], "\r\n")) == false)
+        if (parseHeader(ft::rtrim(lines[i], "\r")) == false)
             return (false);
     }
     while (i < lines.size())
@@ -130,6 +219,9 @@ Request::parseMessage(std::string message)
             return (false);
         i++;
     }
+    // std::cout << "************" << std::endl;
+    // std::cout << *this << std::endl;
+    // this->printHeaders();
     return (true);
 }
 
@@ -167,7 +259,7 @@ Request::parseHeader(std::string line)
 {
     std::vector<std::string> key_value = ft::split(line, ':');
     
-    if (key_value.size() != 2)
+    if (key_value.size() < 2)
     {
         this->m_error_code = 400;
         return (false);
@@ -179,7 +271,12 @@ Request::parseHeader(std::string line)
         this->m_error_code = 400;
         return (false);
     }
-    this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " ")));
+    if (key_value[0] == "Host")
+        this->m_uri.set_m_host(ft::trim(key_value[1], " "));
+    else if (key_value[0] == "Port")
+        this->m_uri.set_m_port(ft::trim(key_value[1], " "));
+    else
+        this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " ")));
     return (true);
 }
 
@@ -222,11 +319,23 @@ Request::checkCGI()
 bool
 Request::checkBlankLine(std::string str)
 {
-    if (str.empty())
-    {
+    if (str[0] == '\r')
         return (true);
-    }
     return (false);
+}
+
+void
+Request::printHeaders() const
+{
+    std::map<std::string, std::string> m = this->m_headers;
+    std::map<std::string, std::string>::iterator i;
+    std::vector<std::string> ret;
+
+    std::cout << "#### print headers #### " << std::endl;
+    for (i = m.begin(); i != m.end(); i++)
+    {
+        std::cout << i->first << ": " << i->second << std::endl;
+    }
 }
 
 std::ostream& operator<<(std::ostream &os, Request const& ref)
@@ -242,5 +351,5 @@ std::ostream& operator<<(std::ostream &os, Request const& ref)
     << "> host: " << uri.get_m_host() << std::endl
     << "> port: " << uri.get_m_port() << std::endl
     << "> path: " << uri.get_m_path() << std::endl
-    << "body: " << ref.get_m_body() << std::endl);
+    << "> body: " << ref.get_m_body() << std::endl);
 }
