@@ -222,6 +222,14 @@ Response::set404HtmlDocument()
 }
 
 Response &
+Response::setBodyDocument(std::string body)
+{
+	this->m_html_document = body;
+	this->m_content_length = body.length();
+	return (*this);
+}
+
+Response &
 Response::setPublicFileDocument(std::string publicPath)
 {
 	std::string body;
@@ -313,7 +321,7 @@ Response::httpResponseHeader()
 		header += std::string(it->first)
 			+ ": "
 			+ std::string(it->second)
-			+ std::string("\n");
+			+ setCRLF();
 	return (header);
 }
 
@@ -351,7 +359,7 @@ Response::makeHttpResponseMessage()
 	/* Concat HTTP Response  */
 	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
 		+ httpResponseHeader()
-		+ setCRLF() + setCRLF()
+		+ setCRLF()
 		+ this->m_html_document;
 
 	/* Set Response Config */
