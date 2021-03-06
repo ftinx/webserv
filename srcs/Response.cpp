@@ -372,20 +372,6 @@ Response::makeHttpResponseMessage()
 **	시간 구조체 함수 관계 참고: https://venture21.tistory.com/22
 */
 
-// std::string
-// Response::getDate()
-// {
-// 	struct timeval currentTime;
-// 	struct tm *tm;
-// 	char buf[64];
-
-// 	gettimeofday(&currentTime, NULL);
-// 	tm = localtime(&currentTime.tv_sec);
-// 	strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", tm);
-// 	free(tm);
-// 	return (buf);
-// }
-
 Response&
 Response::setCurrentDate()
 {
