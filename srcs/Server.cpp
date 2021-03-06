@@ -289,7 +289,7 @@ Server::getRequest()
 				break;
 		}
 	}
-	FD_ZERO(&this->m_main_fds);
+	// FD_ZERO(&this->m_main_fds);
 	return ;
 }
 

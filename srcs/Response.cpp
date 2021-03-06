@@ -376,5 +376,7 @@ Response&
 Response::setCurrentDate()
 {
 	this->m_date = ft::getDateTimestamp();
+	printf("%s\n", this->m_date.c_str());
+	printf("%s", ft::setDateTimestamp(1,0,0).c_str());
 	return (*this);
 }
