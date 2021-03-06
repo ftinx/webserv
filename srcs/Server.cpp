@@ -278,8 +278,7 @@ Server::getRequest()
 			/*
 			** Request 부분 시작, false시 에러 받아줘야
 			*/
-			Request& request = this->m_requests[this->sockfd];
-            request.getMessage(this->sockfd);
+			this->m_requests[this->sockfd].getMessage(this->sockfd);
 			/*
 			**	Response 부분 시작
 			*/
