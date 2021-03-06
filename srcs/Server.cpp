@@ -291,9 +291,6 @@ Server::getRequest()
 				break;
 		}
 	}
-<<<<<<< HEAD
-	FD_ZERO(&this->m_main_fds);
-=======
 	// FD_ZERO(&this->m_main_fds);
 >>>>>>> b50da595c86dfc00729e7aad0ffa72c330f2784e
 	return ;
