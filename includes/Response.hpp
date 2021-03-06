@@ -92,7 +92,6 @@ class Response
 		void setDivTag(std::string value);
 
 		/* util */
-		// std::string getDate();
 		Response& setCurrentDate();
 };
 
