@@ -13,11 +13,9 @@
 #include <map>
 
 #include "Response.hpp"
-// #include "Request.hpp"
+#include "Request.hpp"
 // #include "utils.hpp"
 
-#define MAXLINE 1024
-#define SOCK_SETSIZE 1021
 
 enum Method
 {
@@ -58,13 +56,11 @@ class Server
 		int sockfd;
 		int readn;
 		int maxfd;
-		uint8_t recvline[MAXLINE+1];
 		fd_set m_main_fds, m_copy_fds;
 
 		/* Request, Response */
-		// std::vector<Request> m_request;
-		// std::vector<Response> m_response;
-		// std::map<std::string, std::string> m_chunked_message;
+		std::vector<Request> m_requests;
+		std::vector<Response> m_responses;
 
 	/* 우선 실험을 위해 private에서 public으로 변경 */
 	public:
@@ -75,6 +71,7 @@ class Server
 		Server();
 		~Server();
 
+		void init();
 		void setServerAddr(int port);
 		bool setServerSocket();
 		void runServer();

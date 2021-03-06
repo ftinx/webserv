@@ -33,6 +33,20 @@ char *bin2hex(const unsigned char *input, size_t len)
 }
 
 /*
+**
+*/
+
+void
+Server::init()
+{
+	this->m_requests = std::vector<Request>(1024);
+	this->m_responses = std::vector<Response>(1024);
+}
+
+
+
+
+/*
 **	struct sockaddr_in {
 **		short sin_family;			// 주소 체계: 항상 AF_INET
 **		u_short sin_port;			// 16 비트 포트 번호 (0~65535), network byte order (Big Endian)
@@ -178,7 +192,6 @@ Server::runServer()
 
 	this->maxfd = 0;
 	this->maxfd = this->m_server_socket;
-	memset(this->recvline, 0, MAXLINE);
 
 	while (42)
 	{
@@ -262,21 +275,11 @@ Server::getRequest()
 		this->sockfd = i;
 		if (FD_ISSET(this->sockfd, &this->m_copy_fds))
 		{
-            while ((this->readn = read(this->sockfd, this->recvline, MAXLINE-1)) > 0)
-            {
-				/*
-				**	Request parsing 부분 시작
-				*/
-                fprintf(stdout, "\n%s\n\n%s", bin2hex(this->recvline, readn), this->recvline);
-
-                // header에서 content-length, transfer-encodeing으로 break 판단.
-                if (this->recvline[readn-1] == '\n')
-                    break;
-                memset(this->recvline, 0, MAXLINE);
-				/*
-				**	Request parsing 부분 끝
-				*/
-            }
+			/*
+			** Request 부분 시작, false시 에러 받아줘야
+			*/
+			Request& request = this->m_requests[this->sockfd];
+            request.getMessage(this->sockfd);
 			/*
 			**	Response 부분 시작
 			*/
@@ -289,6 +292,7 @@ Server::getRequest()
 				break;
 		}
 	}
+	FD_ZERO(&this->m_main_fds);
 	return ;
 }
 
