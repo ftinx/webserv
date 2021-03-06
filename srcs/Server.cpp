@@ -183,7 +183,7 @@ Server::setServerSocket()
 void
 Server::runServer()
 {
-	// struct    timeval tv; 
+	// struct    timeval tv;
 	// tv.tv_sec = 2;
 	// tv.tv_usec = 0;
 
@@ -292,7 +292,11 @@ Server::getRequest()
 				break;
 		}
 	}
+<<<<<<< HEAD
 	FD_ZERO(&this->m_main_fds);
+=======
+	// FD_ZERO(&this->m_main_fds);
+>>>>>>> b50da595c86dfc00729e7aad0ffa72c330f2784e
 	return ;
 }
 
@@ -312,11 +316,7 @@ Server::page200()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
 			.setServer("ftnix/1.0 (MacOS)")
-			.setHtmlAttribute(TITLE, "Webserv")
-			.setHtmlAttribute(P, "Webserv by ftinx")
-			.setHtmlAttribute(DIV, "모두모두 파이팅입니다!! ㅎㅎ 항상 감사합니댜!")
-			.setHtmlAttribute(DIV, "빠밤 빠밤")
-			.setHtmlDocument()
+			.setPublicFileDocument("index.html")
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())

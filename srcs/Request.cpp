@@ -8,7 +8,7 @@
 
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
-m_method(""), m_body(""), m_error_code(0)
+m_method(""), m_uri(), m_headers(), m_body(""), m_error_code(0)
 {
 }
 
@@ -190,6 +190,7 @@ Request::getMessage(int fd)
 			break;
 		memset(recvline, 0, MAXLINE);
     }
+    std::cout << this->m_message << std::endl;
 	if (this->parseMessage() == false)
 		return (false);
 	return (true);
@@ -199,17 +200,17 @@ bool
 Request::parseMessage()
 {
     size_t i;
-    std::vector<std::string> lines = ft::split(this->m_message, '\n');
+    std::vector<std::string> lines = ft::split(this->m_message, "\n");
 
-    if (parseRequestLine(lines[0]) == false)
+    if (parseRequestLine(ft::rtrim(lines[0], "\r")) == false)
 	{
 	    return (false);
 	}
     for (i = 1; i < lines.size(); i++)
     {
-        if (checkBlankLine(lines[i]))
+        if (checkBlankLine(ft::rtrim(lines[i], "\r")))
             break;
-        if (parseHeader(ft::rtrim(lines[i], "\r\n")) == false)
+        if (parseHeader(ft::rtrim(lines[i], "\r")) == false)
             return (false);
     }
     while (i < lines.size())
@@ -218,6 +219,9 @@ Request::parseMessage()
             return (false);
         i++;
     }
+    // std::cout << "************" << std::endl;
+    // std::cout << *this << std::endl;
+    // this->printHeaders();
     return (true);
 }
 
@@ -243,7 +247,6 @@ Request::parseRequestLine(std::string request_line)
     }
     if ((error_code = m_uri.parseUri()))
     {
-		std::cout << "parse uri error !!!!!!" << std::endl;
         this->m_error_code = error_code;
         return(false);
     }
@@ -256,7 +259,7 @@ Request::parseHeader(std::string line)
 {
     std::vector<std::string> key_value = ft::split(line, ':');
     
-    if (key_value.size() != 2)
+    if (key_value.size() < 2)
     {
         this->m_error_code = 400;
         return (false);
@@ -268,7 +271,12 @@ Request::parseHeader(std::string line)
         this->m_error_code = 400;
         return (false);
     }
-    this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " ")));
+    if (key_value[0] == "Host")
+        this->m_uri.set_m_host(ft::trim(key_value[1], " "));
+    else if (key_value[0] == "Port")
+        this->m_uri.set_m_port(ft::trim(key_value[1], " "));
+    else
+        this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " ")));
     return (true);
 }
 
@@ -311,20 +319,19 @@ Request::checkCGI()
 bool
 Request::checkBlankLine(std::string str)
 {
-    if (str.empty())
-    {
+    if (str[0] == '\r')
         return (true);
-    }
     return (false);
 }
 
 void
 Request::printHeaders() const
 {
-    std::map<std::string, std::string> m;
+    std::map<std::string, std::string> m = this->m_headers;
     std::map<std::string, std::string>::iterator i;
     std::vector<std::string> ret;
 
+    std::cout << "#### print headers #### " << std::endl;
     for (i = m.begin(); i != m.end(); i++)
     {
         std::cout << i->first << ": " << i->second << std::endl;
@@ -344,5 +351,5 @@ std::ostream& operator<<(std::ostream &os, Request const& ref)
     << "> host: " << uri.get_m_host() << std::endl
     << "> port: " << uri.get_m_port() << std::endl
     << "> path: " << uri.get_m_path() << std::endl
-    << "body: " << ref.get_m_body() << std::endl);
+    << "> body: " << ref.get_m_body() << std::endl);
 }

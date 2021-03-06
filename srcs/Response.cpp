@@ -221,6 +221,32 @@ Response::set404HtmlDocument()
 	return (body);
 }
 
+Response &
+Response::setBodyDocument(std::string body)
+{
+	this->m_html_document = body;
+	this->m_content_length = body.length();
+	return (*this);
+}
+
+Response &
+Response::setPublicFileDocument(std::string publicPath)
+{
+	std::string body;
+
+	try
+	{
+		body = ft::publicFileToString(publicPath);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		body = "";
+	}
+	this->m_html_document = body;
+	this->m_content_length = body.length();
+	return (*this);
+}
 
 Response &
 Response::setHtmlDocument()
@@ -295,7 +321,7 @@ Response::httpResponseHeader()
 		header += std::string(it->first)
 			+ ": "
 			+ std::string(it->second)
-			+ std::string("\n");
+			+ setCRLF();
 	return (header);
 }
 
@@ -333,7 +359,7 @@ Response::makeHttpResponseMessage()
 	/* Concat HTTP Response  */
 	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
 		+ httpResponseHeader()
-		+ setCRLF() + setCRLF()
+		+ setCRLF()
 		+ this->m_html_document;
 
 	/* Set Response Config */
@@ -370,25 +396,13 @@ Response::makeHttpResponseMessage()
 **	return === -1: fail
 **
 **	시간 구조체 함수 관계 참고: https://venture21.tistory.com/22
+**
+**	getDateTimestamp함수 Util.hpp 로 옮김.
 */
 
-std::string
-Response::getDate()
-{
-	struct timeval currentTime;
-	struct tm *tm;
-	char buf[64];
-
-	gettimeofday(&currentTime, NULL);
-	tm = localtime(&currentTime.tv_sec);
-	strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", tm);
-	free(tm);
-	return (buf);
-}
-
 Response&
-Response::setCurrentDate()
+Response::setCurrentDate(int hour, int minute, int second)
 {
-	this->m_date = getDate();
+	this->m_date = ft::getDateTimestamp(hour, minute, second);
 	return (*this);
 }
