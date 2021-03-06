@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 
+#include "Utils.hpp"
+
 enum htmlTag
 {
 	TITLE,
@@ -90,7 +92,7 @@ class Response
 		void setDivTag(std::string value);
 
 		/* util */
-		std::string getDate();
+		// std::string getDate();
 		Response& setCurrentDate();
 };
 
