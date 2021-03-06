@@ -157,90 +157,56 @@ Server::setServerSocket()
 **	- - -
 **	ssize_t read(int fd, void *buf, size_t nbytes);
 **
+**	len 바이트 만큼 읽으라고 요청하였지만 읽은 데이터가 없다면, read() 함수는 읽은 바이트가 생길 때 까지 블록된다.
+**
 **	return > 0: 수신한 바이트 수
+**	return === 0: EOF
 **	return === -1: 오류
 */
+#include <bitset>
+#include <iostream>
+
 void
 Server::runServer()
 {
-	FD_ZERO(&this->readfds);
-	FD_SET(this->m_server_socket, &this->readfds);
+	// struct    timeval tv; 
+	// tv.tv_sec = 2;
+	// tv.tv_usec = 0;
+
+	FD_ZERO(&this->m_main_fds);
+	FD_SET(this->m_server_socket, &this->m_main_fds);
 
 	this->maxfd = 0;
 	this->maxfd = this->m_server_socket;
 	memset(this->recvline, 0, MAXLINE);
 
-	while(1)
+	while (42)
 	{
-		this->allfds = this->readfds;
+		this->m_copy_fds = this->m_main_fds;
 		printf("Select Wait %d\n", this->maxfd);
-		this->fd_num = select(this->maxfd + 1 , &this->allfds, (fd_set *)0, (fd_set *)0, NULL);
-		if (this->fd_num == -1)
-		{
-			perror("select error");
-			return ;
+		for (int i=0; i<1; i++) {
+			std::cout << "-----0-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
 		}
-		else if (this->fd_num == 0)
-		{
-			return ;
-			perror("time out");
+		this->fd_num = select(this->maxfd + 1 , &this->m_copy_fds, (fd_set *)0, (fd_set *)0, NULL);
+
+		for (int i=0; i<1; i++) {
+			std::cout << "-----1-----" << this->fd_num << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
 		}
-
-		if (FD_ISSET(this->m_server_socket, &this->allfds))
+		switch (this->fd_num)
 		{
-			socklen_t addrlen;
-
-			addrlen = sizeof(this->m_client_addr);
-			this->m_client_socket = accept(
-				this->m_server_socket,
-				(struct sockaddr *)&this->m_client_addr,
-				&addrlen
-			);
-
-			FD_SET(this->m_client_socket, &this->readfds);
-
-			if (this->m_client_socket > this->maxfd)
-				this->maxfd = this->m_client_socket;
-			printf("Accept OK\n");
-			continue;
-		}
-
-		for (int i = 0; i <= this->maxfd; i++)
-		{
-			this->sockfd = i;
-			if (FD_ISSET(this->sockfd, &this->allfds))
-			{
-                while ((this->readn = read(this->sockfd, this->recvline, MAXLINE-1)) > 0)
-                {
-					/*
-					**	Request parsing 부분 시작
-					*/
-                    fprintf(stdout, "\n%s\n\n%s", bin2hex(this->recvline, readn), this->recvline);
-
-                    //hacky way to detect the end of the message.
-                    if (this->recvline[readn-1] == '\n')
-                    {
-                        break;
-                    }
-                    memset(this->recvline, 0, MAXLINE);
-					/*
-					**	Request parsing 부분 끝
-					*/
-                }
-				/*
-				**	Response 부분 시작
-				*/
-				sendResponse(this->sockfd);
-				/*
-				**	Response 부분 끝
-				*/
-				close(this->sockfd);
-				if (--this->fd_num <= 0)
-					break;
-			}
+			case -1:
+				perror("select error");
+				return ;
+			case 0:
+				perror("timeout error");
+				return ;
+			default:
+				getRequest();
 		}
 	}
-
+	return ;
 }
 
 void
@@ -248,6 +214,87 @@ Server::closeServer()
 {
 	return ;
 }
+
+/*============================================================================*/
+/*******************************  Request  ************************************/
+/*============================================================================*/
+
+#include <bitset>
+#include <iostream>
+
+void
+Server::getRequest()
+{
+	if (FD_ISSET(this->m_server_socket, &this->m_copy_fds))
+	{
+		for (int i=0; i<1; i++) {
+			std::cout << "-----2-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
+		}
+		socklen_t addrlen;
+
+		addrlen = sizeof(this->m_client_addr);
+		this->m_client_socket = accept(
+			this->m_server_socket,
+			(struct sockaddr *)&this->m_client_addr,
+			&addrlen
+		);
+
+		FD_SET(this->m_client_socket, &this->m_main_fds);
+
+		if (this->m_client_socket > this->maxfd)
+			this->maxfd = this->m_client_socket;
+		for (int i=0; i<1; i++) {
+			std::cout << "-----3-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
+		}
+		printf("Accept OK\n");
+		return ;
+	}
+
+	for (int i=0; i<1; i++) {
+		std::cout << "-----4-----" << std::endl;
+		std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
+	}
+
+	for (int i = 0; i <= this->maxfd; i++)
+	{
+		this->sockfd = i;
+		if (FD_ISSET(this->sockfd, &this->m_copy_fds))
+		{
+            while ((this->readn = read(this->sockfd, this->recvline, MAXLINE-1)) > 0)
+            {
+				/*
+				**	Request parsing 부분 시작
+				*/
+                fprintf(stdout, "\n%s\n\n%s", bin2hex(this->recvline, readn), this->recvline);
+
+                // header에서 content-length, transfer-encodeing으로 break 판단.
+                if (this->recvline[readn-1] == '\n')
+                    break;
+                memset(this->recvline, 0, MAXLINE);
+				/*
+				**	Request parsing 부분 끝
+				*/
+            }
+			/*
+			**	Response 부분 시작
+			*/
+			sendResponse(this->sockfd);
+			/*
+			**	Response 부분 끝
+			*/
+			close(this->sockfd);
+			if (--this->fd_num <= 0)
+				break;
+		}
+	}
+	return ;
+}
+
+/*============================================================================*/
+/*******************************  Response  ***********************************/
+/*============================================================================*/
 
 Response
 Server::page200()
@@ -310,9 +357,9 @@ Response
 Server::methodGET()
 {
 	if (true)
-		return (page404());
-	else if (true)
 		return (page200());
+	else if (true)
+		return (page404());
 }
 
 Response

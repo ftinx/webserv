@@ -22,7 +22,7 @@ enum htmlTag
 **	<< Response headers >>
 **	- 서버에 대한 추가 정보
 **	- Access-Control-Allow-Origin, Etag, Server, Set-Cookie, Vary
-**	- Allow
+**	- Allow: GET, POST, HEAD
 */
 class Response
 {

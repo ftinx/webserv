@@ -59,7 +59,7 @@ class Server
 		int readn;
 		int maxfd;
 		uint8_t recvline[MAXLINE+1];
-		fd_set readfds, allfds;
+		fd_set m_main_fds, m_copy_fds;
 
 		/* Request, Response */
 		// std::vector<Request> m_request;
@@ -80,6 +80,7 @@ class Server
 		void runServer();
 		void closeServer();
 
+		void getRequest();
 		void sendResponse(int clientfd);
 
 		/* METHOD */
