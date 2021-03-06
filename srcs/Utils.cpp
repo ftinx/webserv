@@ -26,6 +26,29 @@ isprint(int c)
 	return (false);
 }
 
+int
+atoi(const char *str)
+{
+	int sign;
+	int value;
+
+	sign = 1;
+	value = 0;
+	while (ft::isspace(*str))
+		str++;
+	if (*str == '-')
+		sign = -1;
+	if (*str == '-' || *str == '+')
+		++str;
+	while (ft::isdigit(*str))
+	{
+		value = value * 10 + (*str - '0');
+		str++;
+	}
+	value = sign == 1 ? value : -value;
+	return (value);
+}
+
 size_t
 strlen(const char *str)
 {
@@ -63,6 +86,15 @@ memset(void *str, int c, size_t n)
 		idx++;
 	}
 	return (str);
+}
+
+int
+stoi(const std::string &str)
+{
+	int value;
+
+	value = ft::atoi(str.c_str());
+	return (value);
 }
 
 std::string
@@ -237,24 +269,6 @@ getDateTimestamp(int hour, int minute, int second)
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm);
 	free(tm);
 	return (buf);
-}
-
-bool
-checkBlankLine(std::string str)
-{
-    if (str.empty() == false)
-        return (false);
-    return (true);
-}
-
-bool
-checkAnnotateLine(std::string str)
-{
-	if (str.find("#") == 0)
-		return (true);
-	if (str.find("//") == 0)
-		return (true);
-	return (false);
 }
 
 std::string

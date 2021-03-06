@@ -30,11 +30,13 @@ namespace ft
 	bool isspace(int c);
 	bool isdigit(int c);
 	bool isprint(int c);
+	int atoi(const char *str);
 	size_t strlen(const char *str);
 	char* strchr(const char *str, int c);
 	void* memset(void *str, int c, size_t n);
 
 	/* LIBFT C++ */
+	int stoi(const std::string &str);
 	std::string ltrim(std::string str, std::string set);
 	std::string rtrim(std::string str, std::string set);
 	std::string trim(std::string str, std::string set);
@@ -60,8 +62,6 @@ namespace ft
 	/* ETC */
 	bool isFileExists(std::string path); // not yet
 	bool isDirExists(std::string path); // not yet
-	bool checkBlankLine(std::string str);
-	bool checkAnnotateLine(std::string str);
 	std::string fileToString(std::string file_path);
 	std::string publicFileToString(std::string file_path);
 }
