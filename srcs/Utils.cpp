@@ -232,20 +232,15 @@ iNetNtoA(unsigned int addr)
 	return (ret);
 }
 
-// std::string
-// getDateTimestamp()
-// {
-
-// }
-
 std::string
-getDateTimestamp()
+getDateTimestamp(int hour, int minute, int second)
 {
 	struct timeval currentTime;
 	struct tm *tm;
 	char buf[64];
 
 	gettimeofday(&currentTime, NULL);
+	currentTime.tv_sec += 3600 * hour + 60 * minute + second;
 	tm = localtime(&currentTime.tv_sec);
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm);
 	free(tm);

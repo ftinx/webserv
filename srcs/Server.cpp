@@ -169,7 +169,7 @@ Server::setServerSocket()
 void
 Server::runServer()
 {
-	// struct    timeval tv; 
+	// struct    timeval tv;
 	// tv.tv_sec = 2;
 	// tv.tv_usec = 0;
 
@@ -289,6 +289,7 @@ Server::getRequest()
 				break;
 		}
 	}
+	// FD_ZERO(&this->m_main_fds);
 	return ;
 }
 
