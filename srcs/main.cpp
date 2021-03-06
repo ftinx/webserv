@@ -27,6 +27,7 @@ main()
 {
 	Server server = Server();
 
+	server.init();
 	server.setServerAddr(3601);
 	server.setServerSocket();
 	server.runServer();
