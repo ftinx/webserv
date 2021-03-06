@@ -29,6 +29,8 @@ class Request
 	public:
 		Request();
 		~Request();
+
+		/* getter */
 		std::string get_m_message() const;
 		std::string get_m_http_version() const;
 		//getCgiVersion
