@@ -55,7 +55,7 @@ class Server
 	int sockfd;
 	int readn;
 	int maxfd;
-		fd_set m_main_fds, m_copy_fds;
+	fd_set m_main_fds, m_copy_fds;
 
 		/* Request, Response */
 		std::vector<Request> m_requests;
