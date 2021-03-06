@@ -1,0 +1,33 @@
+body {
+	background-color: black;
+}
+
+.indexContainer {
+	flex: 1;
+	background-color: black;
+	color: white;
+}
+
+.indexContainer h1 {
+	font-size: 1.5rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	-webkit-box-reflect: below 0 linear-gradient(transparent, #0005);
+	margin-bottom: 2.5rem;
+}
+
+.indexContainer img {
+	font-size: 1.5rem;
+	position: fixed;
+	top: 1rem;
+	left: 3rem;
+	-webkit-box-reflect: below 0 linear-gradient(transparent, #0005);
+	margin-bottom: 2.5rem;
+}
+
+.indexContainer p {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
