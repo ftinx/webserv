@@ -307,4 +307,32 @@ fileToString(std::string file_path)
 	return (ret);
 }
 
+bool
+isValidFilePath(std::string path)
+{
+	struct stat s;
+
+	if (stat(path.c_str(), &s) == 0)
+	{
+		if (S_ISREG(s.st_mode))
+			return (true);
+		return (false);
+	}
+	return (false);
+}
+
+bool
+isValidDirPath(std::string path)
+{
+	struct stat s;
+
+	if (stat(path.c_str(), &s) == 0)
+	{
+		if (S_ISDIR(s.st_mode))
+			return (true);
+		return (false);
+	}
+	return (false);
+}
+
 }
