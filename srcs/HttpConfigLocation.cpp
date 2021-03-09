@@ -104,27 +104,6 @@ HttpConfigLocation::get_m_autoindex() const
 /*********************************  Util  *************************************/
 /*============================================================================*/
 
-Method
-HttpConfigLocation::convertStringToMethod(std::string str)
-{
-	if (str == "GET")
-		return (GET);
-	else if (str == "HEAD")
-		return (HEAD);
-	else if (str == "POST")
-		return (POST);
-	else if (str == "PUT")
-		return (PUT);
-	else if (str == "DELETE")
-		return (DELETE);
-	else if (str == "OPTIONS")
-		return (OPTIONS);
-	else if (str == "TRACE")
-		return (TRACE);
-	else
-		return (DEFAULT);
-}
-
 bool
 HttpConfigLocation::checkCommentLine(std::string str)
 {
@@ -159,7 +138,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 			{
 				if (line[i].empty())
 					continue ;
-				this->m_limit_except.push_back(convertStringToMethod(line[i]));
+				this->m_limit_except.push_back(ft::getMethodType(line[i]));
 			}
 		}
 		else if (line.front().compare("root") == 0)

@@ -15,9 +15,6 @@ class HttpConfigLocation
 		std::string m_cgi_path;
 		bool m_autoindex;
 
-	private:
-		Method convertStringToMethod(std::string str);
-
 	public:
 		HttpConfigLocation();
 		HttpConfigLocation(HttpConfigLocation const &other);
