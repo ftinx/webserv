@@ -93,7 +93,7 @@ class Server
 		// Response seeOther_303();
 		// Response notModified_304();
 		// Response useProxy_305();
-		// Response temporaryRedirect();
+		// Response temporaryRedirect_307();
 
 		// Response badRequest_400();
 		// Response unauthorized_401();

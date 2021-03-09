@@ -285,6 +285,54 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 		case 200:
 			startLine += std::to_string(statusCode) + std::string(" OK\n");
 			break;
+		case 201:
+			startLine += std::to_string(statusCode) + std::string(" Created\n");
+			break;
+		case 202:
+			startLine += std::to_string(statusCode) + std::string(" Accepted\n");
+			break;
+		case 203:
+			startLine += std::to_string(statusCode) + std::string(" Non-Authoritative Information\n");
+			break;
+		case 204:
+			startLine += std::to_string(statusCode) + std::string(" No Content\n");
+			break;
+		case 205:
+			startLine += std::to_string(statusCode) + std::string(" Reset Content\n");
+			break;
+		case 206:
+			startLine += std::to_string(statusCode) + std::string(" Partial Content\n");
+			break;
+		case 300:
+			startLine += std::to_string(statusCode) + std::string(" Multiple Choices\n");
+			break;
+		case 301:
+			startLine += std::to_string(statusCode) + std::string(" Moved Permanently\n");
+			break;
+		case 302:
+			startLine += std::to_string(statusCode) + std::string(" Found\n");
+			break;
+		case 303:
+			startLine += std::to_string(statusCode) + std::string(" See Other\n");
+			break;
+		case 304:
+			startLine += std::to_string(statusCode) + std::string(" Not Modified\n");
+			break;
+		case 305:
+			startLine += std::to_string(statusCode) + std::string(" Use Proxy\n");
+			break;
+		case 307:
+			startLine += std::to_string(statusCode) + std::string(" Temporary Redirect\n");
+			break;
+		case 400:
+			startLine += std::to_string(statusCode) + std::string(" Bad Request\n");
+			break;
+		case 401:
+			startLine += std::to_string(statusCode) + std::string(" Unauthorized\n");
+			break;
+		case 402:
+			startLine += std::to_string(statusCode) + std::string(" Payment Requied\n");
+			break;
 		case 403:
 			startLine += std::to_string(statusCode) + std::string(" Forbidden\n");
 			break;
@@ -294,8 +342,62 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 		case 405:
 			startLine += std::to_string(statusCode) + std::string(" Method Not Allowed\n");
 			break;
+		case 406:
+			startLine += std::to_string(statusCode) + std::string(" Not Acceptable\n");
+			break;
+		case 407:
+			startLine += std::to_string(statusCode) + std::string(" Proxy Authentication Required\n");
+			break;
+		case 408:
+			startLine += std::to_string(statusCode) + std::string(" Request Timeout\n");
+			break;
+		case 409:
+			startLine += std::to_string(statusCode) + std::string(" Conflict\n");
+			break;
+		case 410:
+			startLine += std::to_string(statusCode) + std::string(" Gone\n");
+			break;
+		case 411:
+			startLine += std::to_string(statusCode) + std::string(" Length Required\n");
+			break;
+		case 412:
+			startLine += std::to_string(statusCode) + std::string(" Precondition Failed\n");
+			break;
+		case 413:
+			startLine += std::to_string(statusCode) + std::string(" Payload Too Large\n");
+			break;
+		case 414:
+			startLine += std::to_string(statusCode) + std::string(" URI Too Long\n");
+			break;
+		case 415:
+			startLine += std::to_string(statusCode) + std::string(" Unsupported Media Type\n");
+			break;
+		case 416:
+			startLine += std::to_string(statusCode) + std::string(" Range Not Satisfiable\n");
+			break;
+		case 417:
+			startLine += std::to_string(statusCode) + std::string(" Expectation Failed\n");
+			break;
+		case 426:
+			startLine += std::to_string(statusCode) + std::string(" Upgrade Required\n");
+			break;
+		case 500:
+			startLine += std::to_string(statusCode) + std::string(" Internal Server Error\n");
+			break;
 		case 501:
 			startLine += std::to_string(statusCode) + std::string(" Not Implemented\n");
+			break;
+		case 502:
+			startLine += std::to_string(statusCode) + std::string(" Bad Gateway\n");
+			break;
+		case 503:
+			startLine += std::to_string(statusCode) + std::string(" Service Unavailable\n");
+			break;
+		case 504:
+			startLine += std::to_string(statusCode) + std::string(" Gateway Timeout\n");
+			break;
+		case 505:
+			startLine += std::to_string(statusCode) + std::string(" HTTP Version Not Supported\n");
 			break;
 		default:
 			perror("Undefined Status Code");
