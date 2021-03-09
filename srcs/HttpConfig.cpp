@@ -9,20 +9,9 @@ HttpConfig::HttpConfig()
 	m_name(),
 	m_version(),
 	m_include(),
-	m_root()
-{
-}
-
-HttpConfig::HttpConfig(std::string file_path)
-:
-	m_file_path(file_path),
-	m_name(),
-	m_version(),
-	m_include(),
 	m_root(),
 	m_server_block()
 {
-	parseHttpBlock();
 }
 
 HttpConfig::HttpConfig(HttpConfig const &other):
@@ -38,7 +27,6 @@ HttpConfig::HttpConfig(HttpConfig const &other):
 HttpConfig&
 HttpConfig::operator=(HttpConfig const &rhs)
 {
-	m_file_path = rhs.m_file_path;
 	m_name = rhs.m_name;
 	m_version = rhs.m_version;
 	m_include = rhs.m_include;
@@ -161,16 +149,13 @@ HttpConfig::checkCurlyBracketsDouble(std::string str)
 }
 
 void
-HttpConfig::setConfigFile()
-{
-	this->m_config_file = ft::fileToString(m_file_path);
-}
-
-void
-HttpConfig::setConfigLines()
+HttpConfig::setConfigFileCheckValid(std::string file_path)
 {
 	int idx = 0;
 
+	this->m_cnt_trash_lines = 0;
+	this->m_file_path = file_path;
+	this->m_config_file = ft::fileToString(m_file_path);
 	this->m_lines = ft::split(this->m_config_file, '\n');
 	while (idx < this->m_lines.size())
 	{
@@ -178,18 +163,14 @@ HttpConfig::setConfigLines()
 		if (checkCurlyBracketsDouble(this->m_lines[idx]))
 			throw std::exception();
 		if (checkBlankLine(this->m_lines[idx]) ||
-			HttpConfigLocation::checkAnnotateLine(this->m_lines[idx]))
+			HttpConfigLocation::checkCommentLine(this->m_lines[idx]))
 		{
 			this->m_lines.erase(this->m_lines.begin() + idx);
+			this->m_cnt_trash_lines++;
 			continue ;
 		}
 		idx++;
 	}
-}
-
-void
-HttpConfig::checkValidHttpBlock()
-{
 	if (checkStartHttp() == false)
 		throw std::exception();
 	if (checkCurlyBracketsFaired() == false)
@@ -197,20 +178,18 @@ HttpConfig::checkValidHttpBlock()
 }
 
 void
-HttpConfig::parseHttpBlock()
+HttpConfig::parseConfigFile(std::string file_path)
 {
 	int idx = 0;
 	bool server_block_exist = false;
 
-	setConfigFile();
-	setConfigLines();
-	checkValidHttpBlock();
+	setConfigFileCheckValid(file_path);
 	while (idx < this->m_lines.size())
 	{
 		std::vector<std::string> line;
 		line.clear();
 		line = ft::split(m_lines[idx], ' ');
-		if (HttpConfigLocation::checkAnnotateLine(line.back()))
+		if (HttpConfigLocation::checkCommentLine(line.back()))
 			line.pop_back();
 		if (line.front().compare("software_name") == 0)
 			this->m_name = line.back();
@@ -233,4 +212,61 @@ HttpConfig::parseHttpBlock()
 	}
 	if (server_block_exist == false)
 		throw std::exception();
+}
+
+void
+HttpConfig::printConfigFileInfo()
+{
+	std::string dash(80, '-');
+
+	std::cout << dash << std::endl;
+	std::cout << "config file infomation" << std::endl;
+	std::cout << "path(relative) : " << this->m_file_path << std::endl;
+	std::cout << "size: " << this->m_config_file.size() << " bytes, "
+			<< this->m_lines.size() + this->m_cnt_trash_lines << " lines" << std::endl;
+	std::cout << dash << std::endl;
+	std::cout << std::endl;
+
+	std::cout << dash << std::endl;
+	std::cout << "http block infomation" << std::endl;
+	std::cout << "software_name : " << this->m_name << std::endl;
+	std::cout << "software_version : " << this->m_version << std::endl;
+	std::cout << "include : " << this->m_include << std::endl;
+	std::cout << "root : " << this->m_root << std::endl;
+	std::cout << "size of server block : " << this->m_server_block.size() << std::endl;
+	std::cout << dash << std::endl;
+	std::cout << std::endl;
+
+	for (int i = 0 ; i < this->m_server_block.size() ; i++)
+	{
+		std::cout << dash << std::endl;
+		std::cout << "[" << i + 1 << "] server block infomation" << std::endl;
+		std::cout << "server name : " << this->m_server_block[i].get_m_server_name() << std::endl;
+		std::cout << "listen : " << this->m_server_block[i].get_m_listen() << std::endl;
+		std::cout << "default error page : " << this->m_server_block[i].get_m_default_error_page() << std::endl;
+		std::cout << "content length : " << this->m_server_block[i].get_m_content_length() << std::endl;
+		std::cout << "size of location block : " << this->m_server_block[i].get_m_location_block().size() << std::endl;
+		for (int j = 0 ; j < this->m_server_block[i].get_m_location_block().size() ; j++)
+		{
+			std::cout << "[" << j + 1 << "] location block infomation" << std::endl;
+			std::cout << "path : " << this->m_server_block[i].get_m_location_block()[j].get_m_path() << std::endl;
+			std::cout << "root : " << this->m_server_block[i].get_m_location_block()[j].get_m_root() << std::endl;
+			std::cout << "index : ";
+			for (int k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_index().size() ; k++)
+				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_index()[k] << " ";
+			std::cout<<std::endl;
+			std::cout << "cgi : ";
+			for (int k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_cgi().size() ; k++)
+				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_cgi()[k] << " ";
+			std::cout<<std::endl;
+			std::cout << "cgi path : " << this->m_server_block[i].get_m_location_block()[j].get_m_cgi_path() << std::endl;
+			std::cout << "autoindex : ";
+			if (this->m_server_block[i].get_m_location_block()[j].get_m_autoindex())
+				std::cout << "on" << std::endl;
+			else
+				std::cout << "off" << std::endl;
+		}
+		std::cout << dash << std::endl;
+		std::cout << std::endl;
+	}
 }
