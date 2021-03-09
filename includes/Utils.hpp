@@ -62,8 +62,8 @@ namespace ft
 	std::string getDateTimestamp(int hour, int minute, int second);
 
 	/* ETC */
-	bool isValidFilePath(std::string path); // not yet
-	bool isValidDirPath(std::string path); // not yet
+	bool isValidFilePath(std::string path);
+	bool isValidDirPath(std::string path);
 	std::string fileToString(std::string file_path);
 	std::string publicFileToString(std::string file_path);
 	Method getMethodType(std::string str);
