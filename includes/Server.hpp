@@ -69,13 +69,13 @@ class Server
 		void sendResponse(int clientfd);
 
 		/* METHOD */
-		Response methodHEAD();
-		Response methodGET();
-		Response methodPOST();
-		Response methodPUT();
-		Response methodDELETE();
-		Response methodOPTIONS();
-		Response methodTRACE();
+		Response methodHEAD(int);
+		Response methodGET(int);
+		Response methodPOST(int);
+		Response methodPUT(int);
+		Response methodDELETE(int);
+		Response methodOPTIONS(int);
+		Response methodTRACE(int);
 
 		Response OptionsPathRoot();
 

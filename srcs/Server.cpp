@@ -347,13 +347,13 @@ Server::page404()
 }
 
 Response
-Server::methodHEAD()
+Server::methodHEAD(int clientfd)
 {
 	return (page404());
 }
 
 Response
-Server::methodGET()
+Server::methodGET(int clientfd)
 {
 	if (true)
 		return (page200());
@@ -362,20 +362,24 @@ Server::methodGET()
 }
 
 Response
-Server::methodPOST()
+Server::methodPOST(int clientfd)
 {
 	return (page404());
 }
 
 Response
-Server::methodPUT()
+Server::methodPUT(int clientfd)
 {
 	return (page404());
 }
 
 Response
-Server::methodDELETE()
+Server::methodDELETE(int clientfd)
 {
+	Uri uri;
+
+	uri = this->m_requests[clientfd].get_m_uri;
+	if (uri.get_m_path)
 	return (page404());
 }
 
@@ -399,7 +403,7 @@ Server::OptionsPathRoot()
 }
 
 Response
-Server::methodOPTIONS()
+Server::methodOPTIONS(int clientfd)
 {
 	/* PATH에 따라 다른 Options응 답을 주어야함. */
 	return (OptionsPathRoot());
@@ -415,7 +419,7 @@ Server::methodOPTIONS()
 **	Allowed in HTML forms: No
 */
 Response
-Server::methodTRACE()
+Server::methodTRACE(int clientfd)
 {
 	Response response = Response();
 
@@ -480,8 +484,23 @@ void
 Server::sendResponse(int clientfd)
 {
 	Response response = Response();
+	Method method = this->m_requests[clientfd].get_m_method;
 
-	response = methodGET();
+	if (method == GET)
+		response = this->methodGET(clientfd);
+	else if (method == HEAD)
+		response = this->methodHEAD(clientfd);
+	else if (method == POST)
+		response = this->methodPOST(clientfd);
+	else if (method == PUT)
+		response = this->methodPUT(clientfd);
+	else if (method == DELETE)
+		response = this->methodDELETE(clientfd);
+	else if (method == TRACE)
+		response = this->methodTRACE(clientfd);
+	else
+		reponse = methodNotAllow();
+
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
