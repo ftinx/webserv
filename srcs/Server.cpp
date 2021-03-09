@@ -300,53 +300,6 @@ Server::getRequest()
 /*============================================================================*/
 
 Response
-Server::page200()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument("index.html")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
-Response
-Server::page404()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(404)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHtmlAttribute(TITLE, "Webserv")
-			.setHtmlDocument()
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
-Response
 Server::methodHEAD(int clientfd)
 {
 	return (page404());
@@ -434,6 +387,92 @@ Server::methodTRACE(int clientfd)
 	);
 }
 
+/*============================================================================*/
+/*******************************  STATUS CODE *********************************/
+/*============================================================================*/
+
+/*
+**	1XX
+*/
+
+
+/*
+**	2XX
+*/
+
+Response
+Server::page200()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setPublicFileDocument("index.html")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+/*
+**	3XX
+*/
+
+/*
+**	4XX
+*/
+
+Response
+badRequest_400()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(400)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::page404()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(404)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHtmlAttribute(TITLE, "Webserv")
+			.setHtmlDocument()
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
 Response
 Server::methodNotAllow_405()
 {
@@ -451,6 +490,11 @@ Server::methodNotAllow_405()
 			.makeHttpResponseMessage()
 	);
 }
+
+/*
+**	5XX
+*/
+
 
 Response
 Server::methodNotImplemented_501()
@@ -470,6 +514,18 @@ Server::methodNotImplemented_501()
 	);
 }
 
+void
+parseErrorResponse(int clientfd)
+{
+	if (this->m_requests[clientfd].get_m_error_code() == 400)
+		return (badRequest_400());
+	else if (this->m_requests[clientfd].get_m_error_code() == 501)
+		return (methodNotImplemented_501());
+	else
+		return (page404());
+	return ;
+}
+
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
 **
@@ -482,6 +538,11 @@ Server::sendResponse(int clientfd)
 	Response response = Response();
 	Method method = this->m_requests[clientfd].get_m_method;
 
+	/* make Response for Parse Error */
+	if (this->m_requests[clientfd].get_m_error_code())
+		response = this->parseErrorResponse(clientfd);
+
+	/* make Response for Method */
 	if (method == GET)
 		response = this->methodGET(clientfd);
 	else if (method == HEAD)

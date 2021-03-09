@@ -64,15 +64,16 @@ class Server
 
 		void getRequest();
 		void sendResponse(int clientfd);
+		void parseErrorResponse(int clientfd);
 
 		/* METHOD */
-		Response methodHEAD(int);
-		Response methodGET(int);
-		Response methodPOST(int);
-		Response methodPUT(int);
-		Response methodDELETE(int);
-		Response methodOPTIONS(int);
-		Response methodTRACE(int);
+		Response methodHEAD(int clientfd);
+		Response methodGET(int clientfd);
+		Response methodPOST(int clientfd);
+		Response methodPUT(int clientfd);
+		Response methodDELETE(int clientfd);
+		Response methodOPTIONS(int clientfd);
+		Response methodTRACE(int clientfd);
 
 		Response OptionsPathRoot();
 
@@ -95,7 +96,7 @@ class Server
 		// Response useProxy_305();
 		// Response temporaryRedirect_307();
 
-		// Response badRequest_400();
+		Response badRequest_400();
 		// Response unauthorized_401();
 		// Response paymentRequired_402();
 		// Response forbidden_403();
