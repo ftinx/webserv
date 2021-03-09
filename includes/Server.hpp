@@ -33,31 +33,28 @@
 
 class Server
 {
-    private:
-        /* Socket */
-        struct sockaddr_in m_server_addr;
-        struct sockaddr_in m_client_addr;
+	private:
+		/* Socket */
+		struct sockaddr_in m_server_addr;
+		struct sockaddr_in m_client_addr;
 		// socklen_t addrlen;
-        int m_server_socket;
-        int m_client_socket;
+		int m_server_socket;
+		int m_client_socket;
 		int fd_num;
-	int sockfd;
-	int readn;
-	int maxfd;
-	fd_set m_main_fds, m_copy_fds;
+		int sockfd;
+		int readn;
+		int maxfd;
+		fd_set m_main_fds, m_copy_fds;
 
-	/* Request, Response */
-	std::vector<Request> m_requests;
-	std::vector<Response> m_responses;
-
-	/* 우선 실험을 위해 private에서 public으로 변경 */
-	public:
-		Server(Server const &other);
-		Server& operator=(Server const &ref);
+		/* Request, Response */
+		std::vector<Request> m_requests;
+		std::vector<Response> m_responses;
 
 	public:
 		Server();
 		~Server();
+		Server(Server const &other);
+		Server& operator=(Server const &rhs);
 
 		void init();
 		void setServerAddr(int port);
