@@ -79,6 +79,9 @@ class Server
 
 		Response OptionsPathRoot();
 
+		// Response continue_100();
+		// Response switchingProtocols_101();
+
 		Response page200();
 		// Response created_201();
 		// Response Accepted_202();

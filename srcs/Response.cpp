@@ -282,6 +282,12 @@ Response::httpResponseStartLine(std::string httpVersion, int statusCode)
 	startLine += httpVersion + " ";
 	switch (statusCode)
 	{
+		case 100:
+			startLine += std::to_string(statusCode) + std::string(" Continue\n");
+			break;
+		case 101:
+			startLine += std::to_string(statusCode) + std::string(" Switching Protocols\n");
+			break;
 		case 200:
 			startLine += std::to_string(statusCode) + std::string(" OK\n");
 			break;
