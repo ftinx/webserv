@@ -300,6 +300,114 @@ Server::getRequest()
 /*============================================================================*/
 
 Response
+Server::methodHEAD(int clientfd)
+{
+	(void) clientfd;
+	return (page404());
+}
+
+Response
+Server::methodGET(int clientfd)
+{
+	(void) clientfd;
+	if (true)
+		return (page200());
+	else if (true)
+		return (page404());
+}
+
+Response
+Server::methodPOST(int clientfd)
+{
+	(void) clientfd;
+	return (page404());
+}
+
+Response
+Server::methodPUT(int clientfd)
+{
+	(void) clientfd;
+	return (page404());
+}
+
+Response
+Server::methodDELETE(int clientfd)
+{
+	(void) clientfd;
+	return (page404());
+}
+
+Response
+Server::OptionsPathRoot()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("allow", "OPTIONS, GET, POST, HEAD")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::methodOPTIONS(int clientfd)
+{
+	(void) clientfd;
+	/* PATH에 따라 다른 Options응 답을 주어야함. */
+	return (OptionsPathRoot());
+}
+
+/*
+**	<< TRACE >>
+**	Request has body: No
+**	Successful response has body: No
+**	Safe: No
+**	Idempotent: No
+**	Cacheable: No
+**	Allowed in HTML forms: No
+*/
+Response
+Server::methodTRACE(int clientfd)
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setBodyDocument(this->m_requests[clientfd].get_m_message())
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-type", "message/http")
+			.setHttpResponseHeader("connection", "close")
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+/*============================================================================*/
+/*******************************  STATUS CODE *********************************/
+/*============================================================================*/
+
+/*
+**	1XX
+*/
+
+
+/*
+**	2XX
+*/
+
+Response
 Server::page200()
 {
 	Response response = Response();
@@ -316,6 +424,32 @@ Server::page200()
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+/*
+**	3XX
+*/
+
+/*
+**	4XX
+*/
+
+Response
+Server::badRequest_400()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(400)
+			.setCurrentDate()
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
 			.makeHttpResponseMessage()
@@ -347,94 +481,6 @@ Server::page404()
 }
 
 Response
-Server::methodHEAD(int clientfd)
-{
-	return (page404());
-}
-
-Response
-Server::methodGET(int clientfd)
-{
-	if (true)
-		return (page200());
-	else if (true)
-		return (page404());
-}
-
-Response
-Server::methodPOST(int clientfd)
-{
-	return (page404());
-}
-
-Response
-Server::methodPUT(int clientfd)
-{
-	return (page404());
-}
-
-Response
-Server::methodDELETE(int clientfd)
-{
-	return (page404());
-}
-
-Response
-Server::OptionsPathRoot()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("allow", "OPTIONS, GET, POST, HEAD")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
-Response
-Server::methodOPTIONS(int clientfd)
-{
-	/* PATH에 따라 다른 Options응 답을 주어야함. */
-	return (OptionsPathRoot());
-}
-
-/*
-**	<< TRACE >>
-**	Request has body: No
-**	Successful response has body: No
-**	Safe: No
-**	Idempotent: No
-**	Cacheable: No
-**	Allowed in HTML forms: No
-*/
-Response
-Server::methodTRACE(int clientfd)
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-type", "message/http")
-			.setHttpResponseHeader("connection", "close")
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
-Response
 Server::methodNotAllow_405()
 {
 	Response response = Response();
@@ -451,6 +497,11 @@ Server::methodNotAllow_405()
 			.makeHttpResponseMessage()
 	);
 }
+
+/*
+**	5XX
+*/
+
 
 Response
 Server::methodNotImplemented_501()
@@ -470,6 +521,17 @@ Server::methodNotImplemented_501()
 	);
 }
 
+Response
+Server::parseErrorResponse(int clientfd)
+{
+	if (this->m_requests[clientfd].get_m_error_code() == 400)
+		return (badRequest_400());
+	else if (this->m_requests[clientfd].get_m_error_code() == 501)
+		return (methodNotImplemented_501());
+	else
+		return (page404());
+}
+
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
 **
@@ -480,8 +542,13 @@ void
 Server::sendResponse(int clientfd)
 {
 	Response response = Response();
-	Method method = this->m_requests[clientfd].get_m_method;
+	Method method = this->m_requests[clientfd].get_m_method();
 
+	/* make Response for Parse Error */
+	if (this->m_requests[clientfd].get_m_error_code())
+		response = this->parseErrorResponse(clientfd);
+
+	/* make Response for Method */
 	if (method == GET)
 		response = this->methodGET(clientfd);
 	else if (method == HEAD)
