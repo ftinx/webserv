@@ -339,7 +339,7 @@ Server::methodDELETE(int clientfd)
 	if (ft::isValidFilePath(path))
 	{
 		if (remove(path.c_str()) == 0)
-			return (page200);
+			return (page200());
 		return (page404())
 	}
 	return (page404());
