@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include "Uri.hpp"
+#include "Utils.hpp"
 
 #define MAXLINE 1024
 #define SOCK_SETSIZE 1021
@@ -19,7 +20,7 @@ class Request
 		std::string m_http_version;
 		std::string m_cgi_version;
 		bool m_check_cgi;
-		std::string m_method;
+		Method m_method;
 		Uri m_uri;
 		std::map<std::string, std::string> m_headers;
 		std::string m_body;
@@ -36,7 +37,7 @@ class Request
 		std::string get_m_http_version() const;
 		std::string get_m_cgi_version() const;
 		bool get_m_check_cgi() const;
-		std::string get_m_method() const;
+		Method get_m_method() const;
 		Uri get_m_uri() const;
 		std::map<std::string, std::string> get_m_headers() const;
 		std::string get_m_body() const;
@@ -44,10 +45,11 @@ class Request
 		void set_m_http_version(std::string);
 		void set_m_cgi_version(std::string);
 		void set_m_check_cgi(bool);
-		void set_m_method(std::string);
+		void set_m_method(Method);
 		//setHeaders
 		void set_m_body(std::string);
 		void set_m_error_code(int);
+		Method getMethodType(std::string);
 		bool isBreakCondition(std::string, bool*, int);
 		bool getMessage(int);
 		bool parseMessage();

@@ -17,19 +17,6 @@
 
 #define MAX_SOCK_NUM 1024
 
-
-enum Method
-{
-	HEAD,
-	GET,
-	POST,
-	PUT,
-	DELETE,
-	OPTIONS,
-	TRACE
-};
-
-
 /*
 **  ** TODO
 **
