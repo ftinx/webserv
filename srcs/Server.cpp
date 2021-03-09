@@ -376,10 +376,6 @@ Server::methodPUT(int clientfd)
 Response
 Server::methodDELETE(int clientfd)
 {
-	Uri uri;
-
-	uri = this->m_requests[clientfd].get_m_uri;
-	if (uri.get_m_path)
 	return (page404());
 }
 
@@ -499,7 +495,7 @@ Server::sendResponse(int clientfd)
 	else if (method == TRACE)
 		response = this->methodTRACE(clientfd);
 	else
-		reponse = methodNotAllow();
+		response = methodNotAllow_405();
 
 
 	/* 전체 Response Message 확인 할 수 있음 */
