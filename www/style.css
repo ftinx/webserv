@@ -2,6 +2,8 @@ body {
 	background-color: black;
 }
 
+/* title */
+
 .indexContainer {
 	flex: 1;
 	background-color: black;
@@ -32,12 +34,15 @@ body {
 	align-items: center;
 }
 
+/* button */
+
 .bt2Container {
 	background: #050801;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	margin-top: 20px;
+	margin-top: 2rem;
+	cursor: pointer;
 }
 
 .bt2Container a {
@@ -46,7 +51,7 @@ body {
 	padding: 25px 30px;
 	margin: 40px 0px;
 	color: #03e9f4;
-	font-size: 24px;
+	font-size: 1rem;
 	text-decoration: none;
 	text-transform: uppercase;
 	overflow: hidden;
@@ -145,4 +150,41 @@ body {
 	100% {
 		transform: translateY(-100%);
 	}
+}
+
+/* form */
+
+.signupForm {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	color: white;
+	margin-top: 5rem;
+	margin-bottom: 5rem;
+	background: rgba(20, 40, 40, 0.8);
+}
+
+.signupForm h2 {
+	font-weight: 300;
+	margin-right: 5rem;
+}
+
+.inputFields {
+	margin: 1rem 0;
+	font-size: 1rem;
+	padding: 0.7rem;
+	width: 15.5rem;
+	border: 1px solid #0ab4b4;
+	border-top: none;
+	border-left: none;
+	border-right: none;
+	background: rgba(20, 20, 20, 0.2);
+	color: white;
+	outline: none;
+}
+
+.noBullet {
+	list-style-type: none;
+	padding: 0;
 }
