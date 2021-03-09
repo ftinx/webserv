@@ -13,9 +13,10 @@
 class HttpConfig
 {
 	private:
-		std::string m_file_path; // config file addr
+		std::string m_file_path;
 		std::string m_config_file; // config file -> string
-		std::vector<std::string> m_lines; // m_config_file -> lines(\n)
+		std::vector<std::string> m_lines; // m_config_file -> split lines(\n)
+		int m_cnt_trash_lines; // for debug
 
 		std::string m_name;
 		std::string m_version;
@@ -24,8 +25,6 @@ class HttpConfig
 		std::vector<HttpConfigServer> m_server_block;
 
 	private:
-		HttpConfig();
-		HttpConfig& operator=(HttpConfig const &rhs);
 
 		/* utils */
 		bool checkStartHttp(); // m_liens의 시작이 "http" 인지 여부 확인
@@ -33,12 +32,11 @@ class HttpConfig
 		bool checkCurlyBracketsFaired(); // 중괄호의 갯수와 열고 닫음에 에러가 없는지 확인
 		bool checkCurlyBracketsDouble(std::string str);
 
-		/* debug */
-		// void printParseInfo();
 
 	public:
-		HttpConfig(std::string file_path);
+		HttpConfig();
 		HttpConfig(HttpConfig const &other);
+		HttpConfig& operator=(HttpConfig const &rhs);
 		~HttpConfig();
 
 		/* getter */
@@ -49,13 +47,16 @@ class HttpConfig
 		std::vector<HttpConfigServer> get_m_server_block() const;
 
 		/* setter */
-		// void set_m_lines();
-		void setConfigFile();
-		void setConfigLines();
-		void checkValidHttpBlock();
+		void setConfigFileCheckValid(std::string file_path);
+		// void setConfigFile();
+		// void setConfigLines();
+		// void checkValidHttpBlock();
 
 		/* key func. */
-		void parseHttpBlock();
+		void parseConfigFile(std::string file_path);
+
+		/* debug */
+		void printConfigFileInfo();
 };
 
 #endif

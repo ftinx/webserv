@@ -6,15 +6,23 @@
 
 HttpConfigLocation::HttpConfigLocation():
 	m_path(),
+	m_limit_except(),
 	m_root(),
-	m_cgi_path()
+	m_index(),
+	m_cgi(),
+	m_cgi_path(),
+	m_autoindex()
 {
 }
 
 HttpConfigLocation::HttpConfigLocation(HttpConfigLocation const &other):
 	m_path(),
+	m_limit_except(),
 	m_root(),
-	m_cgi_path()
+	m_index(),
+	m_cgi(),
+	m_cgi_path(),
+	m_autoindex()
 {
 	*this = other;
 }
@@ -23,8 +31,12 @@ HttpConfigLocation&
 HttpConfigLocation::operator=(HttpConfigLocation const &rhs)
 {
 	m_path = rhs.m_path;
+	m_limit_except = rhs.m_limit_except;
 	m_root = rhs.m_root;
+	m_index = rhs.m_index;
+	m_cgi = rhs.m_cgi;
 	m_cgi_path = rhs.m_cgi_path;
+	m_autoindex = rhs.m_autoindex;
 	return (*this);
 }
 
@@ -42,6 +54,12 @@ std::string
 HttpConfigLocation::get_m_path() const
 {
 	return (this->m_path);
+}
+
+std::vector<Method>
+HttpConfigLocation::get_m_limit_except() const
+{
+	return (this->m_limit_except);
 }
 
 std::string
@@ -66,6 +84,12 @@ std::string
 HttpConfigLocation::get_m_cgi_path() const
 {
 	return (this->m_cgi_path);
+}
+
+bool
+HttpConfigLocation::get_m_autoindex() const
+{
+	return (this->m_autoindex);
 }
 
 /*============================================================================*/
@@ -102,7 +126,7 @@ HttpConfigLocation::convertStringToMethod(std::string str)
 }
 
 bool
-HttpConfigLocation::checkAnnotateLine(std::string str)
+HttpConfigLocation::checkCommentLine(std::string str)
 {
 	if (str.find("#") != 0)
 		return (false);
@@ -117,7 +141,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 		std::vector<std::string> line;
 		line.clear();
 		line = ft::split(lines[idx], ' ');
-		if (checkAnnotateLine(line.back()))
+		if (checkCommentLine(line.back()))
 			line.pop_back();
 		if (line.front().compare("location") == 0)
 		{
@@ -142,6 +166,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 			this->m_root = line.back();
 		else if (line.front().compare("index") == 0)
 		{
+
 			for (int i = 1 ; i < line.size() ; i++)
 			{
 				if (line[i].empty())

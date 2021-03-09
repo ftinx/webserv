@@ -99,7 +99,7 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, int &idx)
 		std::vector<std::string> line;
 		line.clear();
 		line = ft::split(lines[idx], ' ');
-		if (HttpConfigLocation::checkAnnotateLine(line.back()))
+		if (HttpConfigLocation::checkCommentLine(line.back()))
 			line.pop_back();
 		if (line.front().compare("server_name") == 0)
 			this->m_server_name = line.back();
