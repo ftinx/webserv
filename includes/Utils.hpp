@@ -64,6 +64,7 @@ namespace ft
 	bool isDirExists(std::string path); // not yet
 	std::string fileToString(std::string file_path);
 	std::string publicFileToString(std::string file_path);
+	Method getMethodType(std::string str);
 }
 
 #endif
