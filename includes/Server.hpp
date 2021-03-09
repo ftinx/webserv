@@ -76,12 +76,51 @@ class Server
 		Response methodDELETE();
 		Response methodOPTIONS();
 		Response methodTRACE();
-		Response methodNotAllow();
-		Response methodNotImplemented();
+
+		Response OptionsPathRoot();
 
 		Response page200();
+		// Response created_201();
+		// Response Accepted_202();
+		// Response nonAuthoritativeInformation_203();
+		// Response noContent_204();
+		// Response resetContetn_205();
+		// Response partialContent_206();
+
+		// Response multipleChoices_300();
+		// Response movedPermanently_301();
+		// Response found_302();
+		// Response seeOther_303();
+		// Response notModified_304();
+		// Response useProxy_305();
+		// Response temporaryRedirect();
+
+		// Response badRequest_400();
+		// Response unauthorized_401();
+		// Response paymentRequired_402();
+		// Response forbidden_403();
 		Response page404();
-		Response OptionsPathRoot();
+		Response methodNotAllow_405();
+		// Response notAcceptable_406();
+		// Response proxyAuthenticationRequired_407();
+		// Response requestTimeout_408();
+		// Response conflick_409();
+		// Response gone_410();
+		// Response lengthRequired_411();
+		// Response preconditionFailed_412();
+		// Response payloadTooLarge_413();
+		// Response uriTooLong_414();
+		// Response unsupportedMediaType_415();
+		// Response rangeNotSatisfiable_416();
+		// Response expectationFailed_417();
+		// Response upgradeRequired_426();
+
+		// Response internalServerError_500();
+		Response methodNotImplemented_501();
+		// Response badGateWay_502();
+		// Response serviceUnavailble_503();
+		// Response gatewayTimeout_504();
+		// Response HTTPVersionNotSupproted_505();
 };
 
 #endif

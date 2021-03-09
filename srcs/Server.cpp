@@ -435,7 +435,7 @@ Server::methodTRACE()
 }
 
 Response
-Server::methodNotAllow()
+Server::methodNotAllow_405()
 {
 	Response response = Response();
 
@@ -453,7 +453,7 @@ Server::methodNotAllow()
 }
 
 Response
-Server::methodNotImplemented()
+Server::methodNotImplemented_501()
 {
 	Response response = Response();
 
