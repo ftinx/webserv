@@ -307,7 +307,6 @@ fileToString(std::string file_path)
 	return (ret);
 }
 
-<<<<<<< HEAD
 bool
 isValidFilePath(std::string path)
 {
@@ -334,26 +333,6 @@ isValidDirPath(std::string path)
 		return (false);
 	}
 	return (false);
-=======
-Method
-getMethodType(std::string str)
-{
-	if (str == "GET")
-		return (GET);
-	else if (str == "HEAD")
-		return (HEAD);
-	else if (str == "POST")
-		return (POST);
-	else if (str == "PUT")
-		return (PUT);
-	else if (str == "DELETE")
-		return (DELETE);
-	else if (str == "OPTIONS")
-		return (OPTIONS);
-	else if (str == "TRACE")
-		return (TRACE);
-	return (DEFAULT);
->>>>>>> bb6ee71b5fd450cc6f6158a9ba4e320c9fca30f3
 }
 
 }
