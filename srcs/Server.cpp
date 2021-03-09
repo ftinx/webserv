@@ -302,12 +302,14 @@ Server::getRequest()
 Response
 Server::methodHEAD(int clientfd)
 {
+	(void) clientfd;
 	return (page404());
 }
 
 Response
 Server::methodGET(int clientfd)
 {
+	(void) clientfd;
 	if (true)
 		return (page200());
 	else if (true)
@@ -317,18 +319,21 @@ Server::methodGET(int clientfd)
 Response
 Server::methodPOST(int clientfd)
 {
+	(void) clientfd;
 	return (page404());
 }
 
 Response
 Server::methodPUT(int clientfd)
 {
+	(void) clientfd;
 	return (page404());
 }
 
 Response
 Server::methodDELETE(int clientfd)
 {
+	(void) clientfd;
 	return (page404());
 }
 
@@ -354,6 +359,7 @@ Server::OptionsPathRoot()
 Response
 Server::methodOPTIONS(int clientfd)
 {
+	(void) clientfd;
 	/* PATH에 따라 다른 Options응 답을 주어야함. */
 	return (OptionsPathRoot());
 }
@@ -377,6 +383,7 @@ Server::methodTRACE(int clientfd)
 			.setStatusCode(200)
 			.setCurrentDate()
 			.setServer("ftnix/1.0 (MacOS)")
+			.setBodyDocument(this->m_requests[clientfd].get_m_message())
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-type", "message/http")
@@ -432,7 +439,7 @@ Server::page200()
 */
 
 Response
-badRequest_400()
+Server::badRequest_400()
 {
 	Response response = Response();
 
@@ -514,8 +521,8 @@ Server::methodNotImplemented_501()
 	);
 }
 
-void
-parseErrorResponse(int clientfd)
+Response
+Server::parseErrorResponse(int clientfd)
 {
 	if (this->m_requests[clientfd].get_m_error_code() == 400)
 		return (badRequest_400());
@@ -523,7 +530,6 @@ parseErrorResponse(int clientfd)
 		return (methodNotImplemented_501());
 	else
 		return (page404());
-	return ;
 }
 
 /*
@@ -536,7 +542,7 @@ void
 Server::sendResponse(int clientfd)
 {
 	Response response = Response();
-	Method method = this->m_requests[clientfd].get_m_method;
+	Method method = this->m_requests[clientfd].get_m_method();
 
 	/* make Response for Parse Error */
 	if (this->m_requests[clientfd].get_m_error_code())

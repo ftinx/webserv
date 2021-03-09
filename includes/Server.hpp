@@ -64,7 +64,7 @@ class Server
 
 		void getRequest();
 		void sendResponse(int clientfd);
-		void parseErrorResponse(int clientfd);
+		Response parseErrorResponse(int clientfd);
 
 		/* METHOD */
 		Response methodHEAD(int clientfd);
