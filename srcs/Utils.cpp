@@ -307,24 +307,32 @@ fileToString(std::string file_path)
 	return (ret);
 }
 
-Method
-getMethodType(std::string str)
+bool
+isValidFilePath(std::string path)
 {
-	if (str == "GET")
-		return (GET);
-	else if (str == "HEAD")
-		return (HEAD);
-	else if (str == "POST")
-		return (POST);
-	else if (str == "PUT")
-		return (PUT);
-	else if (str == "DELETE")
-		return (DELETE);
-	else if (str == "OPTIONS")
-		return (OPTIONS);
-	else if (str == "TRACE")
-		return (TRACE);
-	return (DEFAULT);
+	struct stat s;
+
+	if (stat(path.c_str(), &s) == 0)
+	{
+		if (S_ISREG(s.st_mode))
+			return (true);
+		return (false);
+	}
+	return (false);
+}
+
+bool
+isValidDirPath(std::string path)
+{
+	struct stat s;
+
+	if (stat(path.c_str(), &s) == 0)
+	{
+		if (S_ISDIR(s.st_mode))
+			return (true);
+		return (false);
+	}
+	return (false);
 }
 
 }

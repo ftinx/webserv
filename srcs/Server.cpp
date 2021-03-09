@@ -333,7 +333,14 @@ Server::methodPUT(int clientfd)
 Response
 Server::methodDELETE(int clientfd)
 {
-	(void) clientfd;
+	Uri uri = this->m_requests[clientfd].get_m_uri;
+	std::string path = uri.get_m_path;
+
+	if (ft::isValidFilePath(path))
+	{
+		if (unlink(path.c_str()) == 0)
+			return (page200());
+	}
 	return (page404());
 }
 

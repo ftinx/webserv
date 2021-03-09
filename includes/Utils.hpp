@@ -7,6 +7,8 @@
 # include <vector>
 # include <sys/socket.h>
 # include <sys/time.h>
+# include <sys/types.h>
+# include <sys/stat.h>
 # include <fcntl.h>
 # include <unistd.h>
 
@@ -60,8 +62,8 @@ namespace ft
 	std::string getDateTimestamp(int hour, int minute, int second);
 
 	/* ETC */
-	bool isFileExists(std::string path); // not yet
-	bool isDirExists(std::string path); // not yet
+	bool isValidFilePath(std::string path);
+	bool isValidDirPath(std::string path);
 	std::string fileToString(std::string file_path);
 	std::string publicFileToString(std::string file_path);
 	Method getMethodType(std::string str);
