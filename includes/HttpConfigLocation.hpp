@@ -26,15 +26,17 @@ class HttpConfigLocation
 
 		/* getter */
 		std::string get_m_path() const;
+		std::vector<Method> get_m_limit_except() const;
 		std::string get_m_root() const;
 		std::vector<std::string> get_m_index() const;
 		std::vector<std::string> get_m_cgi() const;
 		std::string get_m_cgi_path() const;
+		bool get_m_autoindex() const;
 
 		/* setter */
 
 		/* utils */
-		static bool checkAnnotateLine(std::string str);
+		static bool checkCommentLine(std::string str);
 
 		/* key func. */
 		HttpConfigLocation& parseLocationBlock(std::vector<std::string> lines, int &idx);
