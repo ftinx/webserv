@@ -8,18 +8,50 @@
 	<title>Webserv</title>
 </head>
 <body>
+	<!-- title -->
 	<div class="indexContainer">
 		<h1>Welcome to ftnix server!</h1>
 		<img src="imgs/favicon.jpg" height="100px" />
 		<p>made by holee jwon yechoi</p>
 	</div>
+
 	<br>
+
+	<!-- form -->
 	<form
 		action="http://localhost:3601/form.cgi"
-		name="42_form"
 		accept-charset="utf-8"
 		method="post"
+		class="signupForm"
+		name="signupForm"
+
+		autocomplete="off"
+		enctype="application/x-www-form-urlencoded"
 	>
+		<h2>Sign Up</h2>
+		<input type="hidden" name="formType" value="login">
+		<ul class="noBullet" name="noBullet">
+			<li>
+				<label for="username"></label>
+				<input type="text" class="inputFields" name="username" placeholder="Username"/>
+			</li>
+			<li>
+				<label for="password"></label>
+				<input type="password" class="inputFields" name="password" placeholder="Password"/>
+			</li>
+		</ul>
 	</form>
+
+	<!-- button -->
+	<div class="bt2Container" onclick="login42()">
+		<a>
+			<span></span>
+			<span></span>
+			<span></span>
+			<span></span>
+			Post 요청 보내기
+		</a>
+	</div>
+	<script type="text/javascript" src="script.js"></script>
 </body>
 </html>
