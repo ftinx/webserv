@@ -384,8 +384,8 @@ Server::methodPUT(int clientfd)
 Response
 Server::methodDELETE(int clientfd)
 {
-	Uri uri = this->m_requests[clientfd].get_m_uri;
-	std::string path = uri.get_m_path;
+	Uri uri = this->m_requests[clientfd].get_m_uri();
+	std::string path = uri.get_m_path();
 
 	if (ft::isValidFilePath(path))
 	{
