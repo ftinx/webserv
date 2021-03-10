@@ -353,7 +353,22 @@ Server::post_200()
 	);
 }
 
-#include <iostream>
+Response
+Server::postCGI(int clientfd)
+{
+	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	std::map<std::string, std::string> m_query = parseQuery(this->m_requests[clientfd].get_m_body());
+	std::string username;
+	std::string password;
+
+	username = m_query.find("username")->second;
+	password = m_query.find("password")->second;
+
+	printf("::%s:: ::%s::", username.c_str(), password.c_str());
+	printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
+
+	return (page404());
+}
 
 Response
 Server::methodPOST(int clientfd)
@@ -363,6 +378,12 @@ Server::methodPOST(int clientfd)
 	std::string username;
 	std::string password;
 
+	printf("::%s::\n", this->m_requests[clientfd].get_m_uri().get_m_uri().c_str());
+	printf("::%s::\n", path.c_str());
+	printf("::%d::\n", this->m_requests[clientfd].get_m_check_cgi());
+
+	if (this->m_requests[clientfd].get_m_check_cgi())
+		return (postCGI(clientfd));
 	if (path == "/auth")
 	{
 		if(m_query.find("formType") != m_query.end()
@@ -370,7 +391,7 @@ Server::methodPOST(int clientfd)
 		{
 			username = m_query.find("username")->second;
 			password = m_query.find("password")->second;
-			std::cout << ":::" << password << ":::" << std::endl;
+
 			printf("::%s:: ::%s::", username.c_str(), password.c_str());
 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
 

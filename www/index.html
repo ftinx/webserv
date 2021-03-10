@@ -53,9 +53,46 @@
 		</a>
 	</div>
 
+	<!-- TRACE -->
 	<div class="indexContainer">
 		<h1>Trace</h1>
 		<p>curl -v -X TRACE 127.0.0.1:3601</p>
+	</div>
+
+	<!-- CGI -->
+	<form
+		action="http://localhost:3601/auth.cgi"
+		accept-charset="utf-8"
+		method="post"
+		class="signupForm"
+		name="cgisignupForm"
+
+		autocomplete="off"
+		enctype="application/x-www-form-urlencoded"
+	>
+		<h2>CGI Sign Up</h2>
+		<input type="hidden" name="formType" value="login">
+		<ul class="noBullet" name="noBullet">
+			<li>
+				<label for="username"></label>
+				<input type="text" class="inputFields" name="username" placeholder="Username"/>
+			</li>
+			<li>
+				<label for="password"></label>
+				<input type="password" class="inputFields" name="password" placeholder="Password"/>
+			</li>
+		</ul>
+	</form>
+
+	<!-- CGI button -->
+	<div class="bt2Container" onclick="cgilogin42()">
+		<a>
+			<span></span>
+			<span></span>
+			<span></span>
+			<span></span>
+			CGI 요청 보내기
+		</a>
 	</div>
 	<script type="text/javascript" src="script.js"></script>
 </body>
