@@ -353,6 +353,8 @@ Server::post_200()
 	);
 }
 
+#include <iostream>
+
 Response
 Server::methodPOST(int clientfd)
 {
@@ -368,7 +370,14 @@ Server::methodPOST(int clientfd)
 		{
 			username = m_query.find("username")->second;
 			password = m_query.find("password")->second;
-			return (post_200());
+			std::cout << ":::" << password << ":::" << std::endl;
+			printf("::%s:: ::%s::", username.c_str(), password.c_str());
+			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
+
+			if (username == "42seoul" && password == "42seoul")
+				return (post_200());
+			else
+				return (page200());
 		}
 	}
 	return (page404());
