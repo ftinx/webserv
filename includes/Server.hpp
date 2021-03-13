@@ -14,9 +14,11 @@
 
 #include "Response.hpp"
 #include "Request.hpp"
+#include "HttpConfig.hpp"
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
+#define CGI_ENV_NUM 18
 
 /*
 **  ** TODO

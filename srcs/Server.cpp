@@ -361,10 +361,13 @@ Server::post_200()
 char**
 Server::makeCgiEnvp(int clientfd)
 {
-	int	num = clientfd;
+	Request &request = this->m_requests[clientfd];
+	HttpConfig &httpConfig;
 	char **envp;
 
-	envp = (char **)malloc(sizeof(char*) * num);
+	envp = (char **)malloc(sizeof(char*) * (CGI_ENV_NUM + 1));
+
+	envp[CGI_ENV_NUM] = 0;
 	return (envp);
 }
 
@@ -372,14 +375,15 @@ Response
 Server::executeCgi(int clientfd)
 {
 	pid_t pid;
+	Request &request = this->m_requests[clientfd];
 	Response &response = this->m_responses[clientfd];
-	//char** envp = this->makeCgiEnvp(clientfd);
+	char** envp = this->makeCgiEnvp(clientfd);
 
 	if ((pid = fork()) < 0)
 		return (page404());
 	if (pid == 0)
 	{
-
+		execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
 	}
 	else
 	{
