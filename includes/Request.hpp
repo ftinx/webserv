@@ -55,7 +55,7 @@ class Request
 		bool parseMessage();
 		bool parseRequestLine(std::string);
 		bool checkMethod();
-		void checkCGI();
+		bool checkCGI();
 		bool parseHeader(std::string);
 		bool checkBlankLine(std::string);
 		bool parseBody(std::string, int, int);
