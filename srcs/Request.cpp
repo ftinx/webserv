@@ -163,7 +163,7 @@ Request::getMethodType(std::string str)
 
 
 bool
-Request::isBreakCondition(std::string str, bool *chunked, int read_bytes)
+Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int header_bytes)
 {
 	std::string header;
 	std::string value;
@@ -187,8 +187,11 @@ Request::isBreakCondition(std::string str, bool *chunked, int read_bytes)
 	}
 	if (*chunked == true && str == "\r\n")
 		return (true);
-	else if (content_length == read_bytes)
+	else if (content_length <= body_bytes)
+	{
+		this->m_message = this->m_message.substr(0, header_bytes + content_length);
 		return (true);
+	}
 	else if (str.find_first_of("\r\n\r\n") != std::string::npos)
 		return (true);
 	return (false);
@@ -197,17 +200,29 @@ Request::isBreakCondition(std::string str, bool *chunked, int read_bytes)
 bool
 Request::getMessage(int fd)
 {
+	bool found_break_line = false;
 	bool chunked = false;
 	int ret;
-	int read_bytes = 0;
+	int header_bytes = 0;
+	int body_bytes = 0;
 	char recvline[MAXLINE + 1];
 
 	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
 	{
-		read_bytes += ret;
 		std::string str(recvline);
 		this->m_message.append(str);
-		if (isBreakCondition(str, &chunked, read_bytes))
+		if (this->m_message.find("\r\n\r\n") >= 0)
+		{
+			if (found_break_line == false)
+			{
+				found_break_line = true;
+				body_bytes = this->m_message.size() - (this->m_message.find("\r\n\r\n") + 3);
+				header_bytes = this->m_message.find("\r\n\r\n");
+			}
+			else
+				body_bytes += ret;
+		}
+		if (isBreakCondition(str, &chunked, body_bytes, header_bytes))
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
@@ -234,12 +249,14 @@ Request::parseMessage()
 		if (parseHeader(ft::rtrim(lines[i], "\r")) == false)
 			return (false);
 	}
+	i++;
 	while (i < lines.size())
 	{
-		if (parseBody(lines[i]) == false)
+		if (parseBody(lines[i], i, lines.size()) == false)
 			return (false);
 		i++;
 	}
+	std::cout << "|" << this->m_body << "|" << std::endl;
 	// std::cout << "************" << std::endl;
 	// std::cout << *this << std::endl;
 	// this->printHeaders();
@@ -304,11 +321,13 @@ Request::parseHeader(std::string line)
 }
 
 bool
-Request::parseBody(std::string line)
+Request::parseBody(std::string line, int i, int size)
 {
 	std::string newline;
 
-	newline = line + "\n";
+	newline = line;
+	if (i != size - 1)
+		newline += "\n";
 	this->m_body += newline;
 	return (true);
 }
