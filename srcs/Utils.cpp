@@ -409,7 +409,7 @@ checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list
 		return (false);
 	tmp = ft::split(file_name, '.');
 	extension = tmp.back();
-	for (int i = 0 ; i < ext_list.size() ; i++)
+	for (size_t i = 0 ; i < ext_list.size() ; i++)
 	{
 		if (ext_list[i].compare(extension) == 0)
 			return (true);
