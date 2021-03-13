@@ -117,7 +117,7 @@ Uri::parseUri()
     {
         this->m_scheme = "http";
         this->m_check_abs_uri = false;
-        return (parsePath(this->m_uri));
+        return (parsePath(this->m_uri.substr(1, std::string::npos)));
     }
     this->m_scheme = this->m_uri.substr(0, scheme_pos);
     return (this->parseHostPort(this->m_uri.substr(scheme_pos + 3, std::string::npos)));

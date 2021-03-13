@@ -226,7 +226,6 @@ Request::getMessage(int fd)
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
-	std::cout << this->m_message << std::endl;
 	if (this->parseMessage() == false)
 		return (false);
 	return (true);
@@ -256,7 +255,6 @@ Request::parseMessage()
 			return (false);
 		i++;
 	}
-	std::cout << "|" << this->m_body << "|" << std::endl;
 	// std::cout << "************" << std::endl;
 	// std::cout << *this << std::endl;
 	// this->printHeaders();
@@ -340,16 +338,19 @@ Request::checkMethod()
 	return (true);
 }
 
-void
+bool
 Request::checkCGI()
 {
-	int p;
+	size_t pos;
+	std::string path = this->m_uri.get_m_path();
 
-	p = this->m_uri.get_m_path().find("cgi-bin/");
-	if (p == 0)
-		this->m_check_cgi = true;
+	pos = path.find("cgi-bin");
+	if (pos != 0)
+		return (this->m_check_cgi = false);
+	if (ft::isValidFilePath(path))
+		return (this->m_check_cgi = true);
 	else
-		this->m_check_cgi = false;
+		return (this->m_check_cgi = false);
 }
 
 bool

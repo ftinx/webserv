@@ -310,29 +310,24 @@ fileToString(std::string file_path)
 bool
 isValidFilePath(std::string path)
 {
-	struct stat s;
+	struct stat buffer;
 
-	if (stat(path.c_str(), &s) == 0)
-	{
-		if (S_ISREG(s.st_mode))
-			return (true);
-		return (false);
-	}
-	return (false);
+	if ((stat(path.c_str(), &buffer) == 0) && // stat 함수의 반환값이 0이면 정상적으로 파일 정보 조회된 것
+		isValidDirPath(path) == false) // 그리고 폴더가 아니라면
+		return (true); // 파일이 맞음
+	return (false); // 파일이 아님
 }
 
 bool
 isValidDirPath(std::string path)
 {
-	struct stat s;
-
-	if (stat(path.c_str(), &s) == 0)
+	DIR *dp;
+	if ((dp = opendir(path.c_str())) != NULL) // opendir 함수는 폴더 경로를 입력받아 성공하면 포인터 반환, 실패(존재하지 않거나 퍼미션 등의 이유로 실패하면 NULL 반환)
 	{
-		if (S_ISDIR(s.st_mode))
-			return (true);
-		return (false);
+		closedir(dp); // 열었으면 닫고
+		return (true); // 폴더가 맞음
 	}
-	return (false);
+	return (false); // 폴더가 아님
 }
 
 }
