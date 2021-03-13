@@ -58,7 +58,7 @@ class Request
 		void checkCGI();
 		bool parseHeader(std::string);
 		bool checkBlankLine(std::string);
-		bool parseBody(std::string);
+		bool parseBody(std::string, int, int);
 		void checkChunked(std::string);
 		void printHeaders() const;
 };

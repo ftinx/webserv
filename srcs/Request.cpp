@@ -251,12 +251,14 @@ Request::parseMessage()
 		if (parseHeader(ft::rtrim(lines[i], "\r")) == false)
 			return (false);
 	}
+	i++;
 	while (i < lines.size())
 	{
-		if (parseBody(lines[i]) == false)
+		if (parseBody(lines[i], i, lines.size()) == false)
 			return (false);
 		i++;
 	}
+	std::cout << "|" << this->m_body << "|" << std::endl;
 	// std::cout << "************" << std::endl;
 	// std::cout << *this << std::endl;
 	// this->printHeaders();
@@ -321,14 +323,14 @@ Request::parseHeader(std::string line)
 }
 
 bool
-Request::parseBody(std::string line)
+Request::parseBody(std::string line, int i, int size)
 {
 	std::string newline;
 
-	newline = line + "\n";
+	newline = line;
+	if (i != size - 1)
+		newline += "\n";
 	this->m_body += newline;
-	printf("newline: |%s|\n", newline.c_str());
-	printf("body: |%s|\n", this->m_body.c_str());
 	return (true);
 }
 
