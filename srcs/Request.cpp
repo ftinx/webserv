@@ -211,19 +211,17 @@ Request::getMessage(int fd)
 	{
 		std::string str(recvline);
 		this->m_message.append(str);
-		if (this->m_message.find("\r\n\n") >= 0)
+		if (this->m_message.find("\r\n\r\n") >= 0)
 		{
 			if (found_break_line == false)
 			{
 				found_break_line = true;
-				body_bytes = this->m_message.size() - (this->m_message.find("\r\n\n") + 3);
-				header_bytes = this->m_message.find("\r\n\n");
+				body_bytes = this->m_message.size() - (this->m_message.find("\r\n\r\n") + 3);
+				header_bytes = this->m_message.find("\r\n\r\n");
 			}
 			else
 				body_bytes += ret;
 		}
-		else
-			header_bytes += ret;
 		if (isBreakCondition(str, &chunked, body_bytes, header_bytes))
 			break;
 		memset(recvline, 0, MAXLINE);
