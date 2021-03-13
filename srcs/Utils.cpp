@@ -399,4 +399,22 @@ getMethodType(std::string str)
 	return (DEFAULT);
 }
 
+bool
+checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list)
+{
+	std::vector<std::string> tmp;
+	std::string extension;
+
+	if (file_name.find(".") == std::string::npos)
+		return (false);
+	tmp = ft::split(file_name, '.');
+	extension = tmp.back();
+	for (size_t i = 0 ; i < ext_list.size() ; i++)
+	{
+		if (ext_list[i].compare(extension) == 0)
+			return (true);
+	}
+	return (false);
+}
+
 }
