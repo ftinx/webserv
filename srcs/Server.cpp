@@ -180,12 +180,23 @@ Server::setServerSocket()
 #include <bitset>
 #include <iostream>
 
+// void
+// serverFDLog(int num)
+// {
+// 	for (int i=0; i<1; i++) {
+// 		std::cout << "-----" << num << "-----" << std::endl;
+// 		std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
+// 	}
+// 	return ;
+// }
+
 void
 Server::runServer()
 {
-	// struct    timeval tv;
-	// tv.tv_sec = 2;
-	// tv.tv_usec = 0;
+	// rfc보고 정의
+	struct timeval timeout;
+	timeout.tv_sec = 4;
+	timeout.tv_usec = 2;
 
 	FD_ZERO(&this->m_main_fds);
 	FD_SET(this->m_server_socket, &this->m_main_fds);
@@ -197,16 +208,14 @@ Server::runServer()
 	{
 		this->m_copy_fds = this->m_main_fds;
 		printf("Select Wait %d\n", this->maxfd);
-		for (int i=0; i<1; i++) {
-			std::cout << "-----0-----" << std::endl;
-			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
-		}
-		this->fd_num = select(this->maxfd + 1 , &this->m_copy_fds, reinterpret_cast<fd_set *>(0), reinterpret_cast<fd_set *>(0), NULL);
+		this->fd_num = select(
+			this->maxfd + 1 ,
+			&this->m_copy_fds,
+			reinterpret_cast<fd_set *>(0),
+			reinterpret_cast<fd_set *>(0),
+			&timeout
+		);
 
-		for (int i=0; i<1; i++) {
-			std::cout << "-----1-----" << this->fd_num << std::endl;
-			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
-		}
 		switch (this->fd_num)
 		{
 			case -1:
@@ -240,10 +249,6 @@ Server::getRequest()
 {
 	if (ft::fdIsSet(this->m_server_socket, &this->m_copy_fds))
 	{
-		for (int i=0; i<1; i++) {
-			std::cout << "-----2-----" << std::endl;
-			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
-		}
 		socklen_t addrlen;
 
 		addrlen = sizeof(this->m_client_addr);
@@ -260,17 +265,8 @@ Server::getRequest()
 
 		if (this->m_client_socket > this->maxfd)
 			this->maxfd = this->m_client_socket;
-		for (int i=0; i<1; i++) {
-			std::cout << "-----3-----" << std::endl;
-			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
-		}
 		printf("Accept OK\n");
 		return ;
-	}
-
-	for (int i=0; i<1; i++) {
-		std::cout << "-----4-----" << std::endl;
-		std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
 	}
 
 	for (int i = 0; i <= this->maxfd; i++)
