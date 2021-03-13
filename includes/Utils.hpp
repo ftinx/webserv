@@ -51,7 +51,7 @@ namespace ft
 	void fdZero(fd_set *fds);
 	void fdSet(int fd, fd_set *fds);
 	void fdClr(int fd, fd_set *fds);
-	int fdIsSet(int fd, fd_set *fds); // not yet
+	bool fdIsSet(int fd, fd_set *fds);
 
 	/* TCP */
 	unsigned short hToNS(unsigned short hostshort);

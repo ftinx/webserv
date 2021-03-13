@@ -197,11 +197,18 @@ fdClr(int fd, fd_set *fds)
 	fds->fds_bits[(unsigned long)fd / (sizeof(__int32_t) * 8)] &= mask;
 }
 
-// int
-// fdIsSet(int fd, fd_set *fds)
-// {
+bool
+fdIsSet(int fd, fd_set *fds)
+{
+	int mask;
 
-// }
+	if (fd < 0 || fd >= 1024)
+		return (false);
+	mask = 1 << ((unsigned long)fd % (sizeof(__int32_t) * 8));
+	if (fds->fds_bits[(unsigned long)fd / (sizeof(__int32_t) * 8)] & mask)
+		return (true);
+	return (false);
+}
 
 unsigned short
 hToNS(unsigned short hostshort)
