@@ -115,8 +115,8 @@ Server::setServerSocket()
     setsockopt(this->m_server_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
 	if (bind(
 			this->m_server_socket,
-			(struct sockaddr *)&this->m_server_addr,
-			sizeof(this->m_server_addr)
+			reinterpret_cast<struct sockaddr *>(&this->m_server_addr),
+			static_cast<socklen_t>(sizeof(this->m_server_addr))
 		) == -1)
 	{
 		perror("bind error");
@@ -201,7 +201,7 @@ Server::runServer()
 			std::cout << "-----0-----" << std::endl;
 			std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
 		}
-		this->fd_num = select(this->maxfd + 1 , &this->m_copy_fds, (fd_set *)0, (fd_set *)0, NULL);
+		this->fd_num = select(this->maxfd + 1 , &this->m_copy_fds, reinterpret_cast<fd_set *>(0), reinterpret_cast<fd_set *>(0), NULL);
 
 		for (int i=0; i<1; i++) {
 			std::cout << "-----1-----" << this->fd_num << std::endl;
@@ -247,11 +247,14 @@ Server::getRequest()
 		socklen_t addrlen;
 
 		addrlen = sizeof(this->m_client_addr);
-		this->m_client_socket = accept(
-			this->m_server_socket,
-			(struct sockaddr *)&this->m_client_addr,
-			&addrlen
-		);
+		if ((
+			this->m_client_socket = accept(
+				this->m_server_socket,
+				reinterpret_cast<struct sockaddr *>(&this->m_client_addr),
+				reinterpret_cast<socklen_t *>(&addrlen)
+			)
+		) == -1)
+			std::cerr<<"accept error"<<std::endl;
 
 		ft::fdSet(this->m_client_socket, &this->m_main_fds);
 
@@ -410,13 +413,16 @@ Server::methodPOST(int clientfd)
 	std::string username;
 	std::string password;
 
+	printf("::\n\n%s::\n\n", this->m_requests[clientfd].get_m_message().c_str());
+	printf("::%s::\n\n", this->m_requests[clientfd].get_m_body().c_str());
+
 	printf("::%s::\n", this->m_requests[clientfd].get_m_uri().get_m_uri().c_str());
 	printf("::%s::\n", path.c_str());
 	printf("::%d::\n", this->m_requests[clientfd].get_m_check_cgi());
 
 	if (this->m_requests[clientfd].checkCGI())
 		return (postCGI(clientfd));
-	if (path == "/auth")
+	if (path == "auth")
 	{
 		if(m_query.find("formType") != m_query.end()
 		&& m_query.find("formType")->second == "login")
