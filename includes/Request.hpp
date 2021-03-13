@@ -10,7 +10,7 @@
 #include "Uri.hpp"
 #include "Utils.hpp"
 
-#define MAXLINE 1024
+#define MAXLINE 2048
 #define SOCK_SETSIZE 1021
 
 class Request
