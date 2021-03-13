@@ -79,6 +79,9 @@ class Server
 		Response OptionsPathRoot();
 		std::map<std::string, std::string> parseQuery(std::string str);
 		Response post_200();
+
+		char** makeCgiEnvp(int clientfd);
+		Response executeCgi(int clientfd);
 		Response postCGI(int clientfd);
 
 		// Response continue_100();
