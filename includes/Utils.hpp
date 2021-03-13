@@ -41,6 +41,7 @@ namespace ft
 
 	/* LIBFT C++ */
 	int stoi(const std::string &str);
+	char* strdup(std::string str);
 	std::string ltrim(std::string str, std::string set);
 	std::string rtrim(std::string str, std::string set);
 	std::string trim(std::string str, std::string set);
