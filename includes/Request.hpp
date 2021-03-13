@@ -50,7 +50,7 @@ class Request
 		void set_m_body(std::string);
 		void set_m_error_code(int);
 		Method getMethodType(std::string);
-		bool isBreakCondition(std::string, bool*, int);
+		bool isBreakCondition(std::string, bool*, int, int);
 		bool getMessage(int);
 		bool parseMessage();
 		bool parseRequestLine(std::string);

@@ -163,7 +163,7 @@ Request::getMethodType(std::string str)
 
 
 bool
-Request::isBreakCondition(std::string str, bool *chunked, int read_bytes)
+Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int header_bytes)
 {
 	std::string header;
 	std::string value;
@@ -187,8 +187,11 @@ Request::isBreakCondition(std::string str, bool *chunked, int read_bytes)
 	}
 	if (*chunked == true && str == "\r\n")
 		return (true);
-	else if (content_length == read_bytes)
+	else if (content_length <= body_bytes)
+	{
+		this->m_message = this->m_message.substr(0, header_bytes + content_length);
 		return (true);
+	}
 	else if (str.find_first_of("\r\n\r\n") != std::string::npos)
 		return (true);
 	return (false);
@@ -197,17 +200,31 @@ Request::isBreakCondition(std::string str, bool *chunked, int read_bytes)
 bool
 Request::getMessage(int fd)
 {
+	bool found_break_line = false;
 	bool chunked = false;
 	int ret;
-	int read_bytes = 0;
+	int header_bytes = 0;
+	int body_bytes = 0;
 	char recvline[MAXLINE + 1];
 
 	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
 	{
-		read_bytes += ret;
 		std::string str(recvline);
 		this->m_message.append(str);
-		if (isBreakCondition(str, &chunked, read_bytes))
+		if (this->m_message.find("\r\n\n") >= 0)
+		{
+			if (found_break_line == false)
+			{
+				found_break_line = true;
+				body_bytes = this->m_message.size() - (this->m_message.find("\r\n\n") + 3);
+				header_bytes = this->m_message.find("\r\n\n");
+			}
+			else
+				body_bytes += ret;
+		}
+		else
+			header_bytes += ret;
+		if (isBreakCondition(str, &chunked, body_bytes, header_bytes))
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
@@ -310,6 +327,8 @@ Request::parseBody(std::string line)
 
 	newline = line + "\n";
 	this->m_body += newline;
+	printf("newline: |%s|\n", newline.c_str());
+	printf("body: |%s|\n", this->m_body.c_str());
 	return (true);
 }
 
