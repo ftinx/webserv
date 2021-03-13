@@ -164,8 +164,6 @@ Request::getMethodType(std::string str)
 bool
 Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int header_bytes)
 {
-	std::string header;
-	std::string value;
 	static int content_length = -1;
 	size_t pos;
 	std::string tmp;
