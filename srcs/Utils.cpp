@@ -2,6 +2,10 @@
 
 namespace ft {
 
+/*============================================================================*/
+/*******************************  Libft C  ************************************/
+/*============================================================================*/
+
 bool
 isspace(int c)
 {
@@ -88,6 +92,10 @@ memset(void *str, int c, size_t n)
 	return (str);
 }
 
+/*============================================================================*/
+/*******************************  Libft C++  **********************************/
+/*============================================================================*/
+
 int
 stoi(const std::string &str)
 {
@@ -95,6 +103,24 @@ stoi(const std::string &str)
 
 	value = ft::atoi(str.c_str());
 	return (value);
+}
+
+char *
+strdup(std::string str)
+{
+	size_t	idx;
+	char	*ret;
+
+	if (!(ret = (char *)malloc(sizeof(char) * (str.length() + 1))))
+		return (NULL);
+	idx = 0;
+	while (idx < str.length())
+	{
+		ret[idx] = str[idx];
+		idx++;
+	}
+	ret[idx] = '\0';
+	return (ret);
 }
 
 std::string
@@ -126,7 +152,6 @@ trim(std::string str, std::string set)
 {
 	return (rtrim(ltrim(str, set), set));
 }
-
 
 std::vector<std::string>
 split(std::string const &str, char set)
@@ -168,6 +193,10 @@ split(std::string const &str, std::string set)
 	return (ret);
 }
 
+/*============================================================================*/
+/*******************************  FD SET  *************************************/
+/*============================================================================*/
+
 void
 fdZero(fd_set *fds)
 {
@@ -202,6 +231,10 @@ fdClr(int fd, fd_set *fds)
 // {
 
 // }
+
+/*============================================================================*/
+/*******************************  TCP  ****************************************/
+/*============================================================================*/
 
 unsigned short
 hToNS(unsigned short hostshort)
@@ -256,6 +289,10 @@ iNetNtoA(unsigned int addr)
 	return (ret);
 }
 
+/*============================================================================*/
+/*******************************  TIME  ***************************************/
+/*============================================================================*/
+
 std::string
 getDateTimestamp(int hour, int minute, int second)
 {
@@ -271,22 +308,32 @@ getDateTimestamp(int hour, int minute, int second)
 	return (buf);
 }
 
-std::string
-publicFileToString(std::string file_path)
-{
-	int fd;
-	int bytes;
-	char buffer[BUFFER_SIZE];
-	std::string ret;
+/*============================================================================*/
+/*******************************  ETC  ****************************************/
+/*============================================================================*/
 
-	if ((fd = open(("./www/" + file_path).c_str(), O_RDONLY)) < 0)
-		throw std::exception();
-	ft::memset(buffer, 0, BUFFER_SIZE);
-	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
-		ret += std::string(buffer);
-	if (bytes < 0)
-		throw std::exception();
-	return (ret);
+bool
+isValidFilePath(std::string path)
+{
+	struct stat buffer;
+
+	if ((stat(path.c_str(), &buffer) == 0) && // stat 함수의 반환값이 0이면 정상적으로 파일 정보 조회된 것
+		isValidDirPath(path) == false) // 그리고 폴더가 아니라면
+		return (true); // 파일이 맞음
+	return (false); // 파일이 아님
+}
+
+bool
+isValidDirPath(std::string path)
+{
+	DIR *dirptr;
+
+	if ((dirptr = opendir(path.c_str())) != NULL) // opendir 함수는 폴더 경로를 입력받아 성공하면 포인터 반환, 실패(존재하지 않거나 퍼미션 등의 이유로 실패)하면 NULL 반환
+	{
+		closedir(dirptr); // 열었으면 닫고
+		return (true); // 폴더가 맞음
+	}
+	return (false); // 폴더가 아님
 }
 
 std::string
@@ -307,27 +354,42 @@ fileToString(std::string file_path)
 	return (ret);
 }
 
-bool
-isValidFilePath(std::string path)
+std::string
+publicFileToString(std::string file_path)
 {
-	struct stat buffer;
+	int fd;
+	int bytes;
+	char buffer[BUFFER_SIZE];
+	std::string ret;
 
-	if ((stat(path.c_str(), &buffer) == 0) && // stat 함수의 반환값이 0이면 정상적으로 파일 정보 조회된 것
-		isValidDirPath(path) == false) // 그리고 폴더가 아니라면
-		return (true); // 파일이 맞음
-	return (false); // 파일이 아님
+	if ((fd = open(("./www/" + file_path).c_str(), O_RDONLY)) < 0)
+		throw std::exception();
+	ft::memset(buffer, 0, BUFFER_SIZE);
+	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
+		ret += std::string(buffer);
+	if (bytes < 0)
+		throw std::exception();
+	return (ret);
 }
 
-bool
-isValidDirPath(std::string path)
+Method
+getMethodType(std::string str)
 {
-	DIR *dp;
-	if ((dp = opendir(path.c_str())) != NULL) // opendir 함수는 폴더 경로를 입력받아 성공하면 포인터 반환, 실패(존재하지 않거나 퍼미션 등의 이유로 실패하면 NULL 반환)
-	{
-		closedir(dp); // 열었으면 닫고
-		return (true); // 폴더가 맞음
-	}
-	return (false); // 폴더가 아님
+	if (str == "GET")
+		return (GET);
+	else if (str == "HEAD")
+		return (HEAD);
+	else if (str == "POST")
+		return (POST);
+	else if (str == "PUT")
+		return (PUT);
+	else if (str == "DELETE")
+		return (DELETE);
+	else if (str == "OPTIONS")
+		return (OPTIONS);
+	else if (str == "TRACE")
+		return (TRACE);
+	return (DEFAULT);
 }
 
 }
