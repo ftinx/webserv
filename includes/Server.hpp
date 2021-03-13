@@ -77,6 +77,9 @@ class Server
 		Response methodTRACE(int clientfd);
 
 		Response OptionsPathRoot();
+		std::map<std::string, std::string> parseQuery(std::string str);
+		Response post_200();
+		Response postCGI(int clientfd);
 
 		// Response continue_100();
 		// Response switchingProtocols_101();

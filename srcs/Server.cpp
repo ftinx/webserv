@@ -316,10 +316,91 @@ Server::methodGET(int clientfd)
 		return (page404());
 }
 
+std::map<std::string, std::string>
+Server::parseQuery(std::string str)
+{
+	std::map<std::string, std::string> m_query;
+	std::vector<std::string> pieces = ft::split(str, "&");
+
+	for (size_t i = 0; i < pieces.size(); i++)
+	{
+		std::vector<std::string> queries = ft::split(pieces[i], "=");
+		m_query.insert(make_pair(ft::trim(queries[0], " \n\t\v\f\r"), ft::trim(queries[1], " \n\t\v\f\r")));
+	}
+	return (m_query);
+}
+
+Response
+Server::post_200()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setPublicFileDocument("srcs/login.html")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::postCGI(int clientfd)
+{
+	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	std::map<std::string, std::string> m_query = parseQuery(this->m_requests[clientfd].get_m_body());
+	std::string username;
+	std::string password;
+
+	username = m_query.find("username")->second;
+	password = m_query.find("password")->second;
+
+	printf("::%s:: ::%s::", username.c_str(), password.c_str());
+	printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
+
+	return (page404());
+}
+
 Response
 Server::methodPOST(int clientfd)
 {
-	(void) clientfd;
+	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	std::map<std::string, std::string> m_query = parseQuery(this->m_requests[clientfd].get_m_body());
+	std::string username;
+	std::string password;
+
+	printf("::%s::\n", this->m_requests[clientfd].get_m_uri().get_m_uri().c_str());
+	printf("::%s::\n", path.c_str());
+	printf("::%d::\n", this->m_requests[clientfd].get_m_check_cgi());
+
+	if (this->m_requests[clientfd].get_m_check_cgi())
+		return (postCGI(clientfd));
+	if (path == "/auth")
+	{
+		if(m_query.find("formType") != m_query.end()
+		&& m_query.find("formType")->second == "login")
+		{
+			username = m_query.find("username")->second;
+			password = m_query.find("password")->second;
+
+			printf("::%s:: ::%s::", username.c_str(), password.c_str());
+			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
+
+			if (username == "42seoul" && password == "42seoul")
+				return (post_200());
+			else
+				return (page200());
+		}
+	}
 	return (page404());
 }
 
@@ -333,8 +414,8 @@ Server::methodPUT(int clientfd)
 Response
 Server::methodDELETE(int clientfd)
 {
-	Uri uri = this->m_requests[clientfd].get_m_uri;
-	std::string path = uri.get_m_path;
+	Uri uri = this->m_requests[clientfd].get_m_uri();
+	std::string path = uri.get_m_path();
 
 	if (ft::isValidFilePath(path))
 	{

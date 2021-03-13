@@ -112,7 +112,7 @@ int
 Uri::parseUri()
 {
     size_t scheme_pos = this->m_uri.find("://");
-    
+
     if (scheme_pos == std::string::npos)
     {
         this->m_scheme = "http";
