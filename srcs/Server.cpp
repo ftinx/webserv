@@ -279,6 +279,8 @@ Server::getRequest()
 			** Request 부분 시작, false시 에러 받아줘야
 			*/
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
+			std::cout << this->m_requests[this->sockfd] << std::endl;
+            this->m_requests[this->sockfd].printHeaders();
 			/*
 			**	Response 부분 시작
 			*/
@@ -351,6 +353,36 @@ Server::post_200()
 			.setHttpResponseHeader("server", response.get_m_server())
 			.makeHttpResponseMessage()
 	);
+}
+
+char**
+Server::makeCgiEnvp(int clientfd)
+{
+	int	num = clientfd;
+	char **envp;
+
+	envp = (char **)malloc(sizeof(char*) * num);
+	return (envp);
+}
+
+Response
+Server::executeCgi(int clientfd)
+{
+	pid_t pid;
+	Response &response = this->m_responses[clientfd];
+	//char** envp = this->makeCgiEnvp(clientfd);
+
+	if ((pid = fork()) < 0)
+		return (page404());
+	if (pid == 0)
+	{
+
+	}
+	else
+	{
+		/* code */
+	}
+	return (response);
 }
 
 Response

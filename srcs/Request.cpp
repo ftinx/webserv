@@ -161,33 +161,27 @@ Request::getMethodType(std::string str)
 	return (DEFAULT);
 }
 
-
 bool
 Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int header_bytes)
 {
 	std::string header;
 	std::string value;
-	static int content_length = 0;
-	size_t colon_pos = str.find_first_of(':');
+	static int content_length = -1;
+	size_t pos;
+	std::string tmp;
 
-	if (colon_pos != std::string::npos)
-	{
-		header = ft::trim(str.substr(0, colon_pos), " ");
-		value = ft::trim(str.substr(colon_pos + 1, std::string::npos), " ");
-		if (header == "Transfer-Encoding" && value == "chunked")
-		{
-			*chunked = true;
-			return(false);
-		}
-		else if (header == "Content-Length")
-		{
-			content_length = std::stoi(value);
-			return (false);
-		}
-	}
 	if (*chunked == true && str == "\r\n")
 		return (true);
-	else if (content_length <= body_bytes)
+	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
+	{
+		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
+		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
+		{
+			tmp = ft::trim(tmp.substr(0, pos), " \r");
+			content_length = std::stoi(tmp);
+		}
+	}
+	if (content_length >= 0 && content_length <= body_bytes)
 	{
 		this->m_message = this->m_message.substr(0, header_bytes + content_length);
 		return (true);
@@ -217,7 +211,7 @@ Request::getMessage(int fd)
 			{
 				found_break_line = true;
 				body_bytes = this->m_message.size() - (this->m_message.find("\r\n\r\n") + 3);
-				header_bytes = this->m_message.find("\r\n\r\n");
+				header_bytes = this->m_message.find("\r\n\r\n") + 4;
 			}
 			else
 				body_bytes += ret;
@@ -255,9 +249,6 @@ Request::parseMessage()
 			return (false);
 		i++;
 	}
-	// std::cout << "************" << std::endl;
-	// std::cout << *this << std::endl;
-	// this->printHeaders();
 	return (true);
 }
 
