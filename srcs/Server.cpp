@@ -238,7 +238,7 @@ Server::closeServer()
 void
 Server::getRequest()
 {
-	if (FD_ISSET(this->m_server_socket, &this->m_copy_fds))
+	if (ft::fdIsSet(this->m_server_socket, &this->m_copy_fds))
 	{
 		for (int i=0; i<1; i++) {
 			std::cout << "-----2-----" << std::endl;
@@ -253,7 +253,7 @@ Server::getRequest()
 			&addrlen
 		);
 
-		FD_SET(this->m_client_socket, &this->m_main_fds);
+		ft::fdSet(this->m_client_socket, &this->m_main_fds);
 
 		if (this->m_client_socket > this->maxfd)
 			this->maxfd = this->m_client_socket;
@@ -273,7 +273,7 @@ Server::getRequest()
 	for (int i = 0; i <= this->maxfd; i++)
 	{
 		this->sockfd = i;
-		if (FD_ISSET(this->sockfd, &this->m_copy_fds))
+		if (ft::fdIsSet(this->sockfd, &this->m_copy_fds))
 		{
 			/*
 			** Request 부분 시작, false시 에러 받아줘야
@@ -414,7 +414,7 @@ Server::methodPOST(int clientfd)
 	printf("::%s::\n", path.c_str());
 	printf("::%d::\n", this->m_requests[clientfd].get_m_check_cgi());
 
-	if (this->m_requests[clientfd].get_m_check_cgi())
+	if (this->m_requests[clientfd].checkCGI())
 		return (postCGI(clientfd));
 	if (path == "/auth")
 	{
