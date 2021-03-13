@@ -358,11 +358,13 @@ char**
 Server::makeCgiEnvp(int clientfd)
 {
 	Request &request = this->m_requests[clientfd];
-	HttpConfig &httpConfig;
+	HttpConfig config;
 	char **envp;
 
 	envp = (char **)malloc(sizeof(char*) * (CGI_ENV_NUM + 1));
-
+	/*
+	** set envp
+	*/
 	envp[CGI_ENV_NUM] = 0;
 	return (envp);
 }
