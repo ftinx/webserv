@@ -141,6 +141,26 @@ Request::set_m_error_code(int error_code)
 /*********************************  Util  *************************************/
 /*============================================================================*/
 
+std::string
+Request::getMethod()
+{
+	if (this->m_method == GET)
+		return ("GET");
+	else if (this->m_method == HEAD)
+		return ("HEAD");
+	else if (this->m_method == POST)
+		return ("POST");
+	else if (this->m_method == PUT)
+		return ("PUT");
+	else if (this->m_method == DELETE)
+		return ("DELETE");
+	else if (this->m_method == OPTIONS)
+		return ("OPTIONS");
+	else if (this->m_method == TRACE)
+		return ("TRACE");
+	return ("DEFAULT");
+}
+
 Method
 Request::getMethodType(std::string str)
 {

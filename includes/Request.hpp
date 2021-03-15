@@ -49,6 +49,7 @@ class Request
 		//setHeaders
 		void set_m_body(std::string);
 		void set_m_error_code(int);
+		std::string getMethod();
 		Method getMethodType(std::string);
 		bool isBreakCondition(std::string, bool*, int, int);
 		bool getMessage(int);
