@@ -358,13 +358,29 @@ char**
 Server::makeCgiEnvp(int clientfd)
 {
 	Request &request = this->m_requests[clientfd];
+	Uri uri = request.get_m_uri();
+	std::map<std::string, std::string> headers = request.get_m_headers();
 	HttpConfig config;
 	char **envp;
 
 	envp = (char **)malloc(sizeof(char*) * (CGI_ENV_NUM + 1));
-	/*
-	** set envp
-	*/
+	envp[0] = ft::strdup("SERVER_SOFTWARE="); //config
+	envp[1] = ft::strdup("SERVER_NAME="); //config
+	envp[2] = ft::strdup("GATEWAY_INTERFACE=Cgi/1.1");
+	envp[3] = ft::strdup("SERVER_PROTOCOL=" + request.get_m_http_version());
+	envp[4] = ft::strdup("SERVER_PORT="); //config
+	envp[5] = ft::strdup("REQUEST_METHOD=" + request.getMethod());
+	envp[6] = ft::strdup("PATH_INFO=" + uri.get_m_path());
+	envp[7] = ft::strdup("PATH_TRANSLATED="); //need additional function
+	envp[8] = ft::strdup("SCRIPT_NAME="); //
+	envp[9] = ft::strdup("QUERY_STRING=" + uri.get_m_query_string());
+	envp[10] = ft::strdup("REMOTE_HOST=");
+	envp[11] = ft::strdup("REMOTE_ADDR=");
+	envp[12] = ft::strdup("AUTH_TYPE=");
+	envp[13] = ft::strdup("REMOTE_USER=");
+	envp[14] = ft::strdup("REMOTE_IDENT=");
+	envp[15] = ft::strdup("CONTENT_TYPE=");
+	envp[16] = ft::strdup("CONTENT_LENGTH=");
 	envp[CGI_ENV_NUM] = 0;
 	return (envp);
 }
