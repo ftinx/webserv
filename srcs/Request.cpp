@@ -161,6 +161,28 @@ Request::getMethod()
 	return ("DEFAULT");
 }
 
+std::string
+Request::getContentLength()
+{
+	std::map<std::string, std::string>::const_iterator it;
+
+	it = this->m_headers.find("Content-Length");
+	if (it == this->m_headers.end())
+		return ("");
+	return (it->second);
+}
+
+std::string
+Request::getContentType()
+{
+	std::map<std::string, std::string>::const_iterator it;
+
+	it = this->m_headers.find("Content-Type");
+	if (it == this->m_headers.end())
+		return ("text/html");
+	return (it->second);
+}
+
 Method
 Request::getMethodType(std::string str)
 {
