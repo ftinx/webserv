@@ -90,7 +90,7 @@ HttpConfigServer::get_m_location_block() const
 /*============================================================================*/
 
 HttpConfigServer&
-HttpConfigServer::parseServerBlock(std::vector<std::string> lines, int &idx)
+HttpConfigServer::parseServerBlock(std::vector<std::string> lines, size_t &idx)
 {
 	bool location_block_exist = false;
 

@@ -16,6 +16,10 @@ SRC =	main.cpp \
 		Request.cpp \
 		Uri.cpp \
 		Utils.cpp \
+		ServerManager.cpp \
+		HttpConfig.cpp \
+		HttpConfigLocation.cpp \
+		HttpConfigServer.cpp \
 
 SRCS = $(addprefix $(DIR_SRC), $(SRC))
 OBJS = $(SRCS:%.cpp=%.o)

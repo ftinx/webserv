@@ -10,18 +10,37 @@
 class ServerManager
 {
 	private:
-		std::string m_ip_address;
-		std::vector<Server> m_server;
 		HttpConfig m_httpConfig;
 
+		std::vector<HttpConfigServer> m_server_block;
+		std::vector<Server> m_server;
+		size_t m_server_size;
+
+		std::string m_software_name;
+		std::string m_software_version;
+		std::string m_mime_include;
+		std::string m_root;
+
 	private:
-		ServerManager(ServerManager const &other);
-		ServerManager& operator=(ServerManager const &rhs);
+		void storeParseValue();
 
 	public:
 		ServerManager();
 		~ServerManager();
-		void checkIPAddress();
+		ServerManager(ServerManager const &other);
+		ServerManager& operator=(ServerManager const &rhs);
+
+		void parseHttpConfig();
+		Server generateServer(
+			HttpConfigServer server_block,
+			std::string server_name,
+			int port,
+			std::string err_page_path,
+			size_t location_size
+		);
+		void initServers();
+		void runServers();
+		void exitServers();
 };
 
 #endif
