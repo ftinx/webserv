@@ -21,7 +21,12 @@ class ServerManager
 	public:
 		ServerManager();
 		~ServerManager();
-		void checkIPAddress();
+
+		// void checkIPAddress();
+		void parseHttpConfig();
+		Server generateServer(int port);
+		void runServers();
+		void exitServers();
 };
 
 #endif

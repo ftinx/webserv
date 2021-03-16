@@ -7,6 +7,26 @@
 
 Server::Server(){};
 Server::~Server(){};
+Server::Server(Server const &other)
+{
+	*this = other;
+};
+Server& Server::operator=(Server const &rhs)
+{
+	m_server_addr = rhs.m_server_addr;
+	m_client_addr = rhs.m_client_addr;
+	m_server_socket = rhs.m_server_socket;
+	m_client_socket = rhs.m_client_socket;
+	fd_num = rhs.fd_num;
+	sockfd = rhs.sockfd;
+	readn = rhs.readn;
+	maxfd = rhs.maxfd;
+	m_main_fds = rhs.m_main_fds;
+	m_copy_fds = rhs.m_copy_fds;
+	m_requests = rhs.m_requests;
+	m_responses = rhs.m_responses;
+	return (*this);
+};
 
 char *bin2hex(const unsigned char *input, size_t len)
 {

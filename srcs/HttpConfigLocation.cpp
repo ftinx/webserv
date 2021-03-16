@@ -113,7 +113,7 @@ HttpConfigLocation::checkCommentLine(std::string str)
 }
 
 HttpConfigLocation&
-HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
+HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, size_t &idx)
 {
 	while (42)
 	{
@@ -124,7 +124,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 			line.pop_back();
 		if (line.front().compare("location") == 0)
 		{
-			for (int i = 1 ; i < line.size() ; i++)
+			for (size_t i = 1 ; i < line.size() ; i++)
 			{
 				if (line.empty())
 					continue ;
@@ -134,7 +134,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 		}
 		else if (line.front().compare("limit_except") == 0)
 		{
-			for (int i = 1 ; i < line.size() ; i++)
+			for (size_t i = 1 ; i < line.size() ; i++)
 			{
 				if (line[i].empty())
 					continue ;
@@ -146,7 +146,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 		else if (line.front().compare("index") == 0)
 		{
 
-			for (int i = 1 ; i < line.size() ; i++)
+			for (size_t i = 1 ; i < line.size() ; i++)
 			{
 				if (line[i].empty())
 					continue ;
@@ -156,7 +156,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, int &idx)
 		}
 		else if (line.front().compare("cgi") == 0)
 		{
-			for (int i = 1 ; i < line.size() ; i++)
+			for (size_t i = 1 ; i < line.size() ; i++)
 			{
 				if (line[i].empty())
 					continue ;
