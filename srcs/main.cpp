@@ -9,6 +9,7 @@ main()
 	try
 	{
 		serverManager.parseHttpConfig();
+		serverManager.initServers();
 	}
 	catch (const std::exception& e)
 	{

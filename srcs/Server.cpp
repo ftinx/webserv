@@ -57,14 +57,17 @@ char *bin2hex(const unsigned char *input, size_t len)
 */
 
 void
-Server::init()
+Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, size_t location_size)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
+	this->m_server_block = server_block;
+	this->m_server_name = server_name;
+	this->m_port = port;
+	this->m_err_page_path = err_page_path;
+	this->m_location_size = location_size;
+	return ;
 }
-
-
-
 
 /*
 **	struct sockaddr_in {
