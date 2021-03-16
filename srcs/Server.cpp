@@ -13,6 +13,12 @@ Server::Server(Server const &other)
 };
 Server& Server::operator=(Server const &rhs)
 {
+	m_server_block = rhs.m_server_block;
+	m_server_name = rhs.m_server_name;
+	m_port = rhs.m_port;
+	m_err_page_path = rhs.m_err_page_path;
+	m_content_length = rhs.m_content_length;
+	m_location_size = rhs.m_location_size;
 	m_server_addr = rhs.m_server_addr;
 	m_client_addr = rhs.m_client_addr;
 	m_server_socket = rhs.m_server_socket;
@@ -57,14 +63,18 @@ char *bin2hex(const unsigned char *input, size_t len)
 */
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, size_t location_size)
+Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
 	this->m_server_block = server_block;
 	this->m_server_name = server_name;
 	this->m_port = port;
-	this->m_err_page_path = err_page_path;
+	if (err_page_path != "")
+		this->m_err_page_path = err_page_path.substr(6, err_page_path.size()-7);
+	else
+		this->m_err_page_path = "errors/default_error.html";
+	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	return ;
 }
@@ -605,7 +615,6 @@ Response
 Server::page404()
 {
 	Response response = Response();
-
 	return (
 		response
 			.setStatusCode(404)
@@ -613,8 +622,7 @@ Server::page404()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
 			.setServer("ftnix/1.0 (MacOS)")
-			.setHtmlAttribute(TITLE, "Webserv")
-			.setHtmlDocument()
+			.setPublicFileDocument(this->m_err_page_path)
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
@@ -677,6 +685,40 @@ Server::parseErrorResponse(int clientfd)
 		return (page404());
 }
 
+Response
+getDirectory()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setPublicFileDocument("index.html")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::get(std::string path, Request req, Response (&func)())
+{
+	(void) path;
+	(void) req;
+	func();
+	return (page200());
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (page404());
+}
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
 **
@@ -687,28 +729,33 @@ void
 Server::sendResponse(int clientfd)
 {
 	Response response = Response();
-	Method method = this->m_requests[clientfd].get_m_method();
+	// Method method = this->m_requests[clientfd].get_m_method();
 
 	/* make Response for Parse Error */
 	if (this->m_requests[clientfd].get_m_error_code())
 		response = this->parseErrorResponse(clientfd);
 
 	/* make Response for Method */
-	if (method == GET)
-		response = this->methodGET(clientfd);
-	else if (method == HEAD)
-		response = this->methodHEAD(clientfd);
-	else if (method == POST)
-		response = this->methodPOST(clientfd);
-	else if (method == PUT)
-		response = this->methodPUT(clientfd);
-	else if (method == DELETE)
-		response = this->methodDELETE(clientfd);
-	else if (method == TRACE)
-		response = this->methodTRACE(clientfd);
-	else
-		response = methodNotAllow_405();
+	// if (method == GET)
+	// 	response = this->methodGET(clientfd);
+	// else if (method == HEAD)
+	// 	response = this->methodHEAD(clientfd);
+	// else if (method == POST)
+	// 	response = this->methodPOST(clientfd);
+	// else if (method == PUT)
+	// 	response = this->methodPUT(clientfd);
+	// else if (method == DELETE)
+	// 	response = this->methodDELETE(clientfd);
+	// else if (method == TRACE)
+	// 	response = this->methodTRACE(clientfd);
+	// else
+	// 	response = methodNotAllow_405();
 
+	/* config Method */
+	// printf(":1:%s:1:" ,this->m_requests[clientfd].get_m_uri().get_m_path().c_str());
+	// response = getDirectory();
+	response = page404();
+	// get("/", this->m_requests[clientfd], Server::getDirectory);
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());

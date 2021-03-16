@@ -40,8 +40,8 @@ class Server
 		std::string m_server_name;
 		int m_port;
 		std::string m_err_page_path;
+		int m_content_length;
 		size_t m_location_size;
-
 
 		/* Socket */
 		struct sockaddr_in m_server_addr;
@@ -70,6 +70,7 @@ class Server
 			std::string server_name,
 			int port,
 			std::string err_page_path,
+			int content_length,
 			size_t location_size
 		);
 		void setServerAddr(int port);
@@ -80,6 +81,16 @@ class Server
 		void getRequest();
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
+
+		/* SERVER METHOD UTIL */
+		// static Response getDirectory();
+		Response get(std::string path, Request req, Response (&func)());
+		void post(std::string path, void (&func)(Request req, Response res));
+		void put(std::string path, void (&func)(Request req, Response res));
+		void del(std::string path, void (&func)(Request req, Response res));
+		void update(std::string path, void (&func)(Request req, Response res));
+		void options(std::string path, void (&func)(Request req, Response res));
+		void trace(std::string path, void (&func)(Request req, Response res));
 
 		/* METHOD */
 		Response methodHEAD(int clientfd);
