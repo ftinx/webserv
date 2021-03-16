@@ -357,10 +357,30 @@ Server::post_200()
 char**
 Server::makeCgiEnvp(int clientfd)
 {
-	int	num = clientfd;
+	Request &request = this->m_requests[clientfd];
+	Uri uri = request.get_m_uri();
+	HttpConfig config;
 	char **envp;
 
-	envp = (char **)malloc(sizeof(char*) * num);
+	envp = (char **)malloc(sizeof(char*) * (CGI_ENV_NUM + 1));
+	envp[0] = ft::strdup("SERVER_SOFTWARE="); // config
+	envp[1] = ft::strdup("SERVER_NAME="); // config
+	envp[2] = ft::strdup("GATEWAY_INTERFACE=Cgi/1.1");
+	envp[3] = ft::strdup("SERVER_PROTOCOL=" + request.get_m_http_version());
+	envp[4] = ft::strdup("SERVER_PORT="); // config
+	envp[5] = ft::strdup("REQUEST_METHOD=" + request.getMethod());
+	envp[6] = ft::strdup("PATH_INFO=" + uri.get_m_path());
+	envp[7] = ft::strdup("PATH_TRANSLATED="); // need additional function for relative uri
+	envp[8] = ft::strdup("SCRIPT_NAME="); // ?
+	envp[9] = ft::strdup("QUERY_STRING=" + uri.get_m_query_string());
+	envp[10] = ft::strdup("REMOTE_HOST="); // not necessary
+	envp[11] = ft::strdup("REMOTE_ADDR="); //convert ip address using iNetNtoA
+	envp[12] = ft::strdup("AUTH_TYPE="); // auth
+	envp[13] = ft::strdup("REMOTE_USER="); // auth
+	envp[14] = ft::strdup("REMOTE_IDENT="); // auth
+	envp[15] = ft::strdup("CONTENT_TYPE=" + request.getContentType());
+	envp[16] = ft::strdup("CONTENT_LENGTH=" + request.getContentLength());
+	envp[CGI_ENV_NUM] = 0;
 	return (envp);
 }
 
@@ -368,14 +388,15 @@ Response
 Server::executeCgi(int clientfd)
 {
 	pid_t pid;
+	Request &request = this->m_requests[clientfd];
 	Response &response = this->m_responses[clientfd];
-	//char** envp = this->makeCgiEnvp(clientfd);
+	char** envp = this->makeCgiEnvp(clientfd);
 
 	if ((pid = fork()) < 0)
 		return (page404());
 	if (pid == 0)
 	{
-
+		execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
 	}
 	else
 	{

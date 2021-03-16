@@ -25,6 +25,7 @@ Uri& Uri::operator=(Uri const &rhs)
     this->m_port = rhs.get_m_port();
     this->m_path = rhs.get_m_path();
     this->m_query = rhs.get_m_query();
+    this->m_query_string = rhs.get_m_query_string();
     return (*this);
 }
 
@@ -104,6 +105,12 @@ Uri::get_m_query() const
     return (this->m_query);
 }
 
+std::string
+Uri::get_m_query_string() const
+{
+    return (this->m_query_string);
+}
+
 /*============================================================================*/
 /*********************************  Util  *************************************/
 /*============================================================================*/
@@ -159,6 +166,7 @@ Uri::parseQuery(std::string str)
 {
     std::vector<std::string> pieces = ft::split(str, "&");
 
+    this->m_query_string = str;
     for (size_t i = 0; i < pieces.size(); i++)
     {
         std::vector<std::string> queries = ft::split(pieces[i], "=");
