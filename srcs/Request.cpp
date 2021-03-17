@@ -373,7 +373,7 @@ bool
 Request::checkCGI()
 {
 	size_t pos;
-	std::string path = this->m_uri.get_m_path();
+	std::string path = std::string(".") + this->m_uri.get_m_path();
 
 	pos = path.find("cgi-bin");
 	if (pos != 0)

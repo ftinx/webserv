@@ -18,7 +18,7 @@
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
-#define CGI_ENV_NUM 18
+#define CGI_ENV_NUM 16
 
 /*
 **  ** TODO
@@ -33,7 +33,6 @@
 **  1. listen(this->m_server_socket, 5) 의 연결 대기열 개수 => 임의로 10개 지정
 **  2. this->m_server_addr.sin_port = htons(PORT);의 PORT => 임의로 #define PORT 3601로 지정
 */
-#include "HttpConfigServer.hpp"
 
 class Server
 {
@@ -66,6 +65,9 @@ class Server
 		~Server();
 		Server(Server const &other);
 		Server& operator=(Server const &rhs);
+
+		std::string get_m_server_name();
+		int get_m_port();
 
 		void init(
 			HttpConfigServer server_block,
@@ -109,6 +111,7 @@ class Server
 		Response OptionsPathRoot();
 		static std::map<std::string, std::string> parseQuery(std::string str);
 
+		std::map<std::string, std::string> makeCgiEnvpMap(int clientfd);
 		char** makeCgiEnvp(int clientfd);
 		Response executeCgi(int clientfd);
 
