@@ -9,15 +9,10 @@
 /*============================================================================*/
 
 Response::Response()
+:m_status_code(404), m_date(""), m_content_language("ko, en"), m_content_type("text/html; charset=UTF-8"),
+m_server("ftnix/1.0 (MacOS)"), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
+m_head(""), m_content_length(0), m_response_message(""), m_response_size(0)
 {
-	this->m_body = "";
-	this->m_head = "";
-	this->m_status_code = 200;
-	this->m_content_language = "ko, en";
-	this->m_content_type = "text/html; charset=UTF-8";
-	this->m_server = "ftnix/1.0 (MacOS)";
-	this->m_status_description = "";
-	this->m_content_length = 0;
 }
 
 Response::Response(Response const &other)

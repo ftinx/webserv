@@ -472,7 +472,7 @@ Server::methodPOST(int clientfd)
 
 	if (this->m_requests[clientfd].checkCGI())
 		return (postCGI(clientfd));
-	if (path == "auth")
+	if (path == "/auth")
 	{
 		if(m_query.find("formType") != m_query.end()
 		&& m_query.find("formType")->second == "login")
@@ -817,7 +817,7 @@ Server::sendResponse(int clientfd)
 		response = methodNotAllow_405();
 
 	/* config Method */
-	response = get("hi", this->m_requests[clientfd], response, Server::getDirectory);
+	response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
