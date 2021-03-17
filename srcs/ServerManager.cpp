@@ -75,7 +75,7 @@ void
 ServerManager::runServers()
 {
 	for (size_t i = 0; i < m_server_size; i++) {
-		this->m_server[i].runServer();
+		this->m_server[i].runServer(*this);
 	}
 	return ;
 }
