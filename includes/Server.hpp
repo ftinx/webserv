@@ -100,7 +100,6 @@ class Server
 		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response put(std::string path, Request req, Response res, Response (*func)());
 		Response del(std::string path, Request req, Response res, Response (*func)());
-		Response update(std::string path, Request req, Response res, Response (*func)());
 		Response options(std::string path, Request req, Response res, Response (*func)());
 		Response trace(std::string path, Request req, Response res, Response (*func)());
 

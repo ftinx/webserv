@@ -835,14 +835,6 @@ Server::del(std::string path, Request req, Response res, Response (*func)())
 }
 
 Response
-Server::update(std::string path, Request req, Response res, Response (*func)())
-{
-	if (path == req.get_m_uri().get_m_path())
-		return (func());
-	return (res);
-}
-
-Response
 Server::options(std::string path, Request req, Response res, Response (*func)())
 {
 	if (path == req.get_m_uri().get_m_path())
@@ -893,6 +885,7 @@ Server::sendResponse(int clientfd)
 	/* config Method */
 	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 	{
+		Response response;
 		std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
 		std::vector<HttpConfigLocation>::const_iterator i = location_block.begin();
 		int j = 0;
@@ -902,15 +895,44 @@ Server::sendResponse(int clientfd)
 			printf("location %d\n", j++);
 			printf("path:: %s\n", i->get_m_path().c_str());
 			printf("root:: %s\n", i->get_m_root().c_str());
-			printf("cgi::path %s\n", i->get_m_cgi_path().c_str());
+			printf("cgi::path %d\n", i->get_m_cgi_path() == "");
 			{
 				std::vector<Method> limit_except = i->get_m_limit_except();
 				std::vector<Method>::const_iterator limit = limit_except.begin();
-				printf("method:: ");
 				while (limit != limit_except.end())
 				{
 					printf("%d", *limit);
 					// std::cout << ' ' << *limit << std::endl;
+					switch (*limit)
+					{
+						case HEAD:
+						case GET:
+							if (i->get_m_cgi_path() == "")
+								response = get(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+							break;
+						case POST:
+							if (i->get_m_cgi_path() == "")
+								response = post(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+							break;
+						case PUT:
+							if (i->get_m_cgi_path() == "")
+								response = put(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+							break;
+						case DELETE:
+							if (i->get_m_cgi_path() == "")
+								response = del(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+							break;
+						case OPTIONS:
+							if (i->get_m_cgi_path() == "")
+								response = options(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+							break;
+						case TRACE:
+							if (i->get_m_cgi_path() == "")
+								response = trace(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+							break;
+						default:
+							break;
+					}
 					limit++;
 				}
 				printf("\n");
