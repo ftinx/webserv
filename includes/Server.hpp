@@ -83,14 +83,16 @@ class Server
 		Response parseErrorResponse(int clientfd);
 
 		/* SERVER METHOD UTIL */
+		static Response getDirectory();
+
 		// static Response getDirectory();
-		Response get(std::string path, Request req, Response (&func)());
-		void post(std::string path, void (&func)(Request req, Response res));
-		void put(std::string path, void (&func)(Request req, Response res));
-		void del(std::string path, void (&func)(Request req, Response res));
-		void update(std::string path, void (&func)(Request req, Response res));
-		void options(std::string path, void (&func)(Request req, Response res));
-		void trace(std::string path, void (&func)(Request req, Response res));
+		Response get(std::string path, Request req, Response res, Response (*func)());
+		Response post(std::string path, Request req, Response res, Response (*func)());
+		Response put(std::string path, Request req, Response res, Response (*func)());
+		Response del(std::string path, Request req, Response res, Response (*func)());
+		Response update(std::string path, Request req, Response res, Response (*func)());
+		Response options(std::string path, Request req, Response res, Response (*func)());
+		Response trace(std::string path, Request req, Response res, Response (*func)());
 
 		/* METHOD */
 		Response methodHEAD(int clientfd);
