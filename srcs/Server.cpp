@@ -536,30 +536,63 @@ Server::methodDELETE(int clientfd)
 }
 
 Response
-Server::OptionsPathRoot()
+Server::options_405(std::string allow_method)
 {
-	Response response = Response();
 
-	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("allow", "OPTIONS, GET, POST, HEAD")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
+}
+
+Response
+Server::options_204(std::string allow_method)
+{
+
+}
+
+
+std::string
+Server::makeAllowMethod(std::vector<Method> v, bool *options_allowed)
+{
+	std::string ret("");
+	std::vector<Method>::const_iterator i = v.begin();
+
+	while (i != v.end())
+	{
+		if (*i == OPTIONS)
+			*options_allowed = true;
+		ret += ft::getMethodString(*i) + ", ";
+		i++;
+	}
+	ret = ret.substr(0, ret.size() - 2);
+	return (ret);
 }
 
 Response
 Server::methodOPTIONS(int clientfd)
 {
-	(void) clientfd;
-	/* PATH에 따라 다른 Options응 답을 주어야함. */
-	return (OptionsPathRoot());
+	std::string path = m_requests[clientfd].get_m_uri().get_m_path();
+	bool options_allowed = false;
+	std::string allow_method("");
+	const std::vector<HttpConfigLocation> locations = m_server_block.get_m_location_block();
+	std::vector<HttpConfigLocation>::const_iterator i = locations.begin();
+
+	size_t pos = path.find_first_of("\\");
+	if (pos != std::string::npos)
+		path = path.substr(0, pos);
+	while (i != locations.end())
+	{
+		if (path == i->get_m_path())
+		{
+			allow_method = makeAllowMethod(i->get_m_limit_except(), &options_allowed);
+			break;
+		}
+		i++;
+	}
+
+	if (i == locations.end())
+		return (Server::page404());
+	if (options_allowed == false)
+		return (Server::options_405(allow_method));
+	else
+		return (Server::options_204(allow_method));
 }
 
 /*
@@ -835,6 +868,8 @@ Server::sendResponse(int clientfd)
 		response = this->methodDELETE(clientfd);
 	else if (method == TRACE)
 		response = this->methodTRACE(clientfd);
+	else if (method == OPTIONS)
+		response = this->methodOPTIONS(clientfd);
 	else
 		response = methodNotAllow_405();
 

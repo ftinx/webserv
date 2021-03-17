@@ -183,26 +183,6 @@ Request::getContentType()
 	return (it->second);
 }
 
-Method
-Request::getMethodType(std::string str)
-{
-	if (str == "GET")
-		return (GET);
-	else if (str == "HEAD")
-		return (HEAD);
-	else if (str == "POST")
-		return (POST);
-	else if (str == "PUT")
-		return (PUT);
-	else if (str == "DELETE")
-		return (DELETE);
-	else if (str == "OPTIONS")
-		return (OPTIONS);
-	else if (str ==  "TRACE")
-		return (TRACE);
-	return (DEFAULT);
-}
-
 bool
 Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int header_bytes)
 {
@@ -305,7 +285,7 @@ Request::parseRequestLine(std::string request_line)
 		this->m_error_code = 400;
 		return (false);
 	}
-	this->m_method = getMethodType(pieces[0]);
+	this->m_method = ft::getMethodType(pieces[0]);
 	this->m_uri.set_m_uri(pieces[1]);
 	this->m_http_version = pieces[2];
 
