@@ -405,35 +405,35 @@ Server::postLoginSuccess()
 }
 
 std::map<std::string, std::string>
-Server::makeCgiEnvpMap(int clientfd)
+Server::makeCgiEnvpMap(Request req, Response res)
 {
 	std::map<std::string, std::string> map;
-	Request &request = this->m_requests[clientfd];
+	Request &request = req;
 	Uri uri = request.get_m_uri();
 
 	/*
 	** auth 관련 AUTH_TYPE REMOTE_USER REMOTE_IDENT
 	*/
 	map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
-	map["SERVER_NAME"] = this->get_m_server_name();
+	map["SERVER_NAME"] = res.get_m_cgi_server_name();
 	map["GATEWAY_INTERFACE"] = "Cgi/1.1";
 	map["SERVER_PROTOCOL"] = request.get_m_http_version();
-	map["SERVER_PORT"] = std::to_string(this->get_m_port());
+	map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
 	map["REQUEST_METHOD"] = request.getMethod();
 	map["PATH_INFO"] = uri.get_m_path();
 	map["PATH_TRANSLATED"] = uri.get_m_path();
 	map["SCRIPT_NAME"] = uri.get_m_path();
 	map["QUERY_STRING"] = uri.get_m_query_string();
-	map["REMOTE_ADDR"] = ft::iNetNtoA(this->m_client_addr.sin_addr.s_addr);
+	map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
 	map["CONTENT_TYPE"] = request.getContentType();
 	map["CONTENT_LENGTH"] = request.getContentLength();
 	return (map);
 }
 
 char **
-Server::makeCgiEnvp(int clientfd)
+Server::makeCgiEnvp(Request req, Response res)
 {
-	std::map<std::string, std::string> env_map = makeCgiEnvpMap(clientfd);
+	std::map<std::string, std::string> env_map = makeCgiEnvpMap(req, res);
 	std::map<std::string, std::string>::const_iterator i = env_map.begin();
 	char **env = new char*[env_map.size() + 1];
 	int j;
@@ -450,12 +450,12 @@ Server::makeCgiEnvp(int clientfd)
 }
 
 Response
-Server::executeCgi(int clientfd)
+Server::executeCgi(Request req, Response res)
 {
 	pid_t pid;
-	Request &request = this->m_requests[clientfd];
-	Response &response = this->m_responses[clientfd];
-	char** envp = this->makeCgiEnvp(clientfd);
+	Request &request = req;
+	Response &response = res;
+	char** envp = Server::makeCgiEnvp(req, res);
 
 	if ((pid = fork()) < 0)
 		return (Server::page404("errors/default_error.html"));
@@ -504,9 +504,15 @@ Server::methodPOST(int clientfd)
 {
 	Response response;
 	response.set_m_err_page_path(this->m_err_page_path);
+
+	/* CGI Setting */
+	response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
+	response.set_m_cgi_port(this->get_m_port());
+	response.set_m_cgi_server_name(this->get_m_server_name());
 	response = Server::page404(response.get_m_err_page_path());
 
 	response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
+	response = post("/auth.cgi", this->m_requests[clientfd], response, Server::executeCgi);
 	return (response);
 }
 

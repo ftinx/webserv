@@ -11,7 +11,8 @@
 Response::Response()
 :m_status_code(404), m_date(""), m_content_language("ko, en"), m_content_type("text/html; charset=UTF-8"),
 m_server("ftnix/1.0 (MacOS)"), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
-m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_err_page_path("errors/default_error.html")
+m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_err_page_path("errors/default_error.html"),
+m_cgi_client_addr(), m_cgi_server_name(""), m_cgi_port(0)
 {
 }
 
@@ -43,6 +44,11 @@ Response::operator=(Response const &rhs)
 
 	/* Config */
 	m_err_page_path = rhs.m_err_page_path;
+
+	/* CGI */
+	m_cgi_client_addr = rhs.m_cgi_client_addr;
+	m_cgi_server_name = rhs.m_cgi_server_name;
+	m_cgi_port = rhs.m_cgi_port;
 	return (*this);
 }
 
@@ -128,6 +134,23 @@ Response::get_m_err_page_path() const
 	return (this->m_err_page_path);
 }
 
+in_addr_t
+Response::get_m_cgi_client_addr() const
+{
+	return (this->m_cgi_client_addr);
+}
+
+std::string
+Response::get_m_cgi_server_name() const
+{
+	return (this->m_cgi_server_name);
+}
+int
+Response::get_m_cgi_port() const
+{
+	return (this->m_cgi_port);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -150,6 +173,27 @@ void
 Response::set_m_err_page_path(std::string err_page_path)
 {
 	this->m_err_page_path = err_page_path;
+	return ;
+}
+
+void
+Response::set_m_cgi_client_addr(in_addr_t cgi_client_addr)
+{
+	this->m_cgi_client_addr = cgi_client_addr;
+	return ;
+}
+
+void
+Response::set_m_cgi_server_name(std::string cgi_server_name)
+{
+	this->m_cgi_server_name = cgi_server_name;
+	return ;
+}
+
+void
+Response::set_m_cgi_port(int cgi_port)
+{
+	this->m_cgi_port = cgi_port;
 	return ;
 }
 

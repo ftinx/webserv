@@ -111,9 +111,9 @@ class Server
 		Response OptionsPathRoot();
 		static std::map<std::string, std::string> parseQuery(std::string str);
 
-		std::map<std::string, std::string> makeCgiEnvpMap(int clientfd);
-		char** makeCgiEnvp(int clientfd);
-		Response executeCgi(int clientfd);
+		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
+		static char** makeCgiEnvp(Request req, Response res);
+		static Response executeCgi(Request req, Response res);
 
 		// Response continue_100();
 		// Response switchingProtocols_101();
