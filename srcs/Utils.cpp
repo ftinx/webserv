@@ -336,6 +336,7 @@ isValidDirPath(std::string path)
 {
 	DIR *dirptr;
 
+	path = std::string(".") + path;
 	if ((dirptr = opendir(path.c_str())) != NULL) // opendir 함수는 폴더 경로를 입력받아 성공하면 포인터 반환, 실패(존재하지 않거나 퍼미션 등의 이유로 실패)하면 NULL 반환
 	{
 		closedir(dirptr); // 열었으면 닫고
