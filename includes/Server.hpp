@@ -67,7 +67,7 @@ class Server
 		Server& operator=(Server const &rhs);
 
 		std::string get_m_server_name();
-		std::string getPort();
+		int get_m_port();
 
 		void init(
 			HttpConfigServer server_block,

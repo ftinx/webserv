@@ -68,10 +68,10 @@ Server::get_m_server_name()
 	return (this->m_server_name);
 }
 
-std::string
-Server::getPort()
+int
+Server::get_m_port()
 {
-	return (std::to_string(this->m_port));
+	return (this->m_port);
 }
 
 
@@ -418,7 +418,7 @@ Server::makeCgiEnvpMap(int clientfd)
 	map["SERVER_NAME"] = this->get_m_server_name();
 	map["GATEWAY_INTERFACE"] = "Cgi/1.1";
 	map["SERVER_PROTOCOL"] = request.get_m_http_version();
-	map["SERVER_PORT"] = this->getPort();
+	map["SERVER_PORT"] = std::to_string(this->get_m_port());
 	map["REQUEST_METHOD"] = request.getMethod();
 	map["PATH_INFO"] = uri.get_m_path();
 	map["PATH_TRANSLATED"] = uri.get_m_path();
