@@ -6,7 +6,7 @@
 /*============================================================================*/
 
 Uri::Uri()
-: m_uri(""), m_check_abs_uri(true), m_scheme("http"), m_host(""), m_port("80"), m_path("")
+: m_uri("/"), m_check_abs_uri(true), m_scheme("http"), m_host(""), m_port("80"), m_path("/")
 {}
 
 Uri::Uri(Uri const &other)
@@ -147,7 +147,7 @@ Uri::parseHostPort(std::string str)
     }
     if (slash_pos == std::string::npos)
         return (0);
-    return (this->parsePath(str.substr(slash_pos + 1, std::string::npos)));
+    return (this->parsePath(str.substr(slash_pos, std::string::npos)));
 }
 
 int
