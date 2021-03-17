@@ -280,8 +280,6 @@ Request::parseRequestLine(std::string request_line)
 
 	if (pieces.size() != 3)
 	{
-
-
 		this->m_error_code = 400;
 		return (false);
 	}

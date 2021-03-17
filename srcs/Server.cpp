@@ -387,10 +387,10 @@ Server::methodGET(int clientfd)
 {
 	(void) clientfd;
 
-	// if (true)
-	// 	return (Server::page200());
-	// else if (true)
-	// 	return (Server::page404("errors/default_error.html"));
+	if (true)
+		return (Server::page200());
+	else if (true)
+		return (Server::page404("errors/default_error.html"));
 }
 
 /*============================================================================*/
@@ -604,7 +604,7 @@ Server::options_204(std::string allow_method)
 
 	return (
 		response
-			.setStatusCode(405)
+			.setStatusCode(204)
 			.setCurrentDate()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
@@ -620,14 +620,12 @@ std::string
 Server::makeAllowMethod(std::vector<Method> v, bool *options_allowed)
 {
 	std::string ret("");
-	std::vector<Method>::const_iterator i = v.begin();
 
-	while (i != v.end())
+	for(std::vector<Method>::const_iterator i = v.begin(); i != v.end(); ++i)
 	{
 		if (*i == OPTIONS)
 			*options_allowed = true;
 		ret += ft::getMethodString(*i) + ", ";
-		i++;
 	}
 	ret = ret.substr(0, ret.size() - 2);
 	return (ret);
@@ -642,9 +640,11 @@ Server::methodOPTIONS(int clientfd)
 	const std::vector<HttpConfigLocation> locations = m_server_block.get_m_location_block();
 	std::vector<HttpConfigLocation>::const_iterator i = locations.begin();
 
-	size_t pos = path.find_first_of("\\");
+	size_t pos = path.find_first_of("/", 1);
+	std::cout << "PATHAPHTAHPT " << path << std::endl;
 	if (pos != std::string::npos)
 		path = path.substr(0, pos);
+
 	while (i != locations.end())
 	{
 		if (path == i->get_m_path())
@@ -654,10 +654,9 @@ Server::methodOPTIONS(int clientfd)
 		}
 		i++;
 	}
-
 	if (i == locations.end())
 		return (Server::page404(this->m_err_page_path));
-	if (options_allowed == false)
+	else if (options_allowed == false)
 		return (Server::options_405(allow_method));
 	return (Server::options_204(allow_method));
 }
