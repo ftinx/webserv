@@ -400,26 +400,6 @@ getMethodType(std::string str)
 	return (DEFAULT);
 }
 
-std::string
-getMethodString(Method method)
-{
-	if (method == GET)
-		return ("GET");
-	else if (method == HEAD)
-		return ("HEAD");
-	else if (method == POST)
-		return ("POST");
-	else if (method == PUT)
-		return ("PUT");
-	else if (method == DELETE)
-		return ("DELETE");
-	else if (method == OPTIONS)
-		return ("OPTIONS");
-	else if (method == TRACE)
-		return ("TRACE");
-	return ("DEFAULT");
-}
-
 bool
 checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list)
 {
