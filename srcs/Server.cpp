@@ -891,7 +891,35 @@ Server::sendResponse(int clientfd)
 		response = methodNotAllow_405();
 
 	/* config Method */
-	response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
+	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
+	{
+		std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
+		std::vector<HttpConfigLocation>::const_iterator i = location_block.begin();
+		int j = 0;
+
+		while (i != location_block.end())
+		{
+			printf("location %d\n", j++);
+			printf("path:: %s\n", i->get_m_path().c_str());
+			printf("root:: %s\n", i->get_m_root().c_str());
+			printf("cgi::path %s\n", i->get_m_cgi_path().c_str());
+			{
+				std::vector<Method> limit_except = i->get_m_limit_except();
+				std::vector<Method>::const_iterator limit = limit_except.begin();
+				printf("method:: ");
+				while (limit != limit_except.end())
+				{
+					printf("%d", *limit);
+					// std::cout << ' ' << *limit << std::endl;
+					limit++;
+				}
+				printf("\n");
+				// std::vector<std::string> index = i->get_m_index();
+				// std::vector<std::string> get_m_cgi();
+			}
+			i++;
+		}
+	}
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
