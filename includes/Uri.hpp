@@ -20,6 +20,7 @@ class Uri
     std::string m_port;
     std::string m_path;
     std::map<std::string, std::string> m_query;
+    std::string m_query_string;
 
     public:
     Uri();
@@ -36,6 +37,7 @@ class Uri
     std::string get_m_port() const;
     std::string get_m_path() const;
     std::map<std::string, std::string> get_m_query() const;
+    std::string get_m_query_string() const;
     int parseUri();
     int parseHostPort(std::string);
     int parsePath(std::string);
