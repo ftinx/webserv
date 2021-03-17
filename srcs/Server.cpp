@@ -105,7 +105,7 @@ Server::init(HttpConfigServer server_block, std::string server_name, int port, s
 	this->m_server_name = server_name;
 	this->m_port = port;
 	if (err_page_path != "")
-		this->m_err_page_path = err_page_path.substr(6, err_page_path.size()-7);
+		this->m_err_page_path = err_page_path.substr(6, err_page_path.size()-6);
 	else
 		this->m_err_page_path = "errors/default_error.html";
 	this->m_content_length = content_length;
@@ -371,12 +371,12 @@ Server::getRequest()
 /*********************************  HEAD  *************************************/
 /*============================================================================*/
 
-Response
-Server::methodHEAD(int clientfd)
-{
-	(void) clientfd;
-	return (Server::page404("errors/default_error.html"));
-}
+// Response
+// Server::methodHEAD(int clientfd)
+// {
+
+// 	}
+// }
 
 /*============================================================================*/
 /**********************************  GET  *************************************/
@@ -385,12 +385,33 @@ Server::methodHEAD(int clientfd)
 Response
 Server::methodGET(int clientfd)
 {
+<<<<<<< HEAD
 	(void) clientfd;
 
 	if (true)
 		return (Server::page200());
 	else if (true)
+=======
+	Response response;
+	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+
+	if (ft::isValidFilePath(path) == false)
+>>>>>>> dbc837e2d26f787c3568473d68f8aa1d1423c842
 		return (Server::page404("errors/default_error.html"));
+	else
+	{
+		return (
+			response
+				.setPublicFileDocument(path)
+				.setHttpResponseHeader("date", response.get_m_date())
+				.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+				.setHttpResponseHeader("content-language", response.get_m_content_language())
+				.setHttpResponseHeader("content-type", response.get_m_content_type())
+				.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+				.setHttpResponseHeader("server", response.get_m_server())
+				.makeHttpResponseMessage()
+		);
+}
 }
 
 /*============================================================================*/
