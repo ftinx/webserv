@@ -13,6 +13,12 @@ Server::Server(Server const &other)
 };
 Server& Server::operator=(Server const &rhs)
 {
+	m_server_block = rhs.m_server_block;
+	m_server_name = rhs.m_server_name;
+	m_port = rhs.m_port;
+	m_err_page_path = rhs.m_err_page_path;
+	m_content_length = rhs.m_content_length;
+	m_location_size = rhs.m_location_size;
 	m_server_addr = rhs.m_server_addr;
 	m_client_addr = rhs.m_client_addr;
 	m_server_socket = rhs.m_server_socket;
@@ -57,14 +63,18 @@ char *bin2hex(const unsigned char *input, size_t len)
 */
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, size_t location_size)
+Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
 	this->m_server_block = server_block;
 	this->m_server_name = server_name;
 	this->m_port = port;
-	this->m_err_page_path = err_page_path;
+	if (err_page_path != "")
+		this->m_err_page_path = err_page_path.substr(6, err_page_path.size()-7);
+	else
+		this->m_err_page_path = "errors/default_error.html";
+	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	return ;
 }
@@ -462,7 +472,7 @@ Server::methodPOST(int clientfd)
 
 	if (this->m_requests[clientfd].checkCGI())
 		return (postCGI(clientfd));
-	if (path == "auth")
+	if (path == "/auth")
 	{
 		if(m_query.find("formType") != m_query.end()
 		&& m_query.find("formType")->second == "login")
@@ -626,17 +636,15 @@ Response
 Server::page404()
 {
 	Response response = Response();
-
 	return (
 		response
 			.setStatusCode(404)
-			.setCurrentDate()
+			// .setCurrentDate()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
 			.setServer("ftnix/1.0 (MacOS)")
-			.setHtmlAttribute(TITLE, "Webserv")
-			.setHtmlDocument()
-			.setHttpResponseHeader("date", response.get_m_date())
+			.setPublicFileDocument(this->m_err_page_path)
+			// .setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
@@ -698,6 +706,84 @@ Server::parseErrorResponse(int clientfd)
 		return (page404());
 }
 
+Response
+Server::getDirectory()
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setPublicFileDocument("index.html")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::get(std::string path, Request req, Response res, Response (*func)())
+{
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (res);
+}
+
+Response
+Server::post(std::string path, Request req, Response res, Response (*func)())
+{
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (res);
+}
+
+Response
+Server::put(std::string path, Request req, Response res, Response (*func)())
+{
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (res);
+}
+
+Response
+Server::del(std::string path, Request req, Response res, Response (*func)())
+{
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (res);
+}
+
+Response
+Server::update(std::string path, Request req, Response res, Response (*func)())
+{
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (res);
+}
+
+Response
+Server::options(std::string path, Request req, Response res, Response (*func)())
+{
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (res);
+}
+
+Response
+Server::trace(std::string path, Request req, Response res, Response (*func)())
+{
+	if (path == req.get_m_uri().get_m_path())
+		return (func());
+	return (res);
+}
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
 **
@@ -730,6 +816,8 @@ Server::sendResponse(int clientfd)
 	else
 		response = methodNotAllow_405();
 
+	/* config Method */
+	response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
