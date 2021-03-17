@@ -337,7 +337,7 @@ Response
 Server::methodHEAD(int clientfd)
 {
 	(void) clientfd;
-	return (Server::page404());
+	return (Server::page404("errors/default_error.html"));
 }
 
 Response
@@ -347,7 +347,7 @@ Server::methodGET(int clientfd)
 	if (true)
 		return (Server::page200());
 	else if (true)
-		return (Server::page404());
+		return (Server::page404("errors/default_error.html"));
 }
 
 std::map<std::string, std::string>
@@ -365,7 +365,7 @@ Server::parseQuery(std::string str)
 }
 
 Response
-Server::post_200()
+Server::postLoginSuccess()
 {
 	Response response = Response();
 
@@ -426,7 +426,7 @@ Server::executeCgi(int clientfd)
 	char** envp = this->makeCgiEnvp(clientfd);
 
 	if ((pid = fork()) < 0)
-		return (Server::page404());
+		return (Server::page404("errors/default_error.html"));
 	if (pid == 0)
 	{
 		execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
@@ -439,22 +439,16 @@ Server::executeCgi(int clientfd)
 }
 
 Response
-Server::postAuth(Request req)
+Server::postAuth(Request req, Response res)
 {
 	std::string path = req.get_m_uri().get_m_path();
-	std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
-	std::string username;
-	std::string password;
-
-	printf("::\n\n%s::\n\n", req.get_m_message().c_str());
-	printf("::%s::\n\n", req.get_m_body().c_str());
-
-	printf("::%s::\n", req.get_m_uri().get_m_uri().c_str());
-	printf("::%s::\n", path.c_str());
-	printf("::%d::\n", req.get_m_check_cgi());
 
 	if (path == "/auth")
 	{
+		std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
+		std::string username;
+		std::string password;
+
 		if(m_query.find("formType") != m_query.end()
 		&& m_query.find("formType")->second == "login")
 		{
@@ -465,18 +459,20 @@ Server::postAuth(Request req)
 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
 
 			if (username == "42seoul" && password == "42seoul")
-				return (Server::post_200());
+				return (Server::postLoginSuccess());
 			else
 				return (Server::page200());
 		}
 	}
-	return (Server::page404());
+	return (res);
 }
 
 Response
 Server::methodPOST(int clientfd)
 {
 	Response response;
+	response.set_m_err_page_path(this->m_err_page_path);
+	response = Server::page404(response.get_m_err_page_path());
 
 	response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
 	return (response);
@@ -486,7 +482,7 @@ Response
 Server::methodPUT(int clientfd)
 {
 	(void) clientfd;
-	return (Server::page404());
+	return (Server::page404("errors/default_error.html"));
 }
 
 Response
@@ -500,7 +496,7 @@ Server::methodDELETE(int clientfd)
 		if (unlink(path.c_str()) == 0)
 			return (Server::page200());
 	}
-	return (Server::page404());
+	return (Server::page404("errors/default_error.html"));
 }
 
 Response
@@ -623,9 +619,10 @@ Server::badRequest_400()
 }
 
 Response
-Server::page404()
+Server::page404(std::string path)
 {
 	Response response = Response();
+
 	return (
 		response
 			.setStatusCode(404)
@@ -633,7 +630,7 @@ Server::page404()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
 			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument("errors/default_error.html")
+			.setPublicFileDocument(path)
 			// .setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
@@ -693,7 +690,7 @@ Server::parseErrorResponse(int clientfd)
 	else if (this->m_requests[clientfd].get_m_error_code() == 501)
 		return (methodNotImplemented_501());
 	else
-		return (page404());
+		return (page404("errors/default_error.html"));
 }
 
 Response
@@ -728,10 +725,10 @@ Server::get(std::string path, Request req, Response res, Response (*func)())
 }
 
 Response
-Server::post(std::string path, Request req, Response res, Response (*func)(Request req))
+Server::post(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func(req));
+		return (func(req, res));
 	return (res);
 }
 

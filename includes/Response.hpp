@@ -47,6 +47,9 @@ class Response
 		std::string m_response_message;
 		int m_response_size;
 
+		/* Config */
+		std::string m_err_page_path;
+
 	public:
 		Response();
 		virtual ~Response();
@@ -64,10 +67,12 @@ class Response
 		std::string get_m_content_language() const;
 		std::string get_m_content_type() const;
 		std::string get_m_server() const;
+		std::string get_m_err_page_path() const;
 
 		/* setter */
 		void set_m_status_code(int statusCode);
 		void set_m_status_description(std::string statusDescription);
+		void set_m_err_page_path(std::string err_page_path);
 
 		/* CGI */
 		bool parseCgiResponse(std::string&);

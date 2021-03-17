@@ -11,7 +11,7 @@
 Response::Response()
 :m_status_code(404), m_date(""), m_content_language("ko, en"), m_content_type("text/html; charset=UTF-8"),
 m_server("ftnix/1.0 (MacOS)"), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
-m_head(""), m_content_length(0), m_response_message(""), m_response_size(0)
+m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_err_page_path("errors/default_error.html")
 {
 }
 
@@ -40,6 +40,9 @@ Response::operator=(Response const &rhs)
 	/* response message */
 	m_response_message = rhs.m_response_message;
 	m_response_size = rhs.m_response_size;
+
+	/* Config */
+	m_err_page_path = rhs.m_err_page_path;
 	return (*this);
 }
 
@@ -119,6 +122,12 @@ Response::get_m_server() const
 	return (this->m_server);
 }
 
+std::string
+Response::get_m_err_page_path() const
+{
+	return (this->m_err_page_path);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -134,6 +143,13 @@ void
 Response::set_m_status_description(std::string statusDescription)
 {
 	this->m_status_description = statusDescription;
+	return ;
+}
+
+void
+Response::set_m_err_page_path(std::string err_page_path)
+{
+	this->m_err_page_path = err_page_path;
 	return ;
 }
 
