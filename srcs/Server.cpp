@@ -359,7 +359,7 @@ Server::makeCgiEnvp(int clientfd)
 {
 	Request &request = this->m_requests[clientfd];
 	Uri uri = request.get_m_uri();
-	HttpConfig config;
+	//HttpConfig config;
 	char **envp;
 
 	envp = (char **)malloc(sizeof(char*) * (CGI_ENV_NUM + 1));

@@ -324,6 +324,7 @@ isValidFilePath(std::string path)
 {
 	struct stat buffer;
 
+	path = std::string(".") + path;
 	if ((stat(path.c_str(), &buffer) == 0) && // stat 함수의 반환값이 0이면 정상적으로 파일 정보 조회된 것
 		isValidDirPath(path) == false) // 그리고 폴더가 아니라면
 		return (true); // 파일이 맞음
