@@ -306,12 +306,13 @@ getDateTimestamp(int hour, int minute, int second)
 	struct timeval currentTime;
 	struct tm *tm;
 	char buf[64];
+	int ret;
 
 	gettimeofday(&currentTime, NULL);
 	currentTime.tv_sec += 3600 * hour + 60 * minute + second;
 	tm = localtime(&currentTime.tv_sec);
-	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm);
-	free(tm);
+	ret = strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm);
+	buf[ret] = '\0';
 	return (buf);
 }
 
@@ -320,25 +321,22 @@ getDateTimestamp(int hour, int minute, int second)
 /*============================================================================*/
 
 bool
-isValidFilePath(std::string home_path, std::string path)
+isValidFilePath(std::string path)
 {
 	struct stat buffer;
-	std::string abspath = home_path + path;
 
-	if ((stat(abspath.c_str(), &buffer) == 0) && // stat 함수의 반환값이 0이면 정상적으로 파일 정보 조회된 것
-		isValidDirPath(home_path, path) == false) // 그리고 폴더가 아니라면
+	if ((stat(path.c_str(), &buffer) == 0) && // stat 함수의 반환값이 0이면 정상적으로 파일 정보 조회된 것
+		isValidDirPath(path) == false) // 그리고 폴더가 아니라면
 		return (true); // 파일이 맞음
 	return (false); // 파일이 아님
 }
 
 bool
-isValidDirPath(std::string home_path, std::string path)
+isValidDirPath(std::string path)
 {
 	DIR *dirptr;
-	std::string abspath = home_path + path;
 
-	path = std::string(".") + path;
-	if ((dirptr = opendir(abspath.c_str())) != NULL) // opendir 함수는 폴더 경로를 입력받아 성공하면 포인터 반환, 실패(존재하지 않거나 퍼미션 등의 이유로 실패)하면 NULL 반환
+	if ((dirptr = opendir(path.c_str())) != NULL) // opendir 함수는 폴더 경로를 입력받아 성공하면 포인터 반환, 실패(존재하지 않거나 퍼미션 등의 이유로 실패)하면 NULL 반환
 	{
 		closedir(dirptr); // 열었으면 닫고
 		return (true); // 폴더가 맞음

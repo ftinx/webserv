@@ -37,6 +37,13 @@
 class Server
 {
 	private:
+		HttpConfigServer m_server_block;
+		std::string m_server_name;
+		int m_port;
+		std::string m_err_page_path;
+		int m_content_length;
+		size_t m_location_size;
+
 		/* Socket */
 		struct sockaddr_in m_server_addr;
 		struct sockaddr_in m_client_addr;
@@ -52,11 +59,6 @@ class Server
 		/* Request, Response */
 		std::vector<Request> m_requests;
 		std::vector<Response> m_responses;
-		HttpConfigServer m_server_block;
-		std::string m_server_name;
-		int	m_port;
-		std::string m_err_page_path;
-		size_t m_location_size;
 
 	public:
 		Server();
@@ -67,7 +69,14 @@ class Server
 		std::string get_m_server_name();
 		std::string getPort();
 
-		void init();
+		void init(
+			HttpConfigServer server_block,
+			std::string server_name,
+			int port,
+			std::string err_page_path,
+			int content_length,
+			size_t location_size
+		);
 		void setServerAddr(int port);
 		bool setServerSocket();
 		void runServer();
@@ -76,6 +85,18 @@ class Server
 		void getRequest();
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
+
+		/* SERVER METHOD UTIL */
+		static Response getDirectory();
+
+		// static Response getDirectory();
+		Response get(std::string path, Request req, Response res, Response (*func)());
+		Response post(std::string path, Request req, Response res, Response (*func)());
+		Response put(std::string path, Request req, Response res, Response (*func)());
+		Response del(std::string path, Request req, Response res, Response (*func)());
+		Response update(std::string path, Request req, Response res, Response (*func)());
+		Response options(std::string path, Request req, Response res, Response (*func)());
+		Response trace(std::string path, Request req, Response res, Response (*func)());
 
 		/* METHOD */
 		Response methodHEAD(int clientfd);

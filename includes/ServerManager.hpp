@@ -36,6 +36,7 @@ class ServerManager
 			std::string server_name,
 			int port,
 			std::string err_page_path,
+			int content_length,
 			size_t location_size
 		);
 		void initServers();
