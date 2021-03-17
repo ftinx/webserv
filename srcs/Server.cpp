@@ -337,7 +337,7 @@ Response
 Server::methodHEAD(int clientfd)
 {
 	(void) clientfd;
-	return (page404());
+	return (Server::page404());
 }
 
 Response
@@ -345,9 +345,9 @@ Server::methodGET(int clientfd)
 {
 	(void) clientfd;
 	if (true)
-		return (page200());
+		return (Server::page200());
 	else if (true)
-		return (page404());
+		return (Server::page404());
 }
 
 std::map<std::string, std::string>
@@ -426,7 +426,7 @@ Server::executeCgi(int clientfd)
 	char** envp = this->makeCgiEnvp(clientfd);
 
 	if ((pid = fork()) < 0)
-		return (page404());
+		return (Server::page404());
 	if (pid == 0)
 	{
 		execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
@@ -439,39 +439,20 @@ Server::executeCgi(int clientfd)
 }
 
 Response
-Server::postCGI(int clientfd)
+Server::postAuth(Request req)
 {
-	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	std::map<std::string, std::string> m_query = parseQuery(this->m_requests[clientfd].get_m_body());
+	std::string path = req.get_m_uri().get_m_path();
+	std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
 	std::string username;
 	std::string password;
 
-	username = m_query.find("username")->second;
-	password = m_query.find("password")->second;
+	printf("::\n\n%s::\n\n", req.get_m_message().c_str());
+	printf("::%s::\n\n", req.get_m_body().c_str());
 
-	printf("::%s:: ::%s::", username.c_str(), password.c_str());
-	printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
-
-	return (page404());
-}
-
-Response
-Server::methodPOST(int clientfd)
-{
-	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	std::map<std::string, std::string> m_query = parseQuery(this->m_requests[clientfd].get_m_body());
-	std::string username;
-	std::string password;
-
-	printf("::\n\n%s::\n\n", this->m_requests[clientfd].get_m_message().c_str());
-	printf("::%s::\n\n", this->m_requests[clientfd].get_m_body().c_str());
-
-	printf("::%s::\n", this->m_requests[clientfd].get_m_uri().get_m_uri().c_str());
+	printf("::%s::\n", req.get_m_uri().get_m_uri().c_str());
 	printf("::%s::\n", path.c_str());
-	printf("::%d::\n", this->m_requests[clientfd].get_m_check_cgi());
+	printf("::%d::\n", req.get_m_check_cgi());
 
-	if (this->m_requests[clientfd].checkCGI())
-		return (postCGI(clientfd));
 	if (path == "/auth")
 	{
 		if(m_query.find("formType") != m_query.end()
@@ -484,19 +465,28 @@ Server::methodPOST(int clientfd)
 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
 
 			if (username == "42seoul" && password == "42seoul")
-				return (post_200());
+				return (Server::post_200());
 			else
-				return (page200());
+				return (Server::page200());
 		}
 	}
-	return (page404());
+	return (Server::page404());
+}
+
+Response
+Server::methodPOST(int clientfd)
+{
+	Response response;
+
+	response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
+	return (response);
 }
 
 Response
 Server::methodPUT(int clientfd)
 {
 	(void) clientfd;
-	return (page404());
+	return (Server::page404());
 }
 
 Response
@@ -508,9 +498,9 @@ Server::methodDELETE(int clientfd)
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
-			return (page200());
+			return (Server::page200());
 	}
-	return (page404());
+	return (Server::page404());
 }
 
 Response
@@ -643,7 +633,7 @@ Server::page404()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
 			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument(this->m_err_page_path)
+			.setPublicFileDocument("errors/default_error.html")
 			// .setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
@@ -738,10 +728,10 @@ Server::get(std::string path, Request req, Response res, Response (*func)())
 }
 
 Response
-Server::post(std::string path, Request req, Response res, Response (*func)())
+Server::post(std::string path, Request req, Response res, Response (*func)(Request req))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req));
 	return (res);
 }
 
