@@ -90,6 +90,11 @@ class Server
 		static Response getDirectory();
 		static Response postLoginSuccess();
 		static Response postAuth(Request req, Response res);
+		static std::map<std::string, std::string> parseQuery(std::string str);
+
+		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
+		static char** makeCgiEnvp(Request req, Response res);
+		static Response executeCgi(Request req, Response res);
 
 		Response get(std::string path, Request req, Response res, Response (*func)());
 		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
@@ -109,11 +114,6 @@ class Server
 		Response methodTRACE(int clientfd);
 
 		Response OptionsPathRoot();
-		static std::map<std::string, std::string> parseQuery(std::string str);
-
-		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
-		static char** makeCgiEnvp(Request req, Response res);
-		static Response executeCgi(Request req, Response res);
 
 		// Response continue_100();
 		// Response switchingProtocols_101();
