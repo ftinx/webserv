@@ -6,20 +6,15 @@
 
 HttpConfig::HttpConfig()
 :
-	m_name(),
-	m_version(),
-	m_include(),
-	m_root(),
+	m_name(""),
+	m_version(""),
+	m_include(""),
+	m_root(""),
 	m_server_block()
 {
 }
 
-HttpConfig::HttpConfig(HttpConfig const &other):
-	m_name(),
-	m_version(),
-	m_include(),
-	m_root(),
-	m_server_block()
+HttpConfig::HttpConfig(HttpConfig const &other)
 {
 	*this = other;
 }
@@ -198,12 +193,15 @@ HttpConfig::parseConfigFile(std::string file_path)
 		else if (line.front().compare("include") == 0)
 			this->m_include = line.back();
 		else if (line.front().compare("root") == 0)
+		{
+			// HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_root = line.back();
+		}
 		else if (line.front().compare("server") == 0)
 		{
 			server_block_exist = true;
 			HttpConfigServer server = HttpConfigServer();
-			this->m_server_block.push_back(server.parseServerBlock(this->m_lines, idx));
+			this->m_server_block.push_back(server.parseServerBlock(this->m_lines, this->m_root, idx));
 			continue ;
 		}
 		else if (line.front().compare("}") == 0)

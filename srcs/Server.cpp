@@ -1,16 +1,20 @@
 #include "Server.hpp"
 
-/*
-** TODO: utils 함수 적용하기
-*/
+/*============================================================================*/
+/****************************  Static variables  ******************************/
+/*============================================================================*/
 
+/*============================================================================*/
+/******************************  Constructor  *********************************/
+/*============================================================================*/
 
 Server::Server(){};
-Server::~Server(){};
+
 Server::Server(Server const &other)
 {
 	*this = other;
 };
+
 Server& Server::operator=(Server const &rhs)
 {
 	m_server_block = rhs.m_server_block;
@@ -58,9 +62,19 @@ char *bin2hex(const unsigned char *input, size_t len)
     return result;
 }
 
-/*
-** getter
-*/
+/*============================================================================*/
+/******************************  Destructor  **********************************/
+/*============================================================================*/
+
+Server::~Server(){};
+
+/*============================================================================*/
+/*******************************  Overload  ***********************************/
+/*============================================================================*/
+
+/*============================================================================*/
+/********************************  Getter  ************************************/
+/*============================================================================*/
 
 std::string
 Server::get_m_server_name()
@@ -74,10 +88,13 @@ Server::get_m_port()
 	return (this->m_port);
 }
 
+/*============================================================================*/
+/********************************  Setter  ************************************/
+/*============================================================================*/
 
-/*
-**
-*/
+/*============================================================================*/
+/*****************************  Server Util  **********************************/
+/*============================================================================*/
 
 void
 Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size)
@@ -350,22 +367,35 @@ Server::getRequest()
 /*******************************  Response  ***********************************/
 /*============================================================================*/
 
+/*============================================================================*/
+/*********************************  HEAD  *************************************/
+/*============================================================================*/
+
 Response
 Server::methodHEAD(int clientfd)
 {
 	(void) clientfd;
-	return (Server::page404());
+	return (Server::page404("errors/default_error.html"));
 }
+
+/*============================================================================*/
+/**********************************  GET  *************************************/
+/*============================================================================*/
 
 Response
 Server::methodGET(int clientfd)
 {
 	(void) clientfd;
-	if (true)
-		return (Server::page200());
-	else if (true)
-		return (Server::page404());
+
+	// if (true)
+	// 	return (Server::page200());
+	// else if (true)
+	// 	return (Server::page404("errors/default_error.html"));
 }
+
+/*============================================================================*/
+/**********************************  POST  ************************************/
+/*============================================================================*/
 
 std::map<std::string, std::string>
 Server::parseQuery(std::string str)
@@ -382,7 +412,7 @@ Server::parseQuery(std::string str)
 }
 
 Response
-Server::post_200()
+Server::postLoginSuccess()
 {
 	Response response = Response();
 
@@ -405,35 +435,35 @@ Server::post_200()
 }
 
 std::map<std::string, std::string>
-Server::makeCgiEnvpMap(int clientfd)
+Server::makeCgiEnvpMap(Request req, Response res)
 {
 	std::map<std::string, std::string> map;
-	Request &request = this->m_requests[clientfd];
+	Request &request = req;
 	Uri uri = request.get_m_uri();
 
 	/*
 	** auth 관련 AUTH_TYPE REMOTE_USER REMOTE_IDENT
 	*/
 	map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
-	map["SERVER_NAME"] = this->get_m_server_name();
+	map["SERVER_NAME"] = res.get_m_cgi_server_name();
 	map["GATEWAY_INTERFACE"] = "Cgi/1.1";
 	map["SERVER_PROTOCOL"] = request.get_m_http_version();
-	map["SERVER_PORT"] = std::to_string(this->get_m_port());
+	map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
 	map["REQUEST_METHOD"] = request.getMethod();
 	map["PATH_INFO"] = uri.get_m_path();
 	map["PATH_TRANSLATED"] = uri.get_m_path();
 	map["SCRIPT_NAME"] = uri.get_m_path();
 	map["QUERY_STRING"] = uri.get_m_query_string();
-	map["REMOTE_ADDR"] = ft::iNetNtoA(this->m_client_addr.sin_addr.s_addr);
+	map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
 	map["CONTENT_TYPE"] = request.getContentType();
 	map["CONTENT_LENGTH"] = request.getContentLength();
 	return (map);
 }
 
 char **
-Server::makeCgiEnvp(int clientfd)
+Server::makeCgiEnvp(Request req, Response res)
 {
-	std::map<std::string, std::string> env_map = makeCgiEnvpMap(clientfd);
+	std::map<std::string, std::string> env_map = makeCgiEnvpMap(req, res);
 	std::map<std::string, std::string>::const_iterator i = env_map.begin();
 	char **env = new char*[env_map.size() + 1];
 	int j;
@@ -450,15 +480,15 @@ Server::makeCgiEnvp(int clientfd)
 }
 
 Response
-Server::executeCgi(int clientfd)
+Server::executeCgi(Request req, Response res)
 {
 	pid_t pid;
-	Request &request = this->m_requests[clientfd];
-	Response &response = this->m_responses[clientfd];
-	char** envp = this->makeCgiEnvp(clientfd);
+	Request &request = req;
+	Response &response = res;
+	char** envp = Server::makeCgiEnvp(req, res);
 
 	if ((pid = fork()) < 0)
-		return (Server::page404());
+		return (Server::page404("errors/default_error.html"));
 	if (pid == 0)
 	{
 		execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
@@ -471,22 +501,16 @@ Server::executeCgi(int clientfd)
 }
 
 Response
-Server::postAuth(Request req)
+Server::postAuth(Request req, Response res)
 {
 	std::string path = req.get_m_uri().get_m_path();
-	std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
-	std::string username;
-	std::string password;
-
-	printf("::\n\n%s::\n\n", req.get_m_message().c_str());
-	printf("::%s::\n\n", req.get_m_body().c_str());
-
-	printf("::%s::\n", req.get_m_uri().get_m_uri().c_str());
-	printf("::%s::\n", path.c_str());
-	printf("::%d::\n", req.get_m_check_cgi());
 
 	if (path == "/auth")
 	{
+		std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
+		std::string username;
+		std::string password;
+
 		if(m_query.find("formType") != m_query.end()
 		&& m_query.find("formType")->second == "login")
 		{
@@ -497,29 +521,45 @@ Server::postAuth(Request req)
 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
 
 			if (username == "42seoul" && password == "42seoul")
-				return (Server::post_200());
+				return (Server::postLoginSuccess());
 			else
 				return (Server::page200());
 		}
 	}
-	return (Server::page404());
+	return (res);
 }
 
 Response
 Server::methodPOST(int clientfd)
 {
 	Response response;
+	response.set_m_err_page_path(this->m_err_page_path);
+
+	/* CGI Setting */
+	response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
+	response.set_m_cgi_port(this->get_m_port());
+	response.set_m_cgi_server_name(this->get_m_server_name());
+	response = Server::page404(response.get_m_err_page_path());
 
 	response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
+	response = post("/auth.cgi", this->m_requests[clientfd], response, Server::executeCgi);
 	return (response);
 }
+
+/*============================================================================*/
+/**********************************  PUT  *************************************/
+/*============================================================================*/
 
 Response
 Server::methodPUT(int clientfd)
 {
 	(void) clientfd;
-	return (Server::page404());
+	return (Server::page404("errors/default_error.html"));
 }
+
+/*============================================================================*/
+/*********************************  DELETE  ***********************************/
+/*============================================================================*/
 
 Response
 Server::methodDELETE(int clientfd)
@@ -532,19 +572,47 @@ Server::methodDELETE(int clientfd)
 		if (unlink(path.c_str()) == 0)
 			return (Server::page200());
 	}
-	return (Server::page404());
+	return (Server::page404("errors/default_error.html"));
 }
+
+/*============================================================================*/
+/*********************************  OPTIONS  **********************************/
+/*============================================================================*/
 
 Response
 Server::options_405(std::string allow_method)
 {
+	Response response;
 
+	return (
+		response
+			.setStatusCode(405)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("Allow", allow_method)
+			.makeHttpResponseMessage()
+	);
 }
 
 Response
 Server::options_204(std::string allow_method)
 {
+	Response response;
 
+	return (
+		response
+			.setStatusCode(405)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("Allow", allow_method)
+			.makeHttpResponseMessage()
+	);
 }
 
 
@@ -588,12 +656,15 @@ Server::methodOPTIONS(int clientfd)
 	}
 
 	if (i == locations.end())
-		return (Server::page404());
+		return (Server::page404(this->m_err_page_path));
 	if (options_allowed == false)
 		return (Server::options_405(allow_method));
-	else
-		return (Server::options_204(allow_method));
+	return (Server::options_204(allow_method));
 }
+
+/*============================================================================*/
+/**********************************  TRACE  ***********************************/
+/*============================================================================*/
 
 /*
 **	<< TRACE >>
@@ -629,14 +700,13 @@ Server::methodTRACE(int clientfd)
 /*******************************  STATUS CODE *********************************/
 /*============================================================================*/
 
-/*
-**	1XX
-*/
+/*============================================================================*/
+/**********************************  1XX  *************************************/
+/*============================================================================*/
 
-
-/*
-**	2XX
-*/
+/*============================================================================*/
+/**********************************  2XX  *************************************/
+/*============================================================================*/
 
 Response
 Server::page200()
@@ -661,13 +731,14 @@ Server::page200()
 	);
 }
 
-/*
-**	3XX
-*/
+/*============================================================================*/
+/**********************************  3XX  *************************************/
+/*============================================================================*/
 
-/*
-**	4XX
-*/
+
+/*============================================================================*/
+/**********************************  4XX  *************************************/
+/*============================================================================*/
 
 Response
 Server::badRequest_400()
@@ -688,18 +759,19 @@ Server::badRequest_400()
 }
 
 Response
-Server::page404()
+Server::page404(std::string path)
 {
 	Response response = Response();
+
 	return (
 		response
 			.setStatusCode(404)
-			// .setCurrentDate()
+			.setCurrentDate()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
 			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument("errors/default_error.html")
-			// .setHttpResponseHeader("date", response.get_m_date())
+			.setPublicFileDocument(path)
+			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
@@ -727,10 +799,9 @@ Server::methodNotAllow_405()
 	);
 }
 
-/*
-**	5XX
-*/
-
+/*============================================================================*/
+/**********************************  5XX  *************************************/
+/*============================================================================*/
 
 Response
 Server::methodNotImplemented_501()
@@ -750,6 +821,10 @@ Server::methodNotImplemented_501()
 	);
 }
 
+/*============================================================================*/
+/***************************  SERVER METHOD UTIL  *****************************/
+/*============================================================================*/
+
 Response
 Server::parseErrorResponse(int clientfd)
 {
@@ -758,7 +833,7 @@ Server::parseErrorResponse(int clientfd)
 	else if (this->m_requests[clientfd].get_m_error_code() == 501)
 		return (methodNotImplemented_501());
 	else
-		return (page404());
+		return (page404("errors/default_error.html"));
 }
 
 Response
@@ -793,10 +868,10 @@ Server::get(std::string path, Request req, Response res, Response (*func)())
 }
 
 Response
-Server::post(std::string path, Request req, Response res, Response (*func)(Request req))
+Server::post(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func(req));
+		return (func(req, res));
 	return (res);
 }
 
@@ -839,6 +914,7 @@ Server::trace(std::string path, Request req, Response res, Response (*func)())
 		return (func());
 	return (res);
 }
+
 /*
 **	ssize_t write(int fd, const void *buf, size_t count);
 **

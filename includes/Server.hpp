@@ -88,10 +88,16 @@ class Server
 
 		/* SERVER METHOD UTIL */
 		static Response getDirectory();
-		static Response postAuth(Request req);
+		static Response postLoginSuccess();
+		static Response postAuth(Request req, Response res);
+		static std::map<std::string, std::string> parseQuery(std::string str);
+
+		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
+		static char** makeCgiEnvp(Request req, Response res);
+		static Response executeCgi(Request req, Response res);
 
 		Response get(std::string path, Request req, Response res, Response (*func)());
-		Response post(std::string path, Request req, Response res, Response (*func)(Request req));
+		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response put(std::string path, Request req, Response res, Response (*func)());
 		Response del(std::string path, Request req, Response res, Response (*func)());
 		Response update(std::string path, Request req, Response res, Response (*func)());
@@ -113,12 +119,7 @@ class Server
 		Response methodOPTIONS(int clientfd);
 		Response methodTRACE(int clientfd);
 
-		static std::map<std::string, std::string> parseQuery(std::string str);
-		static Response post_200();
-
-		std::map<std::string, std::string> makeCgiEnvpMap(int clientfd);
-		char** makeCgiEnvp(int clientfd);
-		Response executeCgi(int clientfd);
+		Response OptionsPathRoot();
 
 		// Response continue_100();
 		// Response switchingProtocols_101();
@@ -143,7 +144,7 @@ class Server
 		// Response unauthorized_401();
 		// Response paymentRequired_402();
 		// Response forbidden_403();
-		static Response page404();
+		static Response page404(std::string path);
 		static Response methodNotAllow_405();
 		// Response notAcceptable_406();
 		// Response proxyAuthenticationRequired_407();

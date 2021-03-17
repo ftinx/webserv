@@ -5,21 +5,16 @@
 /*============================================================================*/
 
 HttpConfigServer::HttpConfigServer():
-	m_server_name(),
-	m_listen(),
-	m_default_error_page(),
-	m_content_length(),
+	m_server_name(""),
+	m_listen(0),
+	m_default_error_page(""),
+	m_content_length(0),
 	m_location_block()
 {
 
 }
 
-HttpConfigServer::HttpConfigServer(HttpConfigServer const &other):
-	m_server_name(),
-	m_listen(),
-	m_default_error_page(),
-	m_content_length(),
-	m_location_block()
+HttpConfigServer::HttpConfigServer(HttpConfigServer const &other)
 {
 	*this = other;
 }
@@ -90,8 +85,9 @@ HttpConfigServer::get_m_location_block() const
 /*============================================================================*/
 
 HttpConfigServer&
-HttpConfigServer::parseServerBlock(std::vector<std::string> lines, size_t &idx)
+HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string root, size_t &idx)
 {
+	(void) root;
 	bool location_block_exist = false;
 
 	while (42)
@@ -106,7 +102,10 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, size_t &idx)
 		else if (line.front().compare("listen") == 0)
 			this->m_listen = stoi(line.back());
 		else if (line.front().compare("default_error_page") == 0)
+		{
+			// HttpConfigLocation::checkFileExist(root, line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_default_error_page = line.back();
+		}
 		else if (line.front().compare("content_length") == 0)
 			this->m_content_length = stoi(line.back());
 		else if (line.front().compare("location") == 0)
