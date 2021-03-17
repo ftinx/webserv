@@ -17,6 +17,7 @@ class HttpConfig
 		std::string m_config_file; // config file -> string
 		std::vector<std::string> m_lines; // m_config_file -> split lines(\n)
 		int m_cnt_trash_lines; // for debug
+		//int m_error_line;
 
 		std::string m_name;
 		std::string m_version;

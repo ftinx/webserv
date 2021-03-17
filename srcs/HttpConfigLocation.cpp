@@ -5,24 +5,17 @@
 /*============================================================================*/
 
 HttpConfigLocation::HttpConfigLocation():
-	m_path(),
+	m_path(""),
 	m_limit_except(),
-	m_root(),
+	m_root(""),
 	m_index(),
 	m_cgi(),
-	m_cgi_path(),
-	m_autoindex()
+	m_cgi_path(""),
+	m_autoindex(false)
 {
 }
 
-HttpConfigLocation::HttpConfigLocation(HttpConfigLocation const &other):
-	m_path(),
-	m_limit_except(),
-	m_root(),
-	m_index(),
-	m_cgi(),
-	m_cgi_path(),
-	m_autoindex()
+HttpConfigLocation::HttpConfigLocation(HttpConfigLocation const &other)
 {
 	*this = other;
 }
@@ -112,6 +105,33 @@ HttpConfigLocation::checkCommentLine(std::string str)
 	return (true);
 }
 
+void
+HttpConfigLocation::checkDirExist(std::string path)
+{
+	if (ft::isValidDirPath(path) == false)
+		throw HttpConfigLocation::parseErrorException();
+}
+
+void
+HttpConfigLocation::checkFileExist(std::string root, std::string path)
+{
+	if (root != "") // 상대경로라면 root와 path 결합 후 유효성체크
+	{
+		if (ft::isValidFilePath(root + path.substr(2, path.length())) == false)
+			throw HttpConfigLocation::parseErrorException();
+	}
+	else // 절대경로라면 path 유효성 체크
+	{
+		if (ft::isValidFilePath(path) == false)
+			throw HttpConfigLocation::parseErrorException();
+	}
+}
+
+const char* HttpConfigLocation::parseErrorException::what() const throw()
+{
+	return ("Error: Failed to parse the config file.");
+}
+
 HttpConfigLocation&
 HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, size_t &idx)
 {
@@ -142,15 +162,16 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, size_t &i
 			}
 		}
 		else if (line.front().compare("root") == 0)
+		{
+			// checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_root = line.back();
+		}
 		else if (line.front().compare("index") == 0)
 		{
-
 			for (size_t i = 1 ; i < line.size() ; i++)
 			{
 				if (line[i].empty())
 					continue ;
-				// if (checkFileExtention(line[i])) // 파일 확장자 체크
 				this->m_index.push_back(line[i]);
 			}
 		}
@@ -165,7 +186,10 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, size_t &i
 			}
 		}
 		else if (line.front().compare("cgi_path") == 0)
+		{
+			// checkFileExist("", line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_cgi_path = line.back();
+		}
 		else if (line.front().compare("autoindex") == 0)
 		{
 			if (line.back().compare("on") == 0)
