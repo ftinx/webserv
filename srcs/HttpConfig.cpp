@@ -138,7 +138,7 @@ HttpConfig::checkCurlyBracketsDouble(std::string str)
 {
 	int cnt = 0;
 
-	for (int i = 0 ; i < str.size() ; i++)
+	for (size_t i = 0 ; i < str.size() ; i++)
 	{
 		if (str[i] == '{' || str[i] == '}')
 			cnt++;
@@ -151,7 +151,7 @@ HttpConfig::checkCurlyBracketsDouble(std::string str)
 void
 HttpConfig::setConfigFileCheckValid(std::string file_path)
 {
-	int idx = 0;
+	size_t idx = 0;
 
 	this->m_cnt_trash_lines = 0;
 	this->m_file_path = file_path;
@@ -180,7 +180,7 @@ HttpConfig::setConfigFileCheckValid(std::string file_path)
 void
 HttpConfig::parseConfigFile(std::string file_path)
 {
-	int idx = 0;
+	size_t idx = 0;
 	bool server_block_exist = false;
 
 	setConfigFileCheckValid(file_path);
@@ -237,7 +237,7 @@ HttpConfig::printConfigFileInfo()
 		<< dash << std::endl
 		<< std::endl;
 
-	for (int i = 0 ; i < this->m_server_block.size() ; i++)
+	for (size_t i = 0 ; i < this->m_server_block.size() ; i++)
 	{
 		std::cout << dash << std::endl
 			<< "[" << i + 1 << "] server block infomation" << std::endl
@@ -246,17 +246,17 @@ HttpConfig::printConfigFileInfo()
 			<< "default error page : " << this->m_server_block[i].get_m_default_error_page() << std::endl
 			<< "content length : " << this->m_server_block[i].get_m_content_length() << std::endl
 			<< "size of location block : " << this->m_server_block[i].get_m_location_block().size() << std::endl;
-		for (int j = 0 ; j < this->m_server_block[i].get_m_location_block().size() ; j++)
+		for (size_t j = 0 ; j < this->m_server_block[i].get_m_location_block().size() ; j++)
 		{
 			std::cout << "[" << j + 1 << "] location block infomation" << std::endl
 				<< "path : " << this->m_server_block[i].get_m_location_block()[j].get_m_path() << std::endl
 				<< "root : " << this->m_server_block[i].get_m_location_block()[j].get_m_root() << std::endl
 				<< "index : ";
-			for (int k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_index().size() ; k++)
+			for (size_t k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_index().size() ; k++)
 				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_index()[k] << " ";
 			std::cout << std::endl;
 			std::cout << "cgi : ";
-			for (int k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_cgi().size() ; k++)
+			for (size_t k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_cgi().size() ; k++)
 				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_cgi()[k] << " ";
 			std::cout << std::endl
 				<< "cgi path : " << this->m_server_block[i].get_m_location_block()[j].get_m_cgi_path() << std::endl

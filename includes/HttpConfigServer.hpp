@@ -29,7 +29,7 @@ class HttpConfigServer
 		/* setter */
 
 		/* key func. */
-		HttpConfigServer& parseServerBlock(std::vector<std::string> lines, int &idx);
+		HttpConfigServer& parseServerBlock(std::vector<std::string> lines, size_t &idx);
 };
 
 #endif

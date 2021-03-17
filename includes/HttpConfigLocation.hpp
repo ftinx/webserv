@@ -36,7 +36,7 @@ class HttpConfigLocation
 		static bool checkCommentLine(std::string str);
 
 		/* key func. */
-		HttpConfigLocation& parseLocationBlock(std::vector<std::string> lines, int &idx);
+		HttpConfigLocation& parseLocationBlock(std::vector<std::string> lines, size_t &idx);
 };
 
 #endif
