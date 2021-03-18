@@ -52,7 +52,6 @@ class Request
 		std::string getMethod();
 		std::string getContentLength();
 		std::string getContentType();
-		Method getMethodType(std::string);
 		bool isBreakCondition(std::string, bool*, int, int);
 		bool getMessage(int);
 		bool parseMessage();
