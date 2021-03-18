@@ -96,12 +96,12 @@ class Server
 		static char** makeCgiEnvp(Request req, Response res);
 		static Response executeCgi(Request req, Response res);
 
-		Response get(std::string path, Request req, Response res, Response (*func)());
+		Response get(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response put(std::string path, Request req, Response res, Response (*func)());
-		Response del(std::string path, Request req, Response res, Response (*func)());
-		Response options(std::string path, Request req, Response res, Response (*func)());
-		Response trace(std::string path, Request req, Response res, Response (*func)());
+		Response put(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response del(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response options(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response trace(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 
 		/* METHOD */
 		Response methodHEAD(int clientfd);

@@ -803,10 +803,10 @@ Server::getDirectory()
 }
 
 Response
-Server::get(std::string path, Request req, Response res, Response (*func)())
+Server::get(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
@@ -819,34 +819,34 @@ Server::post(std::string path, Request req, Response res, Response (*func)(Reque
 }
 
 Response
-Server::put(std::string path, Request req, Response res, Response (*func)())
+Server::put(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
 Response
-Server::del(std::string path, Request req, Response res, Response (*func)())
+Server::del(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
 Response
-Server::options(std::string path, Request req, Response res, Response (*func)())
+Server::options(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
 Response
-Server::trace(std::string path, Request req, Response res, Response (*func)())
+Server::trace(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
