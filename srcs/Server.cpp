@@ -624,14 +624,16 @@ Server::methodPOST(int clientfd)
 	// printf("::size %lu::", this->m_postLocation.size());
 	if (this->m_postLocation.size() == 0)
 		return (response);
-	// std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_getLocation.begin();
-	// while (location_iter != this->m_getLocation.end())
-	// {
-	// 	/* CGI */
-	// 	if (location_iter.get_m_cgi_path() != "")
+	std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_postLocation.begin();
+	while (location_iter != this->m_postLocation.end())
+	{
+		/* CGI */
+		if (location_iter->get_m_cgi_path() != "")
+			response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+		// else
 
-	// 	location_iter++;
-	// }
+		location_iter++;
+	}
 
 	return (response);
 }
