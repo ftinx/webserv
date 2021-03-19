@@ -97,7 +97,7 @@ class Server
 		Response parseErrorResponse(int clientfd);
 
 		/* SERVER METHOD UTIL */
-		static Response getDirectory();
+		static Response getDirectory(Request req, Response res);
 		static Response postLoginSuccess();
 		static Response postAuth(Request req, Response res);
 		static std::map<std::string, std::string> parseQuery(std::string str);

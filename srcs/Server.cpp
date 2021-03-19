@@ -902,10 +902,11 @@ Server::parseErrorResponse(int clientfd)
 }
 
 Response
-Server::getDirectory()
+Server::getDirectory(Request req, Response res)
 {
 	Response response = Response();
-
+	(void) req;
+	(void) res;
 	return (
 		response
 			.setStatusCode(200)
@@ -1007,47 +1008,7 @@ Server::sendResponse(int clientfd)
 		response = methodNotAllow_405();
 
 	/* config Method */
-	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
-	// {
-	// 	Response response;
-	// 	std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
-	// 	std::vector<HttpConfigLocation>::const_iterator i = location_block.begin();
-	// 	int j = 0;
-
-	// 	while (i != location_block.end())
-	// 	{
-	// 		printf("location %d\n", j++);
-	// 		printf("path:: %s\n", i->get_m_path().c_str());
-	// 		printf("root:: %s\n", i->get_m_root().c_str());
-	// 		printf("cgi::path %d\n", i->get_m_cgi_path() == "");
-	// 		{
-	// 			std::vector<Method> limit_except = i->get_m_limit_except();
-	// 			std::vector<Method>::const_iterator limit = limit_except.begin();
-	// 			while (limit != limit_except.end())
-	// 			{
-	// 				printf("%d", *limit);
-	// 				// std::cout << ' ' << *limit << std::endl;
-	// 				switch (*limit)
-	// 				{
-	// 					case HEAD:
-	// 					case GET:
-	// 					case POST:
-	// 					case PUT:
-	// 					case DELETE:
-	// 					case OPTIONS:
-	// 					case TRACE:
-	// 					default:
-	// 						break;
-	// 				}
-	// 				limit++;
-	// 			}
-	// 			printf("\n");
-	// 			// std::vector<std::string> index = i->get_m_index();
-	// 			// std::vector<std::string> get_m_cgi();
-	// 		}
-	// 		i++;
-	// 	}
-	// }
+	response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
