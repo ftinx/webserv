@@ -75,10 +75,14 @@ class Server
 		Server(Server const &other);
 		Server& operator=(Server const &rhs);
 
+		/* getter */
 		std::string get_m_server_name();
 		int get_m_port();
+		std::vector<HttpConfigLocation> get_m_postLocation();
 
-		void noteCGILocation();
+		/* setter */
+
+		void noteHttpConfigLocation();
 		void init(
 			HttpConfigServer server_block,
 			std::string server_name,

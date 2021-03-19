@@ -16,16 +16,16 @@ ServerManager::ServerManager(ServerManager const &other)
 };
 ServerManager& ServerManager::operator=(ServerManager const &rhs)
 {
-	m_httpConfig = rhs.m_httpConfig;
+	this->m_httpConfig = rhs.m_httpConfig;
 
-	m_server_block = rhs.m_server_block;
-	m_server = rhs.m_server;
-	m_server_size = rhs.m_server_size;
+	this->m_server_block = rhs.m_server_block;
+	this->m_server = rhs.m_server;
+	this->m_server_size = rhs.m_server_size;
 
-	m_software_name = rhs.m_software_name;
-	m_software_version = rhs.m_software_version;
-	m_mime_include = rhs.m_mime_include;
-	m_root = rhs.m_root;
+	this->m_software_name = rhs.m_software_name;
+	this->m_software_version = rhs.m_software_version;
+	this->m_mime_include = rhs.m_mime_include;
+	this->m_root = rhs.m_root;
 	return (*this);
 };
 
@@ -85,23 +85,23 @@ ServerManager::generateServer(HttpConfigServer server_block, std::string server_
 	server.init(server_block, server_name, port, err_page_path, content_length,location_size);
 	server.setServerAddr(port);
 	server.setServerSocket();
-	server.noteCGILocation();
+	server.noteHttpConfigLocation();
 	return (server);
 }
 
 void
 ServerManager::initServers()
 {
-	for (size_t i = 0; i < m_server_size; i++) {
+	for (size_t i = 0; i < this->m_server_size; i++) {
 		this->m_server.push_back(
-			generateServer(
+			new Server(generateServer(
 				this->m_server_block[i],
 				this->m_server_block[i].get_m_server_name(),
 				this->m_server_block[i].get_m_listen(),
 				this->m_server_block[i].get_m_default_error_page(),
 				this->m_server_block[i].get_m_content_length(),
 				this->m_server_block[i].get_m_location_block().size()
-			)
+			))
 		);
 	}
 	return ;
@@ -111,7 +111,7 @@ void
 ServerManager::runServers()
 {
 	for (size_t i = 0; i < m_server_size; i++) {
-		this->m_server[i].runServer();
+		this->m_server[i]->runServer();
 	}
 	return ;
 }

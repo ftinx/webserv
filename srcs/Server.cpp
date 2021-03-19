@@ -88,6 +88,12 @@ Server::get_m_port()
 	return (this->m_port);
 }
 
+std::vector<HttpConfigLocation>
+Server::get_m_postLocation()
+{
+	return (this->m_postLocation);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -97,7 +103,7 @@ Server::get_m_port()
 /*============================================================================*/
 
 void
-Server::noteCGILocation()
+Server::noteHttpConfigLocation()
 {
 	std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
 	std::vector<HttpConfigLocation>::const_iterator location_iter = location_block.begin();
@@ -614,8 +620,9 @@ Server::methodPOST(int clientfd)
 	response = post("/auth.cgi", this->m_requests[clientfd], response, Server::executeCgi);
 
 	/* Config File Route */
-	printf("::size %lu::", this->m_getLocation.size());
-	if (this->m_getLocation.size() == 0)
+	std::cout << "postLocation: " << this->get_m_postLocation().size() << std::endl;
+	// printf("::size %lu::", this->m_postLocation.size());
+	if (this->m_postLocation.size() == 0)
 		return (response);
 	// std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_getLocation.begin();
 	// while (location_iter != this->m_getLocation.end())

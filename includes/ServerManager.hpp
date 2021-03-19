@@ -13,7 +13,7 @@ class ServerManager
 		HttpConfig m_httpConfig;
 
 		std::vector<HttpConfigServer> m_server_block;
-		std::vector<Server> m_server;
+		std::vector<Server*> m_server;
 		size_t m_server_size;
 
 		std::string m_software_name;
