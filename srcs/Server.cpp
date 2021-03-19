@@ -117,22 +117,22 @@ Server::noteHttpConfigLocation()
 			switch (*limit)
 			{
 				case GET:
-					this->m_getLocation.push_back(HttpConfigLocation(*location_iter));
+					this->m_getLocation.push_back(*location_iter);
 					break;
 				case POST:
-					this->m_postLocation.push_back(HttpConfigLocation(*location_iter));
+					this->m_postLocation.push_back(*location_iter);
 					break;
 				case PUT:
-					this->m_putLocation.push_back(HttpConfigLocation(*location_iter));
+					this->m_putLocation.push_back(*location_iter);
 					break;
 				case DELETE:
-					this->m_deleteLocation.push_back(HttpConfigLocation(*location_iter));
+					this->m_deleteLocation.push_back(*location_iter);
 					break;
 				case OPTIONS:
-					this->m_optionsLocation.push_back(HttpConfigLocation(*location_iter));
+					this->m_optionsLocation.push_back(*location_iter);
 					break;
 				case TRACE:
-					this->m_traceLocation.push_back(HttpConfigLocation(*location_iter));
+					this->m_traceLocation.push_back(*location_iter);
 					break;
 				default:
 					std::cout << "Error: noteCGILocation method switch error " << std::endl;
