@@ -119,14 +119,26 @@ Server::noteCGILocation()
 				// std::cout << ' ' << *limit << std::endl;
 				switch (*limit)
 				{
-					case HEAD:
 					case GET:
+						this->m_getLocation.push_back(*i);
+						break;
 					case POST:
+						this->m_postLocation.push_back(*i);
+						break;
 					case PUT:
+						this->m_putLocation.push_back(*i);
+						break;
 					case DELETE:
+						this->m_deleteLocation.push_back(*i);
+						break;
 					case OPTIONS:
+						this->m_optionsLocation.push_back(*i);
+						break;
 					case TRACE:
+						this->m_traceLocation.push_back(*i);
+						break;
 					default:
+						std::cout << "Error: noteCGILocation method switch error " << std::endl;
 						break;
 				}
 				limit++;
@@ -137,6 +149,15 @@ Server::noteCGILocation()
 		}
 		i++;
 	}
+
+	printf("\n");
+	std::cout << "get: " << this->m_getLocation.size() << std::endl;
+	std::cout << "post: " << this->m_postLocation.size() << std::endl;
+	std::cout << "put: " << this->m_putLocation.size() << std::endl;
+	std::cout << "delete: " << this->m_deleteLocation.size() << std::endl;
+	std::cout << "options: " << this->m_optionsLocation.size() << std::endl;
+	std::cout << "trace: " << this->m_traceLocation.size() << std::endl;
+	printf("\n");
 	return ;
 }
 

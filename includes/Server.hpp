@@ -15,6 +15,7 @@
 #include "Response.hpp"
 #include "Request.hpp"
 #include "HttpConfig.hpp"
+#include "HttpConfigLocation.hpp"
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
@@ -37,6 +38,7 @@
 class Server
 {
 	private:
+		/* Config */
 		HttpConfigServer m_server_block;
 		std::string m_server_name;
 		int m_port;
@@ -44,10 +46,17 @@ class Server
 		int m_content_length;
 		size_t m_location_size;
 
+		/* Parse */
+		std::vector<HttpConfigLocation> m_getLocation;
+		std::vector<HttpConfigLocation> m_postLocation;
+		std::vector<HttpConfigLocation> m_putLocation;
+		std::vector<HttpConfigLocation> m_deleteLocation;
+		std::vector<HttpConfigLocation> m_optionsLocation;
+		std::vector<HttpConfigLocation> m_traceLocation;
+
 		/* Socket */
 		struct sockaddr_in m_server_addr;
 		struct sockaddr_in m_client_addr;
-		// socklen_t addrlen;
 		int m_server_socket;
 		int m_client_socket;
 		int fd_num;
