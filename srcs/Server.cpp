@@ -99,65 +99,52 @@ Server::get_m_port()
 void
 Server::noteCGILocation()
 {
-	Response response;
 	std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
-	std::vector<HttpConfigLocation>::const_iterator i = location_block.begin();
-	int j = 0;
+	std::vector<HttpConfigLocation>::const_iterator location_iter = location_block.begin();
 
-	while (i != location_block.end())
+	while (location_iter != location_block.end())
 	{
-		printf("location %d\n", j++);
-		printf("path:: %s\n", i->get_m_path().c_str());
-		printf("root:: %s\n", i->get_m_root().c_str());
-		printf("cgi::path %d\n", i->get_m_cgi_path() == "");
+		std::vector<Method> limit_except = location_iter->get_m_limit_except();
+		std::vector<Method>::const_iterator limit = limit_except.begin();
+		while (limit != limit_except.end())
 		{
-			std::vector<Method> limit_except = i->get_m_limit_except();
-			std::vector<Method>::const_iterator limit = limit_except.begin();
-			while (limit != limit_except.end())
+			switch (*limit)
 			{
-				printf("%d", *limit);
-				// std::cout << ' ' << *limit << std::endl;
-				switch (*limit)
-				{
-					case GET:
-						this->m_getLocation.push_back(*i);
-						break;
-					case POST:
-						this->m_postLocation.push_back(*i);
-						break;
-					case PUT:
-						this->m_putLocation.push_back(*i);
-						break;
-					case DELETE:
-						this->m_deleteLocation.push_back(*i);
-						break;
-					case OPTIONS:
-						this->m_optionsLocation.push_back(*i);
-						break;
-					case TRACE:
-						this->m_traceLocation.push_back(*i);
-						break;
-					default:
-						std::cout << "Error: noteCGILocation method switch error " << std::endl;
-						break;
-				}
-				limit++;
+				case GET:
+					this->m_getLocation.push_back(*location_iter);
+					break;
+				case POST:
+					this->m_postLocation.push_back(*location_iter);
+					break;
+				case PUT:
+					this->m_putLocation.push_back(*location_iter);
+					break;
+				case DELETE:
+					this->m_deleteLocation.push_back(*location_iter);
+					break;
+				case OPTIONS:
+					this->m_optionsLocation.push_back(*location_iter);
+					break;
+				case TRACE:
+					this->m_traceLocation.push_back(*location_iter);
+					break;
+				default:
+					std::cout << "Error: noteCGILocation method switch error " << std::endl;
+					break;
 			}
-			printf("\n");
-			// std::vector<std::string> index = i->get_m_index();
-			// std::vector<std::string> get_m_cgi();
+			limit++;
 		}
-		i++;
+		location_iter++;
 	}
 
-	printf("\n");
-	std::cout << "get: " << this->m_getLocation.size() << std::endl;
-	std::cout << "post: " << this->m_postLocation.size() << std::endl;
-	std::cout << "put: " << this->m_putLocation.size() << std::endl;
-	std::cout << "delete: " << this->m_deleteLocation.size() << std::endl;
-	std::cout << "options: " << this->m_optionsLocation.size() << std::endl;
-	std::cout << "trace: " << this->m_traceLocation.size() << std::endl;
-	printf("\n");
+	// printf("\n");
+	// std::cout << "get: " << this->m_getLocation.size() << std::endl;
+	// std::cout << "post: " << this->m_postLocation.size() << std::endl;
+	// std::cout << "put: " << this->m_putLocation.size() << std::endl;
+	// std::cout << "delete: " << this->m_deleteLocation.size() << std::endl;
+	// std::cout << "options: " << this->m_optionsLocation.size() << std::endl;
+	// std::cout << "trace: " << this->m_traceLocation.size() << std::endl;
+	// printf("\n");
 	return ;
 }
 
