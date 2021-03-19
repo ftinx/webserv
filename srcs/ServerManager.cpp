@@ -85,6 +85,7 @@ ServerManager::generateServer(HttpConfigServer server_block, std::string server_
 	server.init(server_block, server_name, port, err_page_path, content_length,location_size);
 	server.setServerAddr(port);
 	server.setServerSocket();
+	server.noteCGILocation();
 	return (server);
 }
 

@@ -69,6 +69,7 @@ class Server
 		std::string get_m_server_name();
 		int get_m_port();
 
+		void noteCGILocation();
 		void init(
 			HttpConfigServer server_block,
 			std::string server_name,

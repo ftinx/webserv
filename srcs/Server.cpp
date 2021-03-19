@@ -97,6 +97,50 @@ Server::get_m_port()
 /*============================================================================*/
 
 void
+Server::noteCGILocation()
+{
+	Response response;
+	std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
+	std::vector<HttpConfigLocation>::const_iterator i = location_block.begin();
+	int j = 0;
+
+	while (i != location_block.end())
+	{
+		printf("location %d\n", j++);
+		printf("path:: %s\n", i->get_m_path().c_str());
+		printf("root:: %s\n", i->get_m_root().c_str());
+		printf("cgi::path %d\n", i->get_m_cgi_path() == "");
+		{
+			std::vector<Method> limit_except = i->get_m_limit_except();
+			std::vector<Method>::const_iterator limit = limit_except.begin();
+			while (limit != limit_except.end())
+			{
+				printf("%d", *limit);
+				// std::cout << ' ' << *limit << std::endl;
+				switch (*limit)
+				{
+					case HEAD:
+					case GET:
+					case POST:
+					case PUT:
+					case DELETE:
+					case OPTIONS:
+					case TRACE:
+					default:
+						break;
+				}
+				limit++;
+			}
+			printf("\n");
+			// std::vector<std::string> index = i->get_m_index();
+			// std::vector<std::string> get_m_cgi();
+		}
+		i++;
+	}
+	return ;
+}
+
+void
 Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
@@ -884,64 +928,46 @@ Server::sendResponse(int clientfd)
 
 	/* config Method */
 	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
-	{
-		Response response;
-		std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
-		std::vector<HttpConfigLocation>::const_iterator i = location_block.begin();
-		int j = 0;
+	// {
+	// 	Response response;
+	// 	std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
+	// 	std::vector<HttpConfigLocation>::const_iterator i = location_block.begin();
+	// 	int j = 0;
 
-		while (i != location_block.end())
-		{
-			printf("location %d\n", j++);
-			printf("path:: %s\n", i->get_m_path().c_str());
-			printf("root:: %s\n", i->get_m_root().c_str());
-			printf("cgi::path %d\n", i->get_m_cgi_path() == "");
-			{
-				std::vector<Method> limit_except = i->get_m_limit_except();
-				std::vector<Method>::const_iterator limit = limit_except.begin();
-				while (limit != limit_except.end())
-				{
-					printf("%d", *limit);
-					// std::cout << ' ' << *limit << std::endl;
-					switch (*limit)
-					{
-						case HEAD:
-						case GET:
-							if (i->get_m_cgi_path() == "")
-								response = get(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-							break;
-						case POST:
-							if (i->get_m_cgi_path() == "")
-								response = post(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-							break;
-						case PUT:
-							if (i->get_m_cgi_path() == "")
-								response = put(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-							break;
-						case DELETE:
-							if (i->get_m_cgi_path() == "")
-								response = del(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-							break;
-						case OPTIONS:
-							if (i->get_m_cgi_path() == "")
-								response = options(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-							break;
-						case TRACE:
-							if (i->get_m_cgi_path() == "")
-								response = trace(i->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-							break;
-						default:
-							break;
-					}
-					limit++;
-				}
-				printf("\n");
-				// std::vector<std::string> index = i->get_m_index();
-				// std::vector<std::string> get_m_cgi();
-			}
-			i++;
-		}
-	}
+	// 	while (i != location_block.end())
+	// 	{
+	// 		printf("location %d\n", j++);
+	// 		printf("path:: %s\n", i->get_m_path().c_str());
+	// 		printf("root:: %s\n", i->get_m_root().c_str());
+	// 		printf("cgi::path %d\n", i->get_m_cgi_path() == "");
+	// 		{
+	// 			std::vector<Method> limit_except = i->get_m_limit_except();
+	// 			std::vector<Method>::const_iterator limit = limit_except.begin();
+	// 			while (limit != limit_except.end())
+	// 			{
+	// 				printf("%d", *limit);
+	// 				// std::cout << ' ' << *limit << std::endl;
+	// 				switch (*limit)
+	// 				{
+	// 					case HEAD:
+	// 					case GET:
+	// 					case POST:
+	// 					case PUT:
+	// 					case DELETE:
+	// 					case OPTIONS:
+	// 					case TRACE:
+	// 					default:
+	// 						break;
+	// 				}
+	// 				limit++;
+	// 			}
+	// 			printf("\n");
+	// 			// std::vector<std::string> index = i->get_m_index();
+	// 			// std::vector<std::string> get_m_cgi();
+	// 		}
+	// 		i++;
+	// 	}
+	// }
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
