@@ -206,8 +206,11 @@ Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int he
 		this->m_message = this->m_message.substr(0, header_bytes + content_length);
 		return (true);
 	}
-	else if (str.find_first_of("\r\n\r\n") != std::string::npos)
+	else if ((pos = str.find("\r\n\r\n")) != std::string::npos)
+	{
+		this->m_message = this->m_message.substr(0, pos);
 		return (true);
+	}
 	return (false);
 }
 
