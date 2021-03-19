@@ -111,22 +111,22 @@ Server::noteCGILocation()
 			switch (*limit)
 			{
 				case GET:
-					this->m_getLocation.push_back(*location_iter);
+					this->m_getLocation.push_back(HttpConfigLocation(*location_iter));
 					break;
 				case POST:
-					this->m_postLocation.push_back(*location_iter);
+					this->m_postLocation.push_back(HttpConfigLocation(*location_iter));
 					break;
 				case PUT:
-					this->m_putLocation.push_back(*location_iter);
+					this->m_putLocation.push_back(HttpConfigLocation(*location_iter));
 					break;
 				case DELETE:
-					this->m_deleteLocation.push_back(*location_iter);
+					this->m_deleteLocation.push_back(HttpConfigLocation(*location_iter));
 					break;
 				case OPTIONS:
-					this->m_optionsLocation.push_back(*location_iter);
+					this->m_optionsLocation.push_back(HttpConfigLocation(*location_iter));
 					break;
 				case TRACE:
-					this->m_traceLocation.push_back(*location_iter);
+					this->m_traceLocation.push_back(HttpConfigLocation(*location_iter));
 					break;
 				default:
 					std::cout << "Error: noteCGILocation method switch error " << std::endl;
@@ -137,14 +137,14 @@ Server::noteCGILocation()
 		location_iter++;
 	}
 
-	// printf("\n");
-	// std::cout << "get: " << this->m_getLocation.size() << std::endl;
-	// std::cout << "post: " << this->m_postLocation.size() << std::endl;
-	// std::cout << "put: " << this->m_putLocation.size() << std::endl;
-	// std::cout << "delete: " << this->m_deleteLocation.size() << std::endl;
-	// std::cout << "options: " << this->m_optionsLocation.size() << std::endl;
-	// std::cout << "trace: " << this->m_traceLocation.size() << std::endl;
-	// printf("\n");
+	printf("\n");
+	std::cout << "get: " << this->m_getLocation.size() << std::endl;
+	std::cout << "post: " << this->m_postLocation.size() << std::endl;
+	std::cout << "put: " << this->m_putLocation.size() << std::endl;
+	std::cout << "delete: " << this->m_deleteLocation.size() << std::endl;
+	std::cout << "options: " << this->m_optionsLocation.size() << std::endl;
+	std::cout << "trace: " << this->m_traceLocation.size() << std::endl;
+	printf("\n");
 	return ;
 }
 
@@ -599,16 +599,33 @@ Response
 Server::methodPOST(int clientfd)
 {
 	Response response;
+
+	/* Response Setting */
 	response.set_m_err_page_path(this->m_err_page_path);
 
-	/* CGI Setting */
+	/* CGI Response Setting */
 	response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
 	response.set_m_cgi_port(this->get_m_port());
 	response.set_m_cgi_server_name(this->get_m_server_name());
 	response = Server::page404(response.get_m_err_page_path());
 
+	/* Route */
 	response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
 	response = post("/auth.cgi", this->m_requests[clientfd], response, Server::executeCgi);
+
+	/* Config File Route */
+	printf("::size %lu::", this->m_getLocation.size());
+	if (this->m_getLocation.size() == 0)
+		return (response);
+	// std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_getLocation.begin();
+	// while (location_iter != this->m_getLocation.end())
+	// {
+	// 	/* CGI */
+	// 	if (location_iter.get_m_cgi_path() != "")
+
+	// 	location_iter++;
+	// }
+
 	return (response);
 }
 
