@@ -371,12 +371,13 @@ Server::getRequest()
 /*********************************  HEAD  *************************************/
 /*============================================================================*/
 
-// Response
-// Server::methodHEAD(int clientfd)
-// {
-
-// 	}
-// }
+Response
+Server::methodHEAD(int clientfd)
+{
+	Response response;
+	clientfd=0;
+	return (response);
+}
 
 /*============================================================================*/
 /**********************************  GET  *************************************/
@@ -388,22 +389,36 @@ Server::methodGET(int clientfd)
 	Response response;
 	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
 
-	if (ft::isValidFilePath(path) == false)
-		return (Server::page404("errors/default_error.html"));
-	else
-	{
+	std::cout << "path!!!!!!!!!!!!!!: " << path << std::endl;
+	std::cout << "^^^^^^^^^^^^" << this->m_requests[clientfd].getContentType() << std::endl;
+	if (this->m_requests[clientfd].getContentType().compare("text/html"))
 		return (
 			response
 				.setPublicFileDocument(path)
-				.setHttpResponseHeader("date", response.get_m_date())
-				.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-				.setHttpResponseHeader("content-language", response.get_m_content_language())
-				.setHttpResponseHeader("content-type", response.get_m_content_type())
-				.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-				.setHttpResponseHeader("server", response.get_m_server())
 				.makeHttpResponseMessage()
 		);
-}
+	else
+		return (
+			response
+				.setPublicFileDocument("index.html")
+				.makeHttpResponseMessage()
+		);
+	// if (ft::isValidFilePath(path) == false)
+	// 	return (Server::page404("errors/default_error.html"));
+	// else
+	// {
+	// 	return (
+	// 		response
+	// 			.setPublicFileDocument(path)
+	// 			.setHttpResponseHeader("date", response.get_m_date())
+	// 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+	// 			.setHttpResponseHeader("content-language", response.get_m_content_language())
+	// 			.setHttpResponseHeader("content-type", response.get_m_content_type())
+	// 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+	// 			.setHttpResponseHeader("server", response.get_m_server())
+	// 			.makeHttpResponseMessage()
+	// 	);
+	// }
 }
 
 /*============================================================================*/
