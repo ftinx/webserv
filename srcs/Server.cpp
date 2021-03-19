@@ -655,7 +655,6 @@ Server::methodOPTIONS(int clientfd)
 	std::vector<HttpConfigLocation>::const_iterator i = locations.begin();
 
 	size_t pos = path.find_first_of("/", 1);
-	std::cout << "PATHAPHTAHPT " << path << std::endl;
 	if (pos != std::string::npos)
 		path = path.substr(0, pos);
 

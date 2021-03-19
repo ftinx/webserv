@@ -72,7 +72,7 @@ ServerManager::parseHttpConfig()
 {
 	this->m_httpConfig.setConfigFileCheckValid("ftinx_sample.conf");
 	this->m_httpConfig.parseConfigFile("ftinx_sample.conf");
-	this->m_httpConfig.printConfigFileInfo();
+	//this->m_httpConfig.printConfigFileInfo();
 
 	storeParseValue();
 	return ;
