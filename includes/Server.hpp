@@ -15,6 +15,7 @@
 #include "Response.hpp"
 #include "Request.hpp"
 #include "HttpConfig.hpp"
+#include "HttpConfigLocation.hpp"
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
@@ -110,6 +111,10 @@ class Server
 		Response methodPOST(int clientfd);
 		Response methodPUT(int clientfd);
 		Response methodDELETE(int clientfd);
+
+		Response options_405(std::string allow_method);
+		Response options_204(std::string allow_method);
+		std::string makeAllowMethod(std::vector<Method> v, bool *options_allowed);
 		Response methodOPTIONS(int clientfd);
 		Response methodTRACE(int clientfd);
 

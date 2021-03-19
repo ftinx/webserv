@@ -388,37 +388,46 @@ Server::methodGET(int clientfd)
 {
 	Response response;
 	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	std::vector<HttpConfigLocation> v = this->m_server_block.get_m_location_block();
+	std::vector<HttpConfigLocation>::const_iterator location_it;
+	std::vector<std::string> v2;
+	std::vector<std::string>::const_iterator index_it;
 
-	std::cout << "path!!!!!!!!!!!!!!: " << path << std::endl;
-	std::cout << "^^^^^^^^^^^^" << this->m_requests[clientfd].getContentType() << std::endl;
-	if (this->m_requests[clientfd].getContentType().compare("text/html"))
+	if (ft::isValidFilePath(std::string("/Users/jwon/github_42cursus/15_webserv/ftinx/webserv/www/") + path)) // http block의 root 로 대체해야 함, 서버매니저에서 넘겨줘야 함
+	{
 		return (
 			response
 				.setPublicFileDocument(path)
 				.makeHttpResponseMessage()
 		);
+	}
 	else
-		return (
-			response
-				.setPublicFileDocument("index.html")
-				.makeHttpResponseMessage()
-		);
-	// if (ft::isValidFilePath(path) == false)
-	// 	return (Server::page404("errors/default_error.html"));
-	// else
-	// {
-	// 	return (
-	// 		response
-	// 			.setPublicFileDocument(path)
-	// 			.setHttpResponseHeader("date", response.get_m_date())
-	// 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-	// 			.setHttpResponseHeader("content-language", response.get_m_content_language())
-	// 			.setHttpResponseHeader("content-type", response.get_m_content_type())
-	// 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-	// 			.setHttpResponseHeader("server", response.get_m_server())
-	// 			.makeHttpResponseMessage()
-	// 	);
-	// }
+	{
+		std::string block;
+		if (path.compare("/") == 0 || path.compare("") == 0)
+			block = "/";
+		else
+			block = path.substr(0, path.find_last_of("/"));
+		for (location_it = v.begin() ; location_it != v.end() ; ++location_it)
+		{
+			if (block.compare(location_it->get_m_path()) == 0)
+			{
+				v2 = location_it->get_m_index();
+				for (index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
+				{
+					if (ft::isValidFilePath(location_it->get_m_root() + "/" + *index_it))
+					{
+						return (
+							response
+								.setPublicFileDocument(*index_it)
+								.makeHttpResponseMessage()
+						);
+					}
+				}
+			}
+		}
+	}
+	return (Server::page404("errors/default_error.html"));
 }
 
 /*============================================================================*/
@@ -608,30 +617,84 @@ Server::methodDELETE(int clientfd)
 /*============================================================================*/
 
 Response
-Server::OptionsPathRoot()
+Server::options_405(std::string allow_method)
 {
-	Response response = Response();
+	Response response;
 
 	return (
 		response
-			.setStatusCode(200)
+			.setStatusCode(405)
 			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
 			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("allow", "OPTIONS, GET, POST, HEAD")
 			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("Allow", allow_method)
 			.makeHttpResponseMessage()
 	);
 }
 
 Response
+Server::options_204(std::string allow_method)
+{
+	Response response;
+
+	return (
+		response
+			.setStatusCode(204)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("Allow", allow_method)
+			.makeHttpResponseMessage()
+	);
+}
+
+
+std::string
+Server::makeAllowMethod(std::vector<Method> v, bool *options_allowed)
+{
+	std::string ret("");
+
+	for(std::vector<Method>::const_iterator i = v.begin(); i != v.end(); ++i)
+	{
+		if (*i == OPTIONS)
+			*options_allowed = true;
+		ret += ft::getMethodString(*i) + ", ";
+	}
+	ret = ret.substr(0, ret.size() - 2);
+	return (ret);
+}
+
+Response
 Server::methodOPTIONS(int clientfd)
 {
-	(void) clientfd;
-	/* PATH에 따라 다른 Options응 답을 주어야함. */
-	return (OptionsPathRoot());
+	std::string path = m_requests[clientfd].get_m_uri().get_m_path();
+	bool options_allowed = false;
+	std::string allow_method("");
+	const std::vector<HttpConfigLocation> locations = m_server_block.get_m_location_block();
+	std::vector<HttpConfigLocation>::const_iterator i = locations.begin();
+
+	size_t pos = path.find_first_of("/", 1);
+	if (pos != std::string::npos)
+		path = path.substr(0, pos);
+
+	while (i != locations.end())
+	{
+		if (path == i->get_m_path())
+		{
+			allow_method = makeAllowMethod(i->get_m_limit_except(), &options_allowed);
+			break;
+		}
+		i++;
+	}
+	if (i == locations.end())
+		return (Server::page404(this->m_err_page_path));
+	else if (options_allowed == false)
+		return (Server::options_405(allow_method));
+	return (Server::options_204(allow_method));
 }
 
 /*============================================================================*/
@@ -916,6 +979,8 @@ Server::sendResponse(int clientfd)
 		response = this->methodDELETE(clientfd);
 	else if (method == TRACE)
 		response = this->methodTRACE(clientfd);
+	else if (method == OPTIONS)
+		response = this->methodOPTIONS(clientfd);
 	else
 		response = methodNotAllow_405();
 
