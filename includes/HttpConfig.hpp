@@ -24,9 +24,9 @@ class HttpConfig
 		std::string m_include;
 		std::string m_root;
 		std::vector<HttpConfigServer> m_server_block;
+		std::map<std::string, std::string> m_mime_types;
 
 	private:
-
 		/* utils */
 		bool checkStartHttp(); // m_liens의 시작이 "http" 인지 여부 확인
 		bool checkBlankLine(std::string str);
@@ -48,6 +48,7 @@ class HttpConfig
 		std::vector<HttpConfigServer> get_m_server_block() const;
 
 		/* setter */
+		void parseMimeTypes();
 		void setConfigFileCheckValid(std::string file_path);
 		// void setConfigFile();
 		// void setConfigLines();

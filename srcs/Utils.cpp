@@ -344,6 +344,24 @@ isValidDirPath(std::string path)
 	return (false); // 폴더가 아님
 }
 
+// std::string
+// fileToString(std::string file_path)
+// {
+// 	int fd;
+// 	int bytes;
+// 	char buffer[BUFFER_SIZE];
+// 	std::string ret;
+
+// 	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
+// 		throw std::exception();
+// 	ft::memset(buffer, 0, BUFFER_SIZE);
+// 	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
+// 		ret += std::string(buffer);
+// 	if (bytes < 0)
+// 		throw std::exception();
+// 	return (ret);
+// }
+
 std::string
 fileToString(std::string file_path)
 {
@@ -354,11 +372,13 @@ fileToString(std::string file_path)
 
 	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
 		throw std::exception();
-	ft::memset(buffer, 0, BUFFER_SIZE);
-	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
+	ft::memset(reinterpret_cast<void *>(buffer), 0, BUFFER_SIZE);
+	while ((bytes = read(fd, reinterpret_cast<void *>(buffer), BUFFER_SIZE) > 0))
+	{
+		if (bytes < 0)
+			throw std::exception();
 		ret += std::string(buffer);
-	if (bytes < 0)
-		throw std::exception();
+	}
 	return (ret);
 }
 

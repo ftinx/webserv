@@ -10,7 +10,8 @@ HttpConfig::HttpConfig()
 	m_version(""),
 	m_include(""),
 	m_root(""),
-	m_server_block()
+	m_server_block(),
+	m_mime_types()
 {
 }
 
@@ -27,6 +28,7 @@ HttpConfig::operator=(HttpConfig const &rhs)
 	m_include = rhs.m_include;
 	m_root = rhs.m_root;
 	m_server_block = rhs.m_server_block;
+	m_mime_types = rhs.m_mime_types;
 	return (*this);
 }
 
@@ -99,9 +101,9 @@ HttpConfig::checkStartHttp()
 bool
 HttpConfig::checkBlankLine(std::string str)
 {
-    if (str.empty() == false)
-        return (false);
-    return (true);
+	if (str.empty() == false)
+		return (false);
+	return (true);
 }
 
 bool
@@ -141,6 +143,30 @@ HttpConfig::checkCurlyBracketsDouble(std::string str)
 			return (true);
 	}
 	return (false);
+}
+
+void
+HttpConfig::parseMimeTypes()
+{
+	std::string file = ft::fileToString(std::string("./") + this->m_include);
+	std::vector<std::string> lines = ft::split(file, '\n');
+
+	for (std::vector<std::string>::const_iterator it = lines.begin() ; it != lines.end() ; ++it)
+	{
+		if (checkBlankLine(*it) || it->find("{") != std::string::npos || it->find("}") != std::string::npos)
+			continue ;
+		std::vector<std::string> tmp = ft::split(ft::rtrim(ft::ltrim(*it, " "), ";"), " ");
+		std::string value = tmp.front();
+		tmp.erase(tmp.begin());
+		for (std::vector<std::string>::const_iterator i = tmp.begin() ; i != tmp.end() ; ++i)
+			this->m_mime_types.insert(make_pair(*i, value));
+	}
+	// 파싱 잘 되었는지 출력 테스트
+	// std::cout << "-----------mime_types_map----------" << std::endl;
+	// std::map<std::string, std::string>::const_iterator test;
+	// for (test = this->m_mime_types.begin() ; test != this->m_mime_types.end() ; ++test)
+	// 	std::cout << test->first << " " << test->second << std::endl;
+	// std::cout << "-----------------------------------" << std::endl;
 }
 
 void
@@ -191,7 +217,10 @@ HttpConfig::parseConfigFile(std::string file_path)
 		else if (line.front().compare("software_version") == 0)
 			this->m_version = line.back();
 		else if (line.front().compare("include") == 0)
+		{
 			this->m_include = line.back();
+			parseMimeTypes();
+		}
 		else if (line.front().compare("root") == 0)
 		{
 			// HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
