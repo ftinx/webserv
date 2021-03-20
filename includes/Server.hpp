@@ -117,6 +117,8 @@ class Server
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response HttpConfigPost(Request req, Response res);
 
+		/* Cgi Utils */
+		//static std::string parseCgiPathInfo(Request req);
 		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		static char** makeCgiEnvp(Request req, Response res);
 		static Response executeCgi(Request req, Response res, fd_set *write_fds);
