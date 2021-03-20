@@ -620,8 +620,6 @@ Server::methodPOST(int clientfd)
 	response = post("/auth.cgi", this->m_requests[clientfd], response, Server::executeCgi);
 
 	/* Config File Route */
-	std::cout << "postLocation: " << this->get_m_postLocation().size() << std::endl;
-	// printf("::size %lu::", this->m_postLocation.size());
 	if (this->m_postLocation.size() == 0)
 		return (response);
 	std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_postLocation.begin();

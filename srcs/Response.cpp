@@ -12,7 +12,7 @@ Response::Response()
 :m_status_code(404), m_date(""), m_content_language("ko, en"), m_content_type("text/html; charset=UTF-8"),
 m_server("ftnix/1.0 (MacOS)"), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_err_page_path("errors/default_error.html"),
-m_cgi_client_addr(), m_cgi_server_name(""), m_cgi_port(0)
+m_cgi_client_addr(), m_cgi_server_name(""), m_cgi_port(0), m_index_file(), m_root(""), m_cgi_extension()
 {
 }
 
@@ -24,31 +24,34 @@ Response::Response(Response const &other)
 Response &
 Response::operator=(Response const &rhs)
 {
-	m_status_code = rhs.m_status_code;
-	m_date = rhs.m_date;
-	m_content_language = rhs.m_content_language;
-	m_content_type = rhs.m_content_type;
-	m_server = rhs.m_server;
-	m_status_description = rhs.m_status_description;
+	this->m_status_code = rhs.m_status_code;
+	this->m_date = rhs.m_date;
+	this->m_content_language = rhs.m_content_language;
+	this->m_content_type = rhs.m_content_type;
+	this->m_server = rhs.m_server;
+	this->m_status_description = rhs.m_status_description;
 
 	/* HTML document */
-	m_headers = rhs.m_headers;
-	m_html_document = rhs.m_html_document;
-	m_body = rhs.m_body;
-	m_head = rhs.m_head;
-	m_content_length = rhs.m_content_length;
+	this->m_headers = rhs.m_headers;
+	this->m_html_document = rhs.m_html_document;
+	this->m_body = rhs.m_body;
+	this->m_head = rhs.m_head;
+	this->m_content_length = rhs.m_content_length;
 
 	/* response message */
-	m_response_message = rhs.m_response_message;
-	m_response_size = rhs.m_response_size;
+	this->m_response_message = rhs.m_response_message;
+	this->m_response_size = rhs.m_response_size;
 
 	/* Config */
-	m_err_page_path = rhs.m_err_page_path;
+	this->m_err_page_path = rhs.m_err_page_path;
+	this->m_index_file = rhs.m_index_file;
+	this->m_root = rhs.m_root;
 
 	/* CGI */
-	m_cgi_client_addr = rhs.m_cgi_client_addr;
-	m_cgi_server_name = rhs.m_cgi_server_name;
-	m_cgi_port = rhs.m_cgi_port;
+	this->m_cgi_extension = rhs.m_cgi_extension;
+	this->m_cgi_client_addr = rhs.m_cgi_client_addr;
+	this->m_cgi_server_name = rhs.m_cgi_server_name;
+	this->m_cgi_port = rhs.m_cgi_port;
 	return (*this);
 }
 
@@ -151,6 +154,24 @@ Response::get_m_cgi_port() const
 	return (this->m_cgi_port);
 }
 
+std::vector<std::string>
+Response::get_m_index_file() const
+{
+	return (this->m_index_file);
+}
+
+std::string
+Response::get_m_root() const
+{
+	return (this->m_root);
+}
+
+std::vector<std::string>
+Response::get_m_cgi_extension() const
+{
+	return (this->m_cgi_extension);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -194,6 +215,27 @@ void
 Response::set_m_cgi_port(int cgi_port)
 {
 	this->m_cgi_port = cgi_port;
+	return ;
+}
+
+void
+Response::get_m_cgi_extension(std::vector<std::string> cgi_extension)
+{
+	this->m_cgi_extension = cgi_extension;
+	return ;
+}
+
+void
+Response::get_m_index_file(std::vector<std::string> index_file)
+{
+	this->m_index_file = index_file;
+	return ;
+}
+
+void
+Response::get_m_root(std::string root)
+{
+	this->m_root = root;
 	return ;
 }
 
