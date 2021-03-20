@@ -97,12 +97,17 @@ class Server
 		void closeServer();
 
 		void getRequest();
+		static Response makeResponseMessage(
+			int statusCode,
+			std::string path = "./www/index.html", std::string contentType="text/html; charset=UTF-8",
+			int dateHour=0, int dateMinute=0, int dateSecond=0,
+			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
+		);
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
 
 		/* SERVER METHOD UTIL */
 		static Response getDirectory(Request req, Response res);
-		static Response postLoginSuccess();
 		static Response postAuth(Request req, Response res);
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response HttpConfigPost(Request req, Response res);

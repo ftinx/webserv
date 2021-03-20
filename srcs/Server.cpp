@@ -154,9 +154,9 @@ Server::init(HttpConfigServer server_block, std::string server_name, int port, s
 	this->m_server_name = server_name;
 	this->m_port = port;
 	if (err_page_path != "")
-		this->m_err_page_path = err_page_path.substr(6, err_page_path.size()-6);
+		this->m_err_page_path = err_page_path;
 	else
-		this->m_err_page_path = "errors/default_error.html";
+		this->m_err_page_path = "./www/errors/default_error.html";
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	return ;
@@ -474,29 +474,6 @@ Server::parseQuery(std::string str)
 	return (m_query);
 }
 
-Response
-Server::postLoginSuccess()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument("srcs/login.html")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
 std::map<std::string, std::string>
 Server::makeCgiEnvpMap(Request req, Response res)
 {
@@ -584,9 +561,9 @@ Server::postAuth(Request req, Response res)
 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
 
 			if (username == "42seoul" && password == "42seoul")
-				return (Server::postLoginSuccess());
+				return (Server::makeResponseMessage(200, "./www/srcs/login.html"));
 			else
-				return (Server::page200());
+				return (Server::makeResponseMessage(200, "./www/index.html"));
 		}
 	}
 	return (res);
@@ -596,26 +573,12 @@ Response
 Server::HttpConfigPost(Request req, Response res)
 {
 	/* Request에 대한 요청 처리*/
-
+	(void) req;
+	(void) res;
 
 	/* Response */
-	Response response = Response();
-
 	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument("srcs/login.html")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
+		Server::makeResponseMessage(200)
 	);
 }
 
@@ -811,6 +774,33 @@ Server::methodTRACE(int clientfd)
 /*============================================================================*/
 /*******************************  STATUS CODE *********************************/
 /*============================================================================*/
+
+Response
+Server::makeResponseMessage(
+	int statusCode, std::string path, std::string contentType,
+	int dateHour, int dateMinute, int dateSecond,
+	std::string contentLanguage, std::string server
+)
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(statusCode)
+			.setCurrentDate(dateHour, dateMinute, dateSecond)
+			.setPublicFileDocument(path)
+			.setContentLanguage(contentLanguage)
+			.setContentType(contentType)
+			.setServer(server)
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
 
 /*============================================================================*/
 /**********************************  1XX  *************************************/
