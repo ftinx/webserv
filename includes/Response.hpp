@@ -90,9 +90,9 @@ class Response
 		void set_m_cgi_client_addr(in_addr_t cgi_client_addr);
 		void set_m_cgi_server_name(std::string cgi_server_name);
 		void set_m_cgi_port(int cgi_port);
-		void get_m_cgi_extension(std::vector<std::string> cgi_extension);
-		void get_m_index_file(std::vector<std::string> index_file);
-		void get_m_root(std::string root);
+		void set_m_cgi_extension(std::vector<std::string> cgi_extension);
+		void set_m_index_file(std::vector<std::string> index_file);
+		void set_m_root(std::string root);
 
 		/* CGI */
 		bool parseCgiResponse(std::string&);

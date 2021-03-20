@@ -219,21 +219,21 @@ Response::set_m_cgi_port(int cgi_port)
 }
 
 void
-Response::get_m_cgi_extension(std::vector<std::string> cgi_extension)
+Response::set_m_cgi_extension(std::vector<std::string> cgi_extension)
 {
 	this->m_cgi_extension = cgi_extension;
 	return ;
 }
 
 void
-Response::get_m_index_file(std::vector<std::string> index_file)
+Response::set_m_index_file(std::vector<std::string> index_file)
 {
 	this->m_index_file = index_file;
 	return ;
 }
 
 void
-Response::get_m_root(std::string root)
+Response::set_m_root(std::string root)
 {
 	this->m_root = root;
 	return ;
