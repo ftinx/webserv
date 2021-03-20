@@ -642,8 +642,7 @@ std::map<std::string, std::string>
 Server::makeCgiEnvpMap(Request req, Response res)
 {
 	std::map<std::string, std::string> map;
-	Request &request = req;
-	Uri uri = request.get_m_uri();
+	Uri uri = req.get_m_uri();
 
 	/*
 	** auth 관련 AUTH_TYPE REMOTE_USER REMOTE_IDENT
@@ -651,16 +650,16 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
 	map["SERVER_NAME"] = res.get_m_cgi_server_name();
 	map["GATEWAY_INTERFACE"] = "Cgi/1.1";
-	map["SERVER_PROTOCOL"] = request.get_m_http_version();
+	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
-	map["REQUEST_METHOD"] = request.getMethod();
-	map["PATH_INFO"] = uri.get_m_path();
+	map["REQUEST_METHOD"] = req.getMethod();
+	//map["PATH_INFO"] = this->parseCgiPathInfo(req);
 	map["PATH_TRANSLATED"] = uri.get_m_path();
 	map["SCRIPT_NAME"] = uri.get_m_path();
 	map["QUERY_STRING"] = uri.get_m_query_string();
 	map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
-	map["CONTENT_TYPE"] = request.getContentType();
-	map["CONTENT_LENGTH"] = request.getContentLength();
+	map["CONTENT_TYPE"] = req.getContentType();
+	map["CONTENT_LENGTH"] = req.getContentLength();
 	return (map);
 }
 
@@ -809,8 +808,7 @@ Server::methodPOST(int clientfd)
 
 	/* Route */
 	// response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
-	response = post("/auth.cgi", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
-	response = post("/www/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
+	response = post("/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
 	/* Config File Route */
 	// if (this->m_postLocation.size() == 0)
 	// 	return (response);
