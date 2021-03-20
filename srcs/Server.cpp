@@ -290,7 +290,6 @@ Server::runServer()
 				return ;
 			case 0:
 				perror("timeout error");
-				return ;
 			default:
 				getRequest();
 		}
@@ -354,12 +353,12 @@ Server::getRequest()
 			/*
 			**	Response 부분 끝
 			*/
-			close(this->sockfd);
+			//close(this->sockfd);
 			if (--this->fd_num <= 0)
 				break;
 		}
 	}
-	// FD_ZERO(&this->m_main_fds);
+	//FD_ZERO(&this->m_main_fds);
 	return ;
 }
 
