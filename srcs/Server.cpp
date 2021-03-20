@@ -142,15 +142,6 @@ Server::noteHttpConfigLocation()
 		}
 		location_iter++;
 	}
-
-	printf("\n");
-	std::cout << "get: " << this->m_getLocation.size() << std::endl;
-	std::cout << "post: " << this->m_postLocation.size() << std::endl;
-	std::cout << "put: " << this->m_putLocation.size() << std::endl;
-	std::cout << "delete: " << this->m_deleteLocation.size() << std::endl;
-	std::cout << "options: " << this->m_optionsLocation.size() << std::endl;
-	std::cout << "trace: " << this->m_traceLocation.size() << std::endl;
-	printf("\n");
 	return ;
 }
 
@@ -602,6 +593,33 @@ Server::postAuth(Request req, Response res)
 }
 
 Response
+Server::HttpConfigPost(Request req, Response res)
+{
+	/* Request에 대한 요청 처리*/
+
+
+	/* Response */
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setPublicFileDocument("srcs/login.html")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
 Server::methodPOST(int clientfd)
 {
 	Response response;
@@ -625,11 +643,16 @@ Server::methodPOST(int clientfd)
 	std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_postLocation.begin();
 	while (location_iter != this->m_postLocation.end())
 	{
+		/* HttpConfig path Response Setting */
+		response.set_m_cgi_extension(location_iter->get_m_cgi());
+		response.set_m_index_file(location_iter->get_m_index());
+		response.set_m_root(location_iter->get_m_root());
+
 		/* CGI */
 		if (location_iter->get_m_cgi_path() != "")
 			response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-		// else
-
+		else
+			response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 		location_iter++;
 	}
 

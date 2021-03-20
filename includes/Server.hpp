@@ -105,6 +105,7 @@ class Server
 		static Response postLoginSuccess();
 		static Response postAuth(Request req, Response res);
 		static std::map<std::string, std::string> parseQuery(std::string str);
+		static Response HttpConfigPost(Request req, Response res);
 
 		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		static char** makeCgiEnvp(Request req, Response res);
