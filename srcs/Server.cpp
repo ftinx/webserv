@@ -654,6 +654,7 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
 	map["REQUEST_METHOD"] = req.getMethod();
 	//map["PATH_INFO"] = this->parseCgiPathInfo(req);
+	// map["PATH_INFO"] = "/cgi-bin/cgi_tester";
 	map["PATH_TRANSLATED"] = uri.get_m_path();
 	map["SCRIPT_NAME"] = uri.get_m_path();
 	map["QUERY_STRING"] = uri.get_m_query_string();
@@ -730,7 +731,7 @@ Server::executeCgi(Request req, Response res, fd_set *write_fds)
 		close(cgi_stdin);
 		read(parent_stdout, buff, 1024);
 		buff[1024] = '\0';
-		std::cout << buff << std::endl;
+		std::cout << "\n" << buff << std::endl;
 		response
 			.setStatusCode(200)
 			.setCurrentDate()
@@ -807,8 +808,11 @@ Server::methodPOST(int clientfd)
 	response = Server::page404(response.get_m_err_page_path());
 
 	/* Route */
+	if (this->m_requests[clientfd].get_m_uri().get_m_path() == "/cgi-bin/cgi_tester")
+		response = executeCgi(this->m_requests[clientfd], response, &this->m_write_fds);
 	// response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
-	response = post("/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
+	// response = post("/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
+
 	/* Config File Route */
 	// if (this->m_postLocation.size() == 0)
 	// 	return (response);
@@ -819,10 +823,11 @@ Server::methodPOST(int clientfd)
 	// 	response.set_m_cgi_extension(location_iter->get_m_cgi());
 	// 	response.set_m_index_file(location_iter->get_m_index());
 	// 	response.set_m_root(location_iter->get_m_root());
+	// 	// response.set_m_cgi_path(location_iter->get_m_cgi_path());
 
 	// 	/* CGI */
-	// 	// if (location_iter->get_m_cgi_path() != "")
-	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+	// 	if (location_iter->get_m_cgi_path() != "")
+	// 		response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
 	// 	// else
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;

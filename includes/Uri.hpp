@@ -30,6 +30,7 @@ class Uri
     void set_m_uri(std::string);
     void set_m_host(std::string);
     void set_m_port(std::string);
+    void set_m_path(std::string);
     std::string get_m_uri() const;
     bool get_m_check_abs_uri() const;
     std::string get_m_scheme() const;

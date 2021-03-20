@@ -119,9 +119,9 @@ class Server
 
 		/* Cgi Utils */
 		//static std::string parseCgiPathInfo(Request req);
-		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
-		static char** makeCgiEnvp(Request req, Response res);
-		static Response executeCgi(Request req, Response res, fd_set *write_fds);
+		std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
+		char** makeCgiEnvp(Request req, Response res);
+		Response executeCgi(Request req, Response res, fd_set *write_fds);
 
 		Response get(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response post(std::string path, Request req, Response res, fd_set *write_fds, Response (*func)(Request req, Response res, fd_set *write_fds));
