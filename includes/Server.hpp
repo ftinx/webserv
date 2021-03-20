@@ -15,6 +15,7 @@
 #include "Response.hpp"
 #include "Request.hpp"
 #include "HttpConfig.hpp"
+#include "HttpConfigLocation.hpp"
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024

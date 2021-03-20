@@ -388,23 +388,46 @@ Server::methodGET(int clientfd)
 {
 	Response response;
 	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	std::vector<HttpConfigLocation> v = this->m_server_block.get_m_location_block();
+	std::vector<HttpConfigLocation>::const_iterator location_it;
+	std::vector<std::string> v2;
+	std::vector<std::string>::const_iterator index_it;
 
-	if (ft::isValidFilePath(path) == false)
-		return (Server::page404("errors/default_error.html"));
-	else
+	if (ft::isValidFilePath(std::string("/Users/jwon/github_42cursus/15_webserv/ftinx/webserv/www/") + path)) // http block의 root 로 대체해야 함, 서버매니저에서 넘겨줘야 함
 	{
 		return (
 			response
 				.setPublicFileDocument(path)
-				.setHttpResponseHeader("date", response.get_m_date())
-				.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-				.setHttpResponseHeader("content-language", response.get_m_content_language())
-				.setHttpResponseHeader("content-type", response.get_m_content_type())
-				.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-				.setHttpResponseHeader("server", response.get_m_server())
 				.makeHttpResponseMessage()
 		);
-}
+	}
+	else
+	{
+		std::string block;
+		if (path.compare("/") == 0 || path.compare("") == 0)
+			block = "/";
+		else
+			block = path.substr(0, path.find_last_of("/"));
+		for (location_it = v.begin() ; location_it != v.end() ; ++location_it)
+		{
+			if (block.compare(location_it->get_m_path()) == 0)
+			{
+				v2 = location_it->get_m_index();
+				for (index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
+				{
+					if (ft::isValidFilePath(location_it->get_m_root() + "/" + *index_it))
+					{
+						return (
+							response
+								.setPublicFileDocument(*index_it)
+								.makeHttpResponseMessage()
+						);
+					}
+				}
+			}
+		}
+	}
+	return (Server::page404("errors/default_error.html"));
 }
 
 /*============================================================================*/
