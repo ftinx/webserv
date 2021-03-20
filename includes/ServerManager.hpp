@@ -13,7 +13,7 @@ class ServerManager
 		HttpConfig m_httpConfig;
 
 		std::vector<HttpConfigServer> m_server_block;
-		std::vector<Server> m_server;
+		std::vector<Server*> m_server;
 		size_t m_server_size;
 
 		std::string m_software_name;
@@ -37,7 +37,8 @@ class ServerManager
 			int port,
 			std::string err_page_path,
 			int content_length,
-			size_t location_size
+			size_t location_size,
+			std::string root
 		);
 		void initServers();
 		void runServers();
