@@ -108,6 +108,12 @@ Server::get_m_postLocation()
 	return (this->m_postLocation);
 }
 
+fd_set
+Server::get_m_write_fds()
+{
+	return (this->m_write_fds);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -321,6 +327,49 @@ Server::setServerSocket()
 // 	return ;
 // }
 
+// void
+// Server::runServer()
+// {
+// 	// rfc보고 정의
+// 	struct timeval timeout;
+// 	timeout.tv_sec = 4;
+// 	timeout.tv_usec = 2;
+
+// 	FD_ZERO(&this->m_main_fds);
+// 	FD_ZERO(&this->m_read_fds);
+// 	FD_ZERO(&this->m_write_fds);
+// 	FD_SET(this->m_server_socket, &this->m_main_fds);
+
+// 	this->maxfd = 0;
+// 	this->maxfd = this->m_server_socket;
+
+// 	while (42)
+// 	{
+// 		this->m_copy_read_fds = this->m_main_fds;
+// 		this->m_copy_write_fds = this->m_write_fds;
+// 		printf("Select Wait %d\n", this->maxfd);
+// 		this->fd_num = select(
+// 			this->maxfd + 1 ,
+// 			&this->m_copy_read_fds,
+// 			&this->m_copy_write_fds,
+// 			reinterpret_cast<fd_set *>(0),
+// 			&timeout
+// 		);
+
+// 		switch (this->fd_num)
+// 		{
+// 			case -1:
+// 				perror("select error");
+// 				return ;
+// 			case 0:
+// 				perror("timeout error");
+// 			default:
+// 				getRequest();
+// 		}
+// 	}
+// 	return ;
+// }
+
 void
 Server::runServer()
 {
@@ -373,6 +422,79 @@ Server::closeServer()
 
 #include <bitset>
 #include <iostream>
+
+// void
+// Server::getRequest()
+// {
+// 	if (ft::fdIsSet(this->m_server_socket, &this->m_copy_fds))
+// 	{
+// 		socklen_t addrlen;
+
+// 		addrlen = sizeof(this->m_client_addr);
+// 		if ((
+// 			this->m_client_socket = accept(
+// 				this->m_server_socket,
+// 				reinterpret_cast<struct sockaddr *>(&this->m_client_addr),
+// 				reinterpret_cast<socklen_t *>(&addrlen)
+// 			)
+// 		) == -1)
+// 			std::cerr<<"accept error"<<std::endl;
+
+// 		/* add client socket to read_fds */
+// 		ft::fdSet(this->m_client_socket, &this->m_main_fds);
+// 		fcntl(this->m_client_socket, F_SETFL, O_NONBLOCK);
+
+// 		/* update maxfd */
+// 		if (this->m_client_socket > this->maxfd)
+// 			this->maxfd = this->m_client_socket;
+// 		printf("Accept OK\n");
+// 		return ;
+// 	}
+
+// 	for (int i = 0; i <= this->maxfd; i++)
+// 	{
+// 		this->sockfd = i;
+// 		if (ft::fdIsSet(this->sockfd, &this->m_copy_read_fds))
+// 		{
+// 			/*
+// 			** Request 부분 시작, false시 에러 받아줘야
+// 			*/
+// 			this->m_requests[this->sockfd].getMessage(this->sockfd);
+// 			std::cout << this->m_requests[this->sockfd] << std::endl;
+// 			this->m_requests[this->sockfd].printHeaders();
+// 			/*
+// 			**	Response 부분 시작
+// 			*/
+// 			sendResponse(this->sockfd);
+// 			/*
+// 			**	Response 부분 끝
+// 			*/
+// 			if (--this->fd_num <= 0)
+// 				break;
+// 			FD_CLR(this->sockfd, &this->m_copy_fds);
+// 		}
+// 		else if (ft::fdIsSet(this->sockfd, &this->m_copy_write_fds))
+// 		{
+// 			/*
+// 			** Request 부분 시작, false시 에러 받아줘야
+// 			*/
+// 			this->m_requests[this->sockfd].getMessage(this->sockfd);
+// 			std::cout << this->m_requests[this->sockfd] << std::endl;
+// 			this->m_requests[this->sockfd].printHeaders();
+// 			/*
+// 			**	Response 부분 시작
+// 			*/
+// 			sendResponse(this->sockfd);
+// 			/*
+// 			**	Response 부분 끝
+// 			*/
+// 			if (--this->fd_num <= 0)
+// 				break;
+// 			FD_CLR(this->sockfd, &this->m_copy_fds);
+// 		}
+// 	}
+// 	return ;
+// }
 
 void
 Server::getRequest()
@@ -562,7 +684,7 @@ Server::makeCgiEnvp(Request req, Response res)
 }
 
 Response
-Server::executeCgi(Request req, Response res)
+Server::executeCgi(Request req, Response res, fd_set *write_fds)
 {
 	pid_t pid;
 	// Request &request = req;
@@ -570,43 +692,61 @@ Server::executeCgi(Request req, Response res)
 	char** envp = Server::makeCgiEnvp(req, res);
 	int pipe1[2];
 	int pipe2[2];
+	int ret;
 
+	std::cout << "Execute Cgi >0<" << std::endl;
 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
 		return (Server::page404("errors/default_error.html"));
 
-	int parentStdOut = pipe1[1];
-	int parentStdIn = pipe2[0];
-	int cgiStdOut = pipe2[1];
-	int cgiStdIn = pipe1[0];
+	int parent_stdout = pipe1[1];
+	int parent_stdin = pipe2[0];
+	int cgi_stdout = pipe2[1];
+	int cgi_stdin = pipe1[0];
 
 	close(pipe1[0]);
 	close(pipe2[1]);
 
-	fcntl(cgiStdOut, F_SETFL, O_NONBLOCK);
-	fcntl(cgiStdIn, F_SETFL, O_NONBLOCK);
-	fcntl(parentStdOut, F_SETFL, O_NONBLOCK);
-	fcntl(parentStdIn, F_SETFL, O_NONBLOCK);
+	fcntl(cgi_stdout, F_SETFL, O_NONBLOCK);
+	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
+	fcntl(parent_stdout, F_SETFL, O_NONBLOCK);
+	fcntl(parent_stdin, F_SETFL, O_NONBLOCK);
 
-int status;
-write(parentStdOut, "hello!\n", 8);
 	if ((pid = fork()) < 0)
 		return (Server::page404("errors/default_error.html"));
 	if (pid == 0)
 	{
+		close(parent_stdout);
+		close(parent_stdin);
 		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
-		dup2(cgiStdOut, STDOUT_FILENO);
-		dup2(cgiStdIn, STDIN_FILENO);
-		//execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
-		execve("./cgi-bin/cgi_tester", 0, envp);
-		exit(1);
+		dup2(cgi_stdout, STDOUT_FILENO);
+		dup2(cgi_stdin, STDIN_FILENO);
+		// 일반화 해줘야
+		ret = execve("./cgi-bin/cgi_tester", 0, envp);
+		exit(ret);
 	}
 	else
 	{
-		waitpid(pid, &status, 0);
-		char buffer[54];
-		buffer[53] = '\0';
-		read(parentStdIn, buffer, 53);
-		printf("buffer out @@@@@ %s \n", buffer);
+		char buff[1025];
+		close(cgi_stdout);
+		close(cgi_stdin);
+		read(parent_stdout, buff, 1024);
+		buff[1024] = '\0';
+		std::cout << buff << std::endl;
+		response
+			.setStatusCode(200)
+			.setCurrentDate()
+			.setBodyDocument(std::string(buff))
+			.setContentLanguage("ko")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("hihih")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage();
+		ft::fdSet(parent_stdout, write_fds);
 	}
 	return (response);
 }
@@ -668,27 +808,27 @@ Server::methodPOST(int clientfd)
 	response = Server::page404(response.get_m_err_page_path());
 
 	/* Route */
-	response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
-	response = post("/auth.cgi", this->m_requests[clientfd], response, Server::executeCgi);
-
+	// response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
+	response = post("/auth.cgi", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
+	response = post("/www/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
 	/* Config File Route */
-	if (this->m_postLocation.size() == 0)
-		return (response);
-	std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_postLocation.begin();
-	while (location_iter != this->m_postLocation.end())
-	{
-		/* HttpConfig path Response Setting */
-		response.set_m_cgi_extension(location_iter->get_m_cgi());
-		response.set_m_index_file(location_iter->get_m_index());
-		response.set_m_root(location_iter->get_m_root());
+	// if (this->m_postLocation.size() == 0)
+	// 	return (response);
+	// std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_postLocation.begin();
+	// while (location_iter != this->m_postLocation.end())
+	// {
+	// 	/* HttpConfig path Response Setting */
+	// 	response.set_m_cgi_extension(location_iter->get_m_cgi());
+	// 	response.set_m_index_file(location_iter->get_m_index());
+	// 	response.set_m_root(location_iter->get_m_root());
 
-		/* CGI */
-		if (location_iter->get_m_cgi_path() != "")
-			response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
-		else
-			response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
-		location_iter++;
-	}
+	// 	/* CGI */
+	// 	// if (location_iter->get_m_cgi_path() != "")
+	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+	// 	// else
+	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
+	// 	location_iter++;
+	// }
 
 	return (response);
 }
@@ -1041,10 +1181,10 @@ Server::get(std::string path, Request req, Response res, Response (*func)(Reques
 }
 
 Response
-Server::post(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
+Server::post(std::string path, Request req, Response res, fd_set *write_fds, Response (*func)(Request req, Response res, fd_set *write_fds))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func(req, res));
+		return (func(req, res, write_fds));
 	return (res);
 }
 
@@ -1115,7 +1255,7 @@ Server::sendResponse(int clientfd)
 		response = methodNotAllow_405();
 
 	/* config Method */
-	response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
+	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
