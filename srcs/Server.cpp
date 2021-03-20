@@ -17,24 +17,38 @@ Server::Server(Server const &other)
 
 Server& Server::operator=(Server const &rhs)
 {
-	m_server_block = rhs.m_server_block;
-	m_server_name = rhs.m_server_name;
-	m_port = rhs.m_port;
-	m_err_page_path = rhs.m_err_page_path;
-	m_content_length = rhs.m_content_length;
-	m_location_size = rhs.m_location_size;
-	m_server_addr = rhs.m_server_addr;
-	m_client_addr = rhs.m_client_addr;
-	m_server_socket = rhs.m_server_socket;
-	m_client_socket = rhs.m_client_socket;
-	fd_num = rhs.fd_num;
-	sockfd = rhs.sockfd;
-	readn = rhs.readn;
-	maxfd = rhs.maxfd;
-	m_main_fds = rhs.m_main_fds;
-	m_copy_fds = rhs.m_copy_fds;
-	m_requests = rhs.m_requests;
-	m_responses = rhs.m_responses;
+	/* Config */
+	this->m_server_block = rhs.m_server_block;
+	this->m_server_name = rhs.m_server_name;
+	this->m_port = rhs.m_port;
+	this->m_err_page_path = rhs.m_err_page_path;
+	this->m_content_length = rhs.m_content_length;
+	this->m_location_size = rhs.m_location_size;
+	this->m_root = rhs.m_root;
+
+	/* Parse */
+	this->m_getLocation = rhs.m_getLocation;
+	this->m_postLocation = rhs.m_postLocation;
+	this->m_putLocation = rhs.m_putLocation;
+	this->m_deleteLocation = rhs.m_deleteLocation;
+	this->m_optionsLocation = rhs.m_optionsLocation;
+	this->m_traceLocation = rhs.m_traceLocation;
+
+	/* Socket */
+	this->m_server_addr = rhs.m_server_addr;
+	this->m_client_addr = rhs.m_client_addr;
+	this->m_server_socket = rhs.m_server_socket;
+	this->m_client_socket = rhs.m_client_socket;
+	this->fd_num = rhs.fd_num;
+	this->sockfd = rhs.sockfd;
+	this->readn = rhs.readn;
+	this->maxfd = rhs.maxfd;
+	this->m_main_fds = rhs.m_main_fds;
+	this->m_copy_fds = rhs.m_copy_fds;
+
+	/* Request, Response */
+	this->m_requests = rhs.m_requests;
+	this->m_responses = rhs.m_responses;
 	return (*this);
 };
 
@@ -146,7 +160,7 @@ Server::noteHttpConfigLocation()
 }
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size)
+Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
@@ -159,6 +173,7 @@ Server::init(HttpConfigServer server_block, std::string server_name, int port, s
 		this->m_err_page_path = "./www/errors/default_error.html";
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
+	this->m_root = root;
 	return ;
 }
 

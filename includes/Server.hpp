@@ -45,6 +45,7 @@ class Server
 		std::string m_err_page_path;
 		int m_content_length;
 		size_t m_location_size;
+		std::string m_root;
 
 		/* Parse */
 		std::vector<HttpConfigLocation> m_getLocation;
@@ -89,7 +90,8 @@ class Server
 			int port,
 			std::string err_page_path,
 			int content_length,
-			size_t location_size
+			size_t location_size,
+			std::string root
 		);
 		void setServerAddr(int port);
 		bool setServerSocket();
