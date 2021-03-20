@@ -409,7 +409,8 @@ Server::getRequest()
 			*/
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
 			std::cout << this->m_requests[this->sockfd] << std::endl;
-            this->m_requests[this->sockfd].printHeaders();
+			this->m_requests[this->sockfd].printHeaders();
+			//close(this->sockfd);
 			/*
 			**	Response 부분 시작
 			*/
@@ -417,12 +418,11 @@ Server::getRequest()
 			/*
 			**	Response 부분 끝
 			*/
-			//close(this->sockfd);
 			if (--this->fd_num <= 0)
 				break;
+			FD_CLR(this->sockfd, &this->m_copy_fds);
 		}
 	}
-	//FD_ZERO(&this->m_main_fds);
 	return ;
 }
 
@@ -449,48 +449,53 @@ Server::methodHEAD(int clientfd)
 Response
 Server::methodGET(int clientfd)
 {
-	Response response;
-	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	std::vector<HttpConfigLocation> v = this->m_server_block.get_m_location_block();
-	std::vector<HttpConfigLocation>::const_iterator location_it;
-	std::vector<std::string> v2;
-	std::vector<std::string>::const_iterator index_it;
+	(void) clientfd;
 
-	if (ft::isValidFilePath(std::string("/Users/jwon/github_42cursus/15_webserv/ftinx/webserv/www/") + path)) // http block의 root 로 대체해야 함, 서버매니저에서 넘겨줘야 함
-	{
-		return (
-			response
-				.setPublicFileDocument(path)
-				.makeHttpResponseMessage()
-		);
-	}
-	else
-	{
-		std::string block;
-		if (path.compare("/") == 0 || path.compare("") == 0)
-			block = "/";
-		else
-			block = path.substr(0, path.find_last_of("/"));
-		for (location_it = v.begin() ; location_it != v.end() ; ++location_it)
-		{
-			if (block.compare(location_it->get_m_path()) == 0)
-			{
-				v2 = location_it->get_m_index();
-				for (index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
-				{
-					if (ft::isValidFilePath(location_it->get_m_root() + "/" + *index_it))
-					{
-						return (
-							response
-								.setPublicFileDocument(*index_it)
-								.makeHttpResponseMessage()
-						);
-					}
-				}
-			}
-		}
-	}
-	return (Server::page404("errors/default_error.html"));
+	return (
+		Server::makeResponseMessage(200)
+	);
+	// Response response;
+	// std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	// std::vector<HttpConfigLocation> v = this->m_server_block.get_m_location_block();
+	// std::vector<HttpConfigLocation>::const_iterator location_it;
+	// std::vector<std::string> v2;
+	// std::vector<std::string>::const_iterator index_it;
+
+	// if (ft::isValidFilePath(std::string("/Users/holee/Desktop/webserv/www") + path)) // http block의 root 로 대체해야 함, 서버매니저에서 넘겨줘야 함
+	// {
+	// 	return (
+	// 		response
+	// 			.setPublicFileDocument(path)
+	// 			.makeHttpResponseMessage()
+	// 	);
+	// }
+	// else
+	// {
+	// 	std::string block;
+	// 	if (path.compare("/") == 0 || path.compare("") == 0)
+	// 		block = "/";
+	// 	else
+	// 		block = path.substr(0, path.find_last_of("/"));
+	// 	for (location_it = v.begin() ; location_it != v.end() ; ++location_it)
+	// 	{
+	// 		if (block.compare(location_it->get_m_path()) == 0)
+	// 		{
+	// 			v2 = location_it->get_m_index();
+	// 			for (index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
+	// 			{
+	// 				if (ft::isValidFilePath(location_it->get_m_root() + "/" + *index_it))
+	// 				{
+	// 					return (
+	// 						response
+	// 							.setPublicFileDocument(*index_it)
+	// 							.makeHttpResponseMessage()
+	// 					);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// return (Server::page404("/Users/holee/Desktop/webserv/www/errors/default_error.html"));
 }
 
 /*============================================================================*/
