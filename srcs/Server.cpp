@@ -17,24 +17,38 @@ Server::Server(Server const &other)
 
 Server& Server::operator=(Server const &rhs)
 {
-	m_server_block = rhs.m_server_block;
-	m_server_name = rhs.m_server_name;
-	m_port = rhs.m_port;
-	m_err_page_path = rhs.m_err_page_path;
-	m_content_length = rhs.m_content_length;
-	m_location_size = rhs.m_location_size;
-	m_server_addr = rhs.m_server_addr;
-	m_client_addr = rhs.m_client_addr;
-	m_server_socket = rhs.m_server_socket;
-	m_client_socket = rhs.m_client_socket;
-	fd_num = rhs.fd_num;
-	sockfd = rhs.sockfd;
-	readn = rhs.readn;
-	maxfd = rhs.maxfd;
-	m_main_fds = rhs.m_main_fds;
-	m_copy_fds = rhs.m_copy_fds;
-	m_requests = rhs.m_requests;
-	m_responses = rhs.m_responses;
+	/* Config */
+	this->m_server_block = rhs.m_server_block;
+	this->m_server_name = rhs.m_server_name;
+	this->m_port = rhs.m_port;
+	this->m_err_page_path = rhs.m_err_page_path;
+	this->m_content_length = rhs.m_content_length;
+	this->m_location_size = rhs.m_location_size;
+	this->m_root = rhs.m_root;
+
+	/* Parse */
+	this->m_getLocation = rhs.m_getLocation;
+	this->m_postLocation = rhs.m_postLocation;
+	this->m_putLocation = rhs.m_putLocation;
+	this->m_deleteLocation = rhs.m_deleteLocation;
+	this->m_optionsLocation = rhs.m_optionsLocation;
+	this->m_traceLocation = rhs.m_traceLocation;
+
+	/* Socket */
+	this->m_server_addr = rhs.m_server_addr;
+	this->m_client_addr = rhs.m_client_addr;
+	this->m_server_socket = rhs.m_server_socket;
+	this->m_client_socket = rhs.m_client_socket;
+	this->fd_num = rhs.fd_num;
+	this->sockfd = rhs.sockfd;
+	this->readn = rhs.readn;
+	this->maxfd = rhs.maxfd;
+	this->m_main_fds = rhs.m_main_fds;
+	this->m_copy_fds = rhs.m_copy_fds;
+
+	/* Request, Response */
+	this->m_requests = rhs.m_requests;
+	this->m_responses = rhs.m_responses;
 	return (*this);
 };
 
@@ -88,6 +102,12 @@ Server::get_m_port()
 	return (this->m_port);
 }
 
+std::vector<HttpConfigLocation>
+Server::get_m_postLocation()
+{
+	return (this->m_postLocation);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -97,7 +117,50 @@ Server::get_m_port()
 /*============================================================================*/
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size)
+Server::noteHttpConfigLocation()
+{
+	std::vector<HttpConfigLocation> location_block = this->m_server_block.get_m_location_block();
+	std::vector<HttpConfigLocation>::const_iterator location_iter = location_block.begin();
+
+	while (location_iter != location_block.end())
+	{
+		std::vector<Method> limit_except = location_iter->get_m_limit_except();
+		std::vector<Method>::const_iterator limit = limit_except.begin();
+		while (limit != limit_except.end())
+		{
+			switch (*limit)
+			{
+				case GET:
+					this->m_getLocation.push_back(*location_iter);
+					break;
+				case POST:
+					this->m_postLocation.push_back(*location_iter);
+					break;
+				case PUT:
+					this->m_putLocation.push_back(*location_iter);
+					break;
+				case DELETE:
+					this->m_deleteLocation.push_back(*location_iter);
+					break;
+				case OPTIONS:
+					this->m_optionsLocation.push_back(*location_iter);
+					break;
+				case TRACE:
+					this->m_traceLocation.push_back(*location_iter);
+					break;
+				default:
+					std::cout << "Error: noteCGILocation method switch error " << std::endl;
+					break;
+			}
+			limit++;
+		}
+		location_iter++;
+	}
+	return ;
+}
+
+void
+Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
@@ -105,11 +168,12 @@ Server::init(HttpConfigServer server_block, std::string server_name, int port, s
 	this->m_server_name = server_name;
 	this->m_port = port;
 	if (err_page_path != "")
-		this->m_err_page_path = err_page_path.substr(6, err_page_path.size()-6);
+		this->m_err_page_path = err_page_path;
 	else
-		this->m_err_page_path = "errors/default_error.html";
+		this->m_err_page_path = "./www/errors/default_error.html";
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
+	this->m_root = root;
 	return ;
 }
 
@@ -387,23 +451,46 @@ Server::methodGET(int clientfd)
 {
 	Response response;
 	std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	std::vector<HttpConfigLocation> v = this->m_server_block.get_m_location_block();
+	std::vector<HttpConfigLocation>::const_iterator location_it;
+	std::vector<std::string> v2;
+	std::vector<std::string>::const_iterator index_it;
 
-	if (ft::isValidFilePath(path) == false)
-		return (Server::page404("errors/default_error.html"));
-	else
+	if (ft::isValidFilePath(std::string("/Users/jwon/github_42cursus/15_webserv/ftinx/webserv/www/") + path)) // http block의 root 로 대체해야 함, 서버매니저에서 넘겨줘야 함
 	{
 		return (
 			response
 				.setPublicFileDocument(path)
-				.setHttpResponseHeader("date", response.get_m_date())
-				.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-				.setHttpResponseHeader("content-language", response.get_m_content_language())
-				.setHttpResponseHeader("content-type", response.get_m_content_type())
-				.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-				.setHttpResponseHeader("server", response.get_m_server())
 				.makeHttpResponseMessage()
 		);
-}
+	}
+	else
+	{
+		std::string block;
+		if (path.compare("/") == 0 || path.compare("") == 0)
+			block = "/";
+		else
+			block = path.substr(0, path.find_last_of("/"));
+		for (location_it = v.begin() ; location_it != v.end() ; ++location_it)
+		{
+			if (block.compare(location_it->get_m_path()) == 0)
+			{
+				v2 = location_it->get_m_index();
+				for (index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
+				{
+					if (ft::isValidFilePath(location_it->get_m_root() + "/" + *index_it))
+					{
+						return (
+							response
+								.setPublicFileDocument(*index_it)
+								.makeHttpResponseMessage()
+						);
+					}
+				}
+			}
+		}
+	}
+	return (Server::page404("errors/default_error.html"));
 }
 
 /*============================================================================*/
@@ -422,29 +509,6 @@ Server::parseQuery(std::string str)
 		m_query.insert(make_pair(ft::trim(queries[0], " \n\t\v\f\r"), ft::trim(queries[1], " \n\t\v\f\r")));
 	}
 	return (m_query);
-}
-
-Response
-Server::postLoginSuccess()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument("srcs/login.html")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
 }
 
 std::map<std::string, std::string>
@@ -563,28 +627,64 @@ Server::postAuth(Request req, Response res)
 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
 
 			if (username == "42seoul" && password == "42seoul")
-				return (Server::postLoginSuccess());
+				return (Server::makeResponseMessage(200, "./www/srcs/login.html"));
 			else
-				return (Server::page200());
+				return (Server::makeResponseMessage(200, "./www/index.html"));
 		}
 	}
 	return (res);
 }
 
 Response
+Server::HttpConfigPost(Request req, Response res)
+{
+	/* Request에 대한 요청 처리*/
+	(void) req;
+	(void) res;
+
+	/* Response */
+	return (
+		Server::makeResponseMessage(200)
+	);
+}
+
+Response
 Server::methodPOST(int clientfd)
 {
 	Response response;
+
+	/* Response Setting */
 	response.set_m_err_page_path(this->m_err_page_path);
 
-	/* CGI Setting */
+	/* CGI Response Setting */
 	response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
 	response.set_m_cgi_port(this->get_m_port());
 	response.set_m_cgi_server_name(this->get_m_server_name());
 	response = Server::page404(response.get_m_err_page_path());
 
+	/* Route */
 	response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
 	response = post("/auth.cgi", this->m_requests[clientfd], response, Server::executeCgi);
+
+	/* Config File Route */
+	if (this->m_postLocation.size() == 0)
+		return (response);
+	std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_postLocation.begin();
+	while (location_iter != this->m_postLocation.end())
+	{
+		/* HttpConfig path Response Setting */
+		response.set_m_cgi_extension(location_iter->get_m_cgi());
+		response.set_m_index_file(location_iter->get_m_index());
+		response.set_m_root(location_iter->get_m_root());
+
+		/* CGI */
+		if (location_iter->get_m_cgi_path() != "")
+			response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::executeCgi);
+		else
+			response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
+		location_iter++;
+	}
+
 	return (response);
 }
 
@@ -740,6 +840,33 @@ Server::methodTRACE(int clientfd)
 /*******************************  STATUS CODE *********************************/
 /*============================================================================*/
 
+Response
+Server::makeResponseMessage(
+	int statusCode, std::string path, std::string contentType,
+	int dateHour, int dateMinute, int dateSecond,
+	std::string contentLanguage, std::string server
+)
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(statusCode)
+			.setCurrentDate(dateHour, dateMinute, dateSecond)
+			.setPublicFileDocument(path)
+			.setContentLanguage(contentLanguage)
+			.setContentType(contentType)
+			.setServer(server)
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
 /*============================================================================*/
 /**********************************  1XX  *************************************/
 /*============================================================================*/
@@ -877,10 +1004,11 @@ Server::parseErrorResponse(int clientfd)
 }
 
 Response
-Server::getDirectory()
+Server::getDirectory(Request req, Response res)
 {
 	Response response = Response();
-
+	(void) req;
+	(void) res;
 	return (
 		response
 			.setStatusCode(200)
@@ -900,10 +1028,10 @@ Server::getDirectory()
 }
 
 Response
-Server::get(std::string path, Request req, Response res, Response (*func)())
+Server::get(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
@@ -916,42 +1044,34 @@ Server::post(std::string path, Request req, Response res, Response (*func)(Reque
 }
 
 Response
-Server::put(std::string path, Request req, Response res, Response (*func)())
+Server::put(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
 Response
-Server::del(std::string path, Request req, Response res, Response (*func)())
+Server::del(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
 Response
-Server::update(std::string path, Request req, Response res, Response (*func)())
+Server::options(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 
 Response
-Server::options(std::string path, Request req, Response res, Response (*func)())
+Server::trace(std::string path, Request req, Response res, Response (*func)(Request req, Response res))
 {
 	if (path == req.get_m_uri().get_m_path())
-		return (func());
-	return (res);
-}
-
-Response
-Server::trace(std::string path, Request req, Response res, Response (*func)())
-{
-	if (path == req.get_m_uri().get_m_path())
-		return (func());
+		return (func(req, res));
 	return (res);
 }
 

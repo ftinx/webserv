@@ -15,6 +15,7 @@
 #include "Response.hpp"
 #include "Request.hpp"
 #include "HttpConfig.hpp"
+#include "HttpConfigLocation.hpp"
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
@@ -37,17 +38,26 @@
 class Server
 {
 	private:
+		/* Config */
 		HttpConfigServer m_server_block;
 		std::string m_server_name;
 		int m_port;
 		std::string m_err_page_path;
 		int m_content_length;
 		size_t m_location_size;
+		std::string m_root;
+
+		/* Parse */
+		std::vector<HttpConfigLocation> m_getLocation;
+		std::vector<HttpConfigLocation> m_postLocation;
+		std::vector<HttpConfigLocation> m_putLocation;
+		std::vector<HttpConfigLocation> m_deleteLocation;
+		std::vector<HttpConfigLocation> m_optionsLocation;
+		std::vector<HttpConfigLocation> m_traceLocation;
 
 		/* Socket */
 		struct sockaddr_in m_server_addr;
 		struct sockaddr_in m_client_addr;
-		// socklen_t addrlen;
 		int m_server_socket;
 		int m_client_socket;
 		int fd_num;
@@ -66,16 +76,22 @@ class Server
 		Server(Server const &other);
 		Server& operator=(Server const &rhs);
 
+		/* getter */
 		std::string get_m_server_name();
 		int get_m_port();
+		std::vector<HttpConfigLocation> get_m_postLocation();
 
+		/* setter */
+
+		void noteHttpConfigLocation();
 		void init(
 			HttpConfigServer server_block,
 			std::string server_name,
 			int port,
 			std::string err_page_path,
 			int content_length,
-			size_t location_size
+			size_t location_size,
+			std::string root
 		);
 		void setServerAddr(int port);
 		bool setServerSocket();
@@ -83,26 +99,31 @@ class Server
 		void closeServer();
 
 		void getRequest();
+		static Response makeResponseMessage(
+			int statusCode,
+			std::string path = "./www/index.html", std::string contentType="text/html; charset=UTF-8",
+			int dateHour=0, int dateMinute=0, int dateSecond=0,
+			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
+		);
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
 
 		/* SERVER METHOD UTIL */
-		static Response getDirectory();
-		static Response postLoginSuccess();
+		static Response getDirectory(Request req, Response res);
 		static Response postAuth(Request req, Response res);
 		static std::map<std::string, std::string> parseQuery(std::string str);
+		static Response HttpConfigPost(Request req, Response res);
 
 		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		static char** makeCgiEnvp(Request req, Response res);
 		static Response executeCgi(Request req, Response res);
 
-		Response get(std::string path, Request req, Response res, Response (*func)());
+		Response get(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response put(std::string path, Request req, Response res, Response (*func)());
-		Response del(std::string path, Request req, Response res, Response (*func)());
-		Response update(std::string path, Request req, Response res, Response (*func)());
-		Response options(std::string path, Request req, Response res, Response (*func)());
-		Response trace(std::string path, Request req, Response res, Response (*func)());
+		Response put(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response del(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response options(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response trace(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 
 		/* METHOD */
 		Response methodHEAD(int clientfd);
