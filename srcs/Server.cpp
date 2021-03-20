@@ -354,7 +354,6 @@ Server::runServer()
 				return ;
 			case 0:
 				perror("timeout error");
-				return ;
 			default:
 				getRequest();
 		}
@@ -418,12 +417,12 @@ Server::getRequest()
 			/*
 			**	Response 부분 끝
 			*/
-			close(this->sockfd);
+			//close(this->sockfd);
 			if (--this->fd_num <= 0)
 				break;
 		}
 	}
-	// FD_ZERO(&this->m_main_fds);
+	//FD_ZERO(&this->m_main_fds);
 	return ;
 }
 
@@ -561,19 +560,48 @@ Response
 Server::executeCgi(Request req, Response res)
 {
 	pid_t pid;
-	Request &request = req;
+	// Request &request = req;
 	Response &response = res;
 	char** envp = Server::makeCgiEnvp(req, res);
+	int pipe1[2];
+	int pipe2[2];
 
+	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
+		return (Server::page404("errors/default_error.html"));
+
+	int parentStdOut = pipe1[1];
+	int parentStdIn = pipe2[0];
+	int cgiStdOut = pipe2[1];
+	int cgiStdIn = pipe1[0];
+
+	close(pipe1[0]);
+	close(pipe2[1]);
+
+	fcntl(cgiStdOut, F_SETFL, O_NONBLOCK);
+	fcntl(cgiStdIn, F_SETFL, O_NONBLOCK);
+	fcntl(parentStdOut, F_SETFL, O_NONBLOCK);
+	fcntl(parentStdIn, F_SETFL, O_NONBLOCK);
+
+int status;
+write(parentStdOut, "hello!\n", 8);
 	if ((pid = fork()) < 0)
 		return (Server::page404("errors/default_error.html"));
 	if (pid == 0)
 	{
-		execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
+		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
+		dup2(cgiStdOut, STDOUT_FILENO);
+		dup2(cgiStdIn, STDIN_FILENO);
+		//execve((request.get_m_uri().get_m_path()).c_str(), 0, envp);
+		execve("./cgi-bin/cgi_tester", 0, envp);
+		exit(1);
 	}
 	else
 	{
-		/* code */
+		waitpid(pid, &status, 0);
+		char buffer[54];
+		buffer[53] = '\0';
+		read(parentStdIn, buffer, 53);
+		printf("buffer out @@@@@ %s \n", buffer);
 	}
 	return (response);
 }
