@@ -65,6 +65,8 @@ class Server
 		int readn;
 		int maxfd;
 		fd_set m_main_fds, m_copy_fds;
+		fd_set m_read_fds, m_write_fds;
+		fd_set m_copy_read_fds, m_copy_write_fds;
 
 		/* Request, Response */
 		std::vector<Request> m_requests;
@@ -80,6 +82,7 @@ class Server
 		std::string get_m_server_name();
 		int get_m_port();
 		std::vector<HttpConfigLocation> get_m_postLocation();
+		fd_set get_m_write_fds();
 
 		/* setter */
 
@@ -116,10 +119,10 @@ class Server
 
 		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		static char** makeCgiEnvp(Request req, Response res);
-		static Response executeCgi(Request req, Response res);
+		static Response executeCgi(Request req, Response res, fd_set *write_fds);
 
 		Response get(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response post(std::string path, Request req, Response res, fd_set *write_fds, Response (*func)(Request req, Response res, fd_set *write_fds));
 		Response put(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response del(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response options(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
