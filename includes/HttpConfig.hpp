@@ -46,6 +46,7 @@ class HttpConfig
 		std::string get_m_include() const;
 		std::string get_m_root() const;
 		std::vector<HttpConfigServer> get_m_server_block() const;
+		std::map<std::string, std::string> get_m_mime_types() const;
 
 		/* setter */
 		void parseMimeTypes();

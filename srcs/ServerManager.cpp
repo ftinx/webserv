@@ -18,6 +18,7 @@ ServerManager& ServerManager::operator=(ServerManager const &rhs)
 {
 	this->m_httpConfig = rhs.m_httpConfig;
 
+	this->m_mime_types = rhs.m_mime_types;
 	this->m_server_block = rhs.m_server_block;
 	this->m_server = rhs.m_server;
 	this->m_server_size = rhs.m_server_size;
@@ -64,6 +65,7 @@ ServerManager::storeParseValue()
 	this->m_root = this->m_httpConfig.get_m_root();
 	this->m_server_size = this->m_httpConfig.get_m_server_block().size();
 	this->m_server_block = this->m_httpConfig.get_m_server_block();
+	this->m_mime_types = this->m_httpConfig.get_m_mime_types();
 	return ;
 }
 
@@ -78,10 +80,10 @@ ServerManager::parseHttpConfig()
 }
 
 Server
-ServerManager::generateServer(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root)
+ServerManager::generateServer(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
 {
 	Server server;
-	server.init(server_block, server_name, port, err_page_path, content_length,location_size, root);
+	server.init(server_block, server_name, port, err_page_path, content_length,location_size, root, mime_types);
 	server.setServerAddr(port);
 	server.setServerSocket();
 	server.noteHttpConfigLocation();
@@ -100,7 +102,8 @@ ServerManager::initServers()
 				this->m_server_block[i].get_m_default_error_page(),
 				this->m_server_block[i].get_m_content_length(),
 				this->m_server_block[i].get_m_location_block().size(),
-				this->m_root
+				this->m_root,
+				this->m_mime_types
 			))
 		);
 	}

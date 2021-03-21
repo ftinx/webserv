@@ -39,6 +39,7 @@ class Server
 {
 	private:
 		/* Config */
+		std::map<std::string, std::string> m_mime_types;
 		HttpConfigServer m_server_block;
 		std::string m_server_name;
 		int m_port;
@@ -94,7 +95,8 @@ class Server
 			std::string err_page_path,
 			int content_length,
 			size_t location_size,
-			std::string root
+			std::string root,
+			std::map<std::string, std::string> mime_types
 		);
 		void setServerAddr(int port);
 		bool setServerSocket();
