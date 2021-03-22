@@ -244,7 +244,6 @@ Request::getMessage(int fd)
 		if (isBreakCondition(str, &chunked, body_bytes, header_bytes))
 			break;
 		memset(recvline, 0, MAXLINE);
-		std::cout << m_message << std::endl;
 	}
 	std::cout << "\033[43;31m*********\033[0m" << std::endl;
 	std::cout << "out of loop" << std::endl;
