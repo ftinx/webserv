@@ -166,7 +166,7 @@ Request::getContentLength()
 {
 	std::map<std::string, std::string>::const_iterator it;
 
-	it = this->m_headers.find("content-length");
+	it = this->m_headers.find("Content-Length");
 	if (it == this->m_headers.end())
 		return ("");
 	return (it->second);
@@ -177,24 +177,29 @@ Request::getContentType()
 {
 	std::map<std::string, std::string>::const_iterator it;
 
-	it = this->m_headers.find("content-type");
+	it = this->m_headers.find("Content-Type");
 	if (it == this->m_headers.end())
 		return ("text/html");
 	return (it->second);
 }
 
 bool
-Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int header_bytes)
+Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 {
 	static int content_length = -1;
 	size_t pos;
 	std::string tmp;
 
-	if (*chunked == true && str == "\r\n") //error의 소지가 있음
-		return (true);
-	if ((pos = this->m_message.find("content-length:")) != std::string::npos)
+	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
+		*chunked = true;
+	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) == this->m_message.size() - 5)
 	{
-		tmp = m_message.substr(pos + strlen("content-length:"), std::string::npos);
+		this->m_message = this->m_message.substr(0, pos + 5);
+		return (true);
+	}
+	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
+	{
+		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
@@ -206,12 +211,12 @@ Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int he
 		this->m_message = this->m_message.substr(0, header_bytes + content_length);
 		return (true);
 	}
-	else if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos)
+	else if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos && *chunked == false)
 	{
+		std::cout << m_message << std::endl;
 		this->m_message = this->m_message.substr(0, pos);
 		return (true);
 	}
-	//td::cout << "isBreakCondition False" << std::endl;
 	return (false);
 }
 
@@ -243,7 +248,7 @@ Request::getMessage(int fd)
 			else
 				body_bytes += ret;
 		}
-		if (isBreakCondition(str, &chunked, body_bytes, header_bytes))
+		if (isBreakCondition(&chunked, body_bytes, header_bytes))
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
