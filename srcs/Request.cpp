@@ -192,9 +192,10 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 
 	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
 		*chunked = true;
-	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) == this->m_message.size() - 5)
+	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) != std::string::npos)
 	{
 		this->m_message = this->m_message.substr(0, pos + 5);
+		std::cout << "CASE 1" << std::endl;
 		return (true);
 	}
 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
@@ -203,18 +204,20 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
-			content_length = std::stoi(tmp);
+			content_length = ft::stoi(tmp);
 		}
 	}
 	if (content_length >= 0 && content_length <= body_bytes)
 	{
 		this->m_message = this->m_message.substr(0, header_bytes + content_length);
+		std::cout << "CASE 2" << std::endl;
 		return (true);
 	}
 	else if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos && *chunked == false)
 	{
 		std::cout << m_message << std::endl;
 		this->m_message = this->m_message.substr(0, pos);
+		std::cout << "CASE 3" << std::endl;
 		return (true);
 	}
 	return (false);
@@ -230,7 +233,7 @@ Request::getMessage(int fd)
 	int body_bytes = 0;
 	char recvline[MAXLINE + 1];
 
-
+	m_message = "";
 	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
 	{
 		recvline[ret] = '\0';
@@ -252,15 +255,15 @@ Request::getMessage(int fd)
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
-	std::cout << "\033[43;31m**** request m_message out of loop *****\033[0m" << std::endl;
+	std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
 	std::cout << m_message << std::endl;
-	if (this->parseMessage() == false)
+	if (this->parseMessage(chunked) == false)
 		return (false);
 	return (true);
 }
 
 bool
-Request::parseMessage()
+Request::parseMessage(bool chunked)
 {
 	size_t i;
 	std::vector<std::string> lines = ft::split(this->m_message, "\n");
@@ -281,7 +284,7 @@ Request::parseMessage()
 	i++;
 	while (i < lines.size())
 	{
-		if (parseBody(lines[i], i, lines.size()) == false)
+		if (parseBody(lines[i], i, lines.size(), chunked) == false)
 			return (false);
 		i++;
 	}
@@ -344,14 +347,27 @@ Request::parseHeader(std::string line)
 }
 
 bool
-Request::parseBody(std::string line, int i, int size)
+Request::parseBody(std::string line, int i, int size, bool chunked)
 {
+	static int content_length = 0;
+	int stoi_ret;
 	std::string newline;
 
-	newline = line;
-	if (i != size - 1)
-		newline += "\n";
-	this->m_body += newline;
+	if (chunked == false)
+	{
+		newline = line;
+		if (i != size - 1)
+			newline += "\n";
+		this->m_body += newline;
+		return (true);
+	}
+	/* else chunked == true */
+	newline = ft::rtrim(line, "\r");
+	stoi_ret = ft::stoi(newline);
+	if (stoi_ret == 0 && newline != "0")
+		this->m_body += newline.substr(0, content_length);
+	else if (stoi_ret != 0)
+		content_length = stoi_ret;
 	return (true);
 }
 

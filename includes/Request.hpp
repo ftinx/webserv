@@ -54,13 +54,13 @@ class Request
 		std::string getContentType();
 		bool isBreakCondition(bool*, int, int);
 		bool getMessage(int);
-		bool parseMessage();
+		bool parseMessage(bool);
 		bool parseRequestLine(std::string);
 		bool checkMethod();
 		bool checkCGI();
 		bool parseHeader(std::string);
 		bool checkBlankLine(std::string);
-		bool parseBody(std::string, int, int);
+		bool parseBody(std::string, int, int, bool);
 		void checkChunked(std::string);
 		void printHeaders() const;
 };

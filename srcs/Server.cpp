@@ -421,8 +421,8 @@ Server::getRequest()
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
 
 			FD_SET(this->sockfd, &this->m_write_fds);
-			FD_CLR(this->sockfd, &this->m_main_fds);
-			FD_CLR(this->sockfd, &this->m_read_fds);
+			//FD_CLR(this->sockfd, &this->m_main_fds);
+			//FD_CLR(this->sockfd, &this->m_read_fds);
 			if (--this->fd_num <= 0)
 				break;
 		}
@@ -741,7 +741,7 @@ Server::methodPOST(int clientfd)
 	// 	location_iter++;
 	// }
 
-	return (Server::makeResponseMessage(200, ""));
+	return (Server::makeResponseMessage(405, ""));
 }
 
 /*============================================================================*/
@@ -1170,6 +1170,8 @@ Server::sendResponse(int clientfd)
 
 	/* 전체 Response Message 확인 할 수 있음 */
 	// printf("%s\n", response.get_m_reponse_message().c_str());
+	std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
+	std::cout << response.get_m_reponse_message() << std::endl;
 
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;
