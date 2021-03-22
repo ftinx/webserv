@@ -166,7 +166,7 @@ Request::getContentLength()
 {
 	std::map<std::string, std::string>::const_iterator it;
 
-	it = this->m_headers.find("Content-Length");
+	it = this->m_headers.find("content-length");
 	if (it == this->m_headers.end())
 		return ("");
 	return (it->second);
@@ -177,7 +177,7 @@ Request::getContentType()
 {
 	std::map<std::string, std::string>::const_iterator it;
 
-	it = this->m_headers.find("Content-Type");
+	it = this->m_headers.find("content-type");
 	if (it == this->m_headers.end())
 		return ("text/html");
 	return (it->second);
@@ -190,11 +190,11 @@ Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int he
 	size_t pos;
 	std::string tmp;
 
-	if (*chunked == true && str == "\r\n")
+	if (*chunked == true && str == "\r\n") //error의 소지가 있음
 		return (true);
-	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
+	if ((pos = this->m_message.find("content-length:")) != std::string::npos)
 	{
-		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
+		tmp = m_message.substr(pos + strlen("content-length:"), std::string::npos);
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
@@ -206,7 +206,7 @@ Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int he
 		this->m_message = this->m_message.substr(0, header_bytes + content_length);
 		return (true);
 	}
-	else if ((pos = str.find("\r\n\r\n")) != std::string::npos)
+	else if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos)
 	{
 		this->m_message = this->m_message.substr(0, pos);
 		return (true);
@@ -224,6 +224,8 @@ Request::getMessage(int fd)
 	int body_bytes = 0;
 	char recvline[MAXLINE + 1];
 
+
+	m_message = "";
 	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
 	{
 		std::string str(recvline);
@@ -242,7 +244,11 @@ Request::getMessage(int fd)
 		if (isBreakCondition(str, &chunked, body_bytes, header_bytes))
 			break;
 		memset(recvline, 0, MAXLINE);
+		std::cout << m_message << std::endl;
 	}
+	std::cout << "\033[43;31m*********\033[0m" << std::endl;
+	std::cout << "out of loop" << std::endl;
+	std::cout << m_message << std::endl;
 	if (this->parseMessage() == false)
 		return (false);
 	return (true);
@@ -254,6 +260,8 @@ Request::parseMessage()
 	size_t i;
 	std::vector<std::string> lines = ft::split(this->m_message, "\n");
 
+	if (lines.size() == 0)
+		return (false);
 	if (parseRequestLine(ft::rtrim(lines[0], "\r")) == false)
 	{
 		return (false);
@@ -283,8 +291,6 @@ Request::parseRequestLine(std::string request_line)
 
 	if (pieces.size() != 3)
 	{
-
-
 		this->m_error_code = 400;
 		return (false);
 	}

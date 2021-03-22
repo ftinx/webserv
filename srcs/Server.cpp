@@ -319,59 +319,6 @@ Server::setServerSocket()
 #include <bitset>
 #include <iostream>
 
-// void
-// serverFDLog(int num)
-// {
-// 	for (int i=0; i<1; i++) {
-// 		std::cout << "-----" << num << "-----" << std::endl;
-// 		std::cout << std::bitset<32>(this->m_copy_fds.fds_bits[i]) << std::endl;
-// 	}
-// 	return ;
-// }
-
-// void
-// Server::runServer()
-// {
-// 	// rfc보고 정의
-// 	struct timeval timeout;
-// 	timeout.tv_sec = 4;
-// 	timeout.tv_usec = 2;
-
-// 	FD_ZERO(&this->m_main_fds);
-// 	FD_ZERO(&this->m_read_fds);
-// 	FD_ZERO(&this->m_write_fds);
-// 	FD_SET(this->m_server_socket, &this->m_main_fds);
-
-// 	this->maxfd = 0;
-// 	this->maxfd = this->m_server_socket;
-
-// 	while (42)
-// 	{
-// 		this->m_copy_read_fds = this->m_main_fds;
-// 		this->m_copy_write_fds = this->m_write_fds;
-// 		printf("Select Wait %d\n", this->maxfd);
-// 		this->fd_num = select(
-// 			this->maxfd + 1 ,
-// 			&this->m_copy_read_fds,
-// 			&this->m_copy_write_fds,
-// 			reinterpret_cast<fd_set *>(0),
-// 			&timeout
-// 		);
-
-// 		switch (this->fd_num)
-// 		{
-// 			case -1:
-// 				perror("select error");
-// 				return ;
-// 			case 0:
-// 				perror("timeout error");
-// 			default:
-// 				getRequest();
-// 		}
-// 	}
-// 	return ;
-// }
-
 void
 Server::runServer()
 {
@@ -397,6 +344,7 @@ Server::runServer()
 			reinterpret_cast<fd_set *>(0),
 			&timeout
 		);
+		std::cout << "Accept " << std::endl;
 
 		switch (this->fd_num)
 		{
@@ -424,79 +372,6 @@ Server::closeServer()
 
 #include <bitset>
 #include <iostream>
-
-// void
-// Server::getRequest()
-// {
-// 	if (ft::fdIsSet(this->m_server_socket, &this->m_copy_fds))
-// 	{
-// 		socklen_t addrlen;
-
-// 		addrlen = sizeof(this->m_client_addr);
-// 		if ((
-// 			this->m_client_socket = accept(
-// 				this->m_server_socket,
-// 				reinterpret_cast<struct sockaddr *>(&this->m_client_addr),
-// 				reinterpret_cast<socklen_t *>(&addrlen)
-// 			)
-// 		) == -1)
-// 			std::cerr<<"accept error"<<std::endl;
-
-// 		/* add client socket to read_fds */
-// 		ft::fdSet(this->m_client_socket, &this->m_main_fds);
-// 		fcntl(this->m_client_socket, F_SETFL, O_NONBLOCK);
-
-// 		/* update maxfd */
-// 		if (this->m_client_socket > this->maxfd)
-// 			this->maxfd = this->m_client_socket;
-// 		printf("Accept OK\n");
-// 		return ;
-// 	}
-
-// 	for (int i = 0; i <= this->maxfd; i++)
-// 	{
-// 		this->sockfd = i;
-// 		if (ft::fdIsSet(this->sockfd, &this->m_copy_read_fds))
-// 		{
-// 			/*
-// 			** Request 부분 시작, false시 에러 받아줘야
-// 			*/
-// 			this->m_requests[this->sockfd].getMessage(this->sockfd);
-// 			std::cout << this->m_requests[this->sockfd] << std::endl;
-// 			this->m_requests[this->sockfd].printHeaders();
-// 			/*
-// 			**	Response 부분 시작
-// 			*/
-// 			sendResponse(this->sockfd);
-// 			/*
-// 			**	Response 부분 끝
-// 			*/
-// 			if (--this->fd_num <= 0)
-// 				break;
-// 			FD_CLR(this->sockfd, &this->m_copy_fds);
-// 		}
-// 		else if (ft::fdIsSet(this->sockfd, &this->m_copy_write_fds))
-// 		{
-// 			/*
-// 			** Request 부분 시작, false시 에러 받아줘야
-// 			*/
-// 			this->m_requests[this->sockfd].getMessage(this->sockfd);
-// 			std::cout << this->m_requests[this->sockfd] << std::endl;
-// 			this->m_requests[this->sockfd].printHeaders();
-// 			/*
-// 			**	Response 부분 시작
-// 			*/
-// 			sendResponse(this->sockfd);
-// 			/*
-// 			**	Response 부분 끝
-// 			*/
-// 			if (--this->fd_num <= 0)
-// 				break;
-// 			FD_CLR(this->sockfd, &this->m_copy_fds);
-// 		}
-// 	}
-// 	return ;
-// }
 
 void
 Server::getRequest()
@@ -532,8 +407,8 @@ Server::getRequest()
 			** Request 부분 시작, false시 에러 받아줘야
 			*/
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
-			std::cout << this->m_requests[this->sockfd] << std::endl;
-			this->m_requests[this->sockfd].printHeaders();
+			// std::cout << this->m_requests[this->sockfd] << std::endl;
+			//this->m_requests[this->sockfd].printHeaders();
 			//close(this->sockfd);
 			/*
 			**	Response 부분 시작
@@ -545,6 +420,7 @@ Server::getRequest()
 			if (--this->fd_num <= 0)
 				break;
 			FD_CLR(this->sockfd, &this->m_main_fds);
+			memset(&m_requests[sockfd], 0, sizeof(Request));
 		}
 	}
 	return ;
@@ -601,49 +477,50 @@ Server::getTest(Request req, Response res)
 Response
 Server::methodGET(int clientfd)
 {
-	Response response;
-	std::string content_type;
-	std::string path;
+	(void) clientfd;
+	// Response response;
+	// std::string content_type;
+	// std::string path;
 
-	// get_cnt++;
-	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
-	path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	// std::cout << "---------request path : " << path << std::endl;
-	if (ft::isValidFilePath(this->m_root + path))
-	{
-		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
-		// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
-		// std::cout << "----1------ contenttype : " << content_type << std::endl;
-		return (Server::makeResponseMessage(200, this->m_root + path, content_type));
-	}
-	else if (ft::isValidDirPath(this->m_root + path))
-	{
-		std::string block;
-		if (path.compare("/") == 0 || path.compare("") == 0)
-			block = "/";
-		else
-			block = path.substr(0, path.find_last_of("/"));
-		std::vector<HttpConfigLocation> location = this->m_server_block.get_m_location_block();
-		for (std::vector<HttpConfigLocation>::const_iterator location_it = location.begin() ; location_it != location.end() ; ++location_it)
-		{
-			if (block.compare(location_it->get_m_path()) == 0)
-			{
-				std::vector<std::string> v2 = location_it->get_m_index();
-				for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
-				{
-					if (ft::isValidFilePath(location_it->get_m_root() + block + *index_it))
-					{
-						path = location_it->get_m_root() + block + *index_it;
-						content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
-						// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
-						// std::cout << "---2------- contenttype : " << content_type << std::endl;
-						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, content_type));
-					}
-				}
-			}
-		}
-	}
-	return (Server::page404("./www/errors/default_error.html"));
+	// // get_cnt++;
+	// // std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
+	// path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	// // std::cout << "---------request path : " << path << std::endl;
+	// if (ft::isValidFilePath(this->m_root + path))
+	// {
+	// 	content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
+	// 	// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
+	// 	// std::cout << "----1------ contenttype : " << content_type << std::endl;
+	// 	return (Server::makeResponseMessage(200, this->m_root + path, content_type));
+	// }
+	// else if (ft::isValidDirPath(this->m_root + path))
+	// {
+	// 	std::string block;
+	// 	if (path.compare("/") == 0 || path.compare("") == 0)
+	// 		block = "/";
+	// 	else
+	// 		block = path.substr(0, path.find_last_of("/"));
+	// 	std::vector<HttpConfigLocation> location = this->m_server_block.get_m_location_block();
+	// 	for (std::vector<HttpConfigLocation>::const_iterator location_it = location.begin() ; location_it != location.end() ; ++location_it)
+	// 	{
+	// 		if (block.compare(location_it->get_m_path()) == 0)
+	// 		{
+	// 			std::vector<std::string> v2 = location_it->get_m_index();
+	// 			for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
+	// 			{
+	// 				if (ft::isValidFilePath(location_it->get_m_root() + block + *index_it))
+	// 				{
+	// 					path = location_it->get_m_root() + block + *index_it;
+	// 					content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
+	// 					// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
+	// 					// std::cout << "---2------- contenttype : " << content_type << std::endl;
+	// 					return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, content_type));
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	return (Server::makeResponseMessage(200, "./www/index.html"));
 }
 
 /*============================================================================*/
@@ -822,20 +699,21 @@ Server::HttpConfigPost(Request req, Response res)
 Response
 Server::methodPOST(int clientfd)
 {
-	Response response;
+	(void) clientfd;
+	// Response response;
 
-	/* Response Setting */
-	response.set_m_err_page_path(this->m_err_page_path);
+	// /* Response Setting */
+	// response.set_m_err_page_path(this->m_err_page_path);
 
-	/* CGI Response Setting */
-	response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
-	response.set_m_cgi_port(this->get_m_port());
-	response.set_m_cgi_server_name(this->get_m_server_name());
-	response = Server::page404(response.get_m_err_page_path());
+	// /* CGI Response Setting */
+	// response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
+	// response.set_m_cgi_port(this->get_m_port());
+	// response.set_m_cgi_server_name(this->get_m_server_name());
+	// response = Server::page404(response.get_m_err_page_path());
 
 	/* Route */
-	if (this->m_requests[clientfd].get_m_uri().get_m_path() == "/cgi-bin/cgi_tester")
-		response = executeCgi(this->m_requests[clientfd], response, &this->m_write_fds);
+	// if (this->m_requests[clientfd].get_m_uri().get_m_path() == "/cgi-bin/cgi_tester")
+	// 	response = executeCgi(this->m_requests[clientfd], response, &this->m_write_fds);
 	// response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
 	// response = post("/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
 
@@ -859,7 +737,7 @@ Server::methodPOST(int clientfd)
 	// 	location_iter++;
 	// }
 
-	return (response);
+	return (Server::makeResponseMessage(200, "./www/index.html"));
 }
 
 /*============================================================================*/
@@ -1287,7 +1165,7 @@ Server::sendResponse(int clientfd)
 	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
 	/* 전체 Response Message 확인 할 수 있음 */
-	printf("%s\n", response.get_m_reponse_message().c_str());
+	// printf("%s\n", response.get_m_reponse_message().c_str());
 
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;
