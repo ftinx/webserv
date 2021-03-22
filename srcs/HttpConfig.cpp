@@ -75,6 +75,12 @@ HttpConfig::get_m_server_block() const
 	return (this->m_server_block);
 }
 
+std::map<std::string, std::string>
+HttpConfig::get_m_mime_types() const
+{
+	return (this->m_mime_types);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/

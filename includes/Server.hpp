@@ -39,6 +39,7 @@ class Server
 {
 	private:
 		/* Config */
+		std::map<std::string, std::string> m_mime_types;
 		HttpConfigServer m_server_block;
 		std::string m_server_name;
 		int m_port;
@@ -65,6 +66,8 @@ class Server
 		int readn;
 		int maxfd;
 		fd_set m_main_fds, m_copy_fds;
+		fd_set m_read_fds, m_write_fds;
+		fd_set m_copy_read_fds, m_copy_write_fds;
 
 		/* Request, Response */
 		std::vector<Request> m_requests;
@@ -80,6 +83,7 @@ class Server
 		std::string get_m_server_name();
 		int get_m_port();
 		std::vector<HttpConfigLocation> get_m_postLocation();
+		fd_set get_m_write_fds();
 
 		/* setter */
 
@@ -91,7 +95,8 @@ class Server
 			std::string err_page_path,
 			int content_length,
 			size_t location_size,
-			std::string root
+			std::string root,
+			std::map<std::string, std::string> mime_types
 		);
 		void setServerAddr(int port);
 		bool setServerSocket();
@@ -114,12 +119,14 @@ class Server
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response HttpConfigPost(Request req, Response res);
 
-		static std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
-		static char** makeCgiEnvp(Request req, Response res);
-		static Response executeCgi(Request req, Response res);
+		/* Cgi Utils */
+		//static std::string parseCgiPathInfo(Request req);
+		std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
+		char** makeCgiEnvp(Request req, Response res);
+		Response executeCgi(Request req, Response res, fd_set *write_fds);
 
 		Response get(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+		Response post(std::string path, Request req, Response res, fd_set *write_fds, Response (*func)(Request req, Response res, fd_set *write_fds));
 		Response put(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response del(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response options(std::string path, Request req, Response res, Response (*func)(Request req, Response res));

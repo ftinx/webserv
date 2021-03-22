@@ -173,6 +173,12 @@ Response::get_m_cgi_extension() const
 	return (this->m_cgi_extension);
 }
 
+std::string
+Response::get_m_cgi_path() const
+{
+	return (this->m_cgi_path);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -237,6 +243,13 @@ void
 Response::set_m_root(std::string root)
 {
 	this->m_root = root;
+	return ;
+}
+
+void
+Response::set_m_cgi_path(std::string cgi_path)
+{
+	this->m_cgi_path = cgi_path;
 	return ;
 }
 
