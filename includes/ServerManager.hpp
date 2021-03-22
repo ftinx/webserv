@@ -12,6 +12,7 @@ class ServerManager
 	private:
 		HttpConfig m_httpConfig;
 
+		std::map<std::string, std::string> m_mime_types;
 		std::vector<HttpConfigServer> m_server_block;
 		std::vector<Server*> m_server;
 		size_t m_server_size;
@@ -38,7 +39,8 @@ class ServerManager
 			std::string err_page_path,
 			int content_length,
 			size_t location_size,
-			std::string root
+			std::string root,
+			std::map<std::string, std::string> mime_types
 		);
 		void initServers();
 		void runServers();

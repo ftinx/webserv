@@ -18,6 +18,7 @@ Server::Server(Server const &other)
 Server& Server::operator=(Server const &rhs)
 {
 	/* Config */
+	this->m_mime_types = rhs.m_mime_types;
 	this->m_server_block = rhs.m_server_block;
 	this->m_server_name = rhs.m_server_name;
 	this->m_port = rhs.m_port;
@@ -166,7 +167,7 @@ Server::noteHttpConfigLocation()
 }
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root)
+Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
@@ -180,6 +181,7 @@ Server::init(HttpConfigServer server_block, std::string server_name, int port, s
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	this->m_root = root;
+	this->m_mime_types = mime_types;
 	return ;
 }
 
