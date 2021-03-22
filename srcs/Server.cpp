@@ -734,7 +734,11 @@ Server::methodPOST(int clientfd)
 	// 	location_iter++;
 	// }
 
+<<<<<<< HEAD
 	return (Server::makeResponseMessage(206, "./www/index.html"));
+=======
+	return (Server::makeResponseMessage(200, ""));
+>>>>>>> 5ca27f32718c3b6e8e321030c5bb076a5950badb
 }
 
 /*============================================================================*/
