@@ -211,6 +211,7 @@ Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int he
 		this->m_message = this->m_message.substr(0, pos);
 		return (true);
 	}
+	std::cout << "isBreakCondition False" << std::endl;
 	return (false);
 }
 
@@ -245,8 +246,7 @@ Request::getMessage(int fd)
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
-	std::cout << "\033[43;31m*********\033[0m" << std::endl;
-	std::cout << "out of loop" << std::endl;
+	std::cout << "\033[43;31m**** request m_message out of loop *****\033[0m" << std::endl;
 	std::cout << m_message << std::endl;
 	if (this->parseMessage() == false)
 		return (false);

@@ -344,7 +344,6 @@ Server::runServer()
 			reinterpret_cast<fd_set *>(0),
 			&timeout
 		);
-		std::cout << "Accept " << std::endl;
 
 		switch (this->fd_num)
 		{
@@ -391,7 +390,6 @@ Server::getRequest()
 			std::cerr<<"accept error"<<std::endl;
 
 		ft::fdSet(this->m_client_socket, &this->m_main_fds);
-
 		if (this->m_client_socket > this->maxfd)
 			this->maxfd = this->m_client_socket;
 		printf("Accept OK\n");
@@ -420,7 +418,6 @@ Server::getRequest()
 			if (--this->fd_num <= 0)
 				break;
 			FD_CLR(this->sockfd, &this->m_main_fds);
-			memset(&m_requests[sockfd], 0, sizeof(Request));
 		}
 	}
 	return ;
@@ -737,7 +734,7 @@ Server::methodPOST(int clientfd)
 	// 	location_iter++;
 	// }
 
-	return (Server::makeResponseMessage(200, "./www/index.html"));
+	return (Server::makeResponseMessage(206, "./www/index.html"));
 }
 
 /*============================================================================*/
