@@ -328,6 +328,7 @@ Server::runServer()
 	timeout.tv_usec = 2;
 
 	FD_ZERO(&this->m_main_fds);
+	FD_ZERO(&this->m_write_fds);
 	FD_SET(this->m_server_socket, &this->m_main_fds);
 
 	this->maxfd = 0;
@@ -335,12 +336,14 @@ Server::runServer()
 
 	while (42)
 	{
-		this->m_copy_fds = this->m_main_fds;
-		printf("Select Wait %d\n", this->maxfd);
+		printf("---Select Wait %d---\n", this->maxfd);
+		this->m_read_fds = this->m_main_fds;
+		this->m_copy_write_fds = this->m_write_fds;
+
 		this->fd_num = select(
 			this->maxfd + 1 ,
-			&this->m_copy_fds,
-			reinterpret_cast<fd_set *>(0),
+			&this->m_read_fds,
+			&this->m_copy_write_fds,
 			reinterpret_cast<fd_set *>(0),
 			&timeout
 		);
@@ -351,7 +354,7 @@ Server::runServer()
 				perror("select error");
 				return ;
 			case 0:
-				perror("timeout error");
+				perror("---Timeout Reset---");
 			default:
 				getRequest();
 		}
@@ -375,7 +378,17 @@ Server::closeServer()
 void
 Server::getRequest()
 {
-	if (ft::fdIsSet(this->m_server_socket, &this->m_copy_fds))
+
+	for (int i = 0; i <= this->maxfd; i++)
+	{
+		int sockfd = i;
+		if (ft::fdIsSet(sockfd, &this->m_copy_write_fds))
+		{
+			sendResponse(sockfd);
+			FD_CLR(sockfd, &this->m_write_fds);
+		}
+	}
+	if (ft::fdIsSet(this->m_server_socket, &this->m_read_fds))
 	{
 		socklen_t addrlen;
 
@@ -387,7 +400,7 @@ Server::getRequest()
 				reinterpret_cast<socklen_t *>(&addrlen)
 			)
 		) == -1)
-			std::cerr<<"accept error"<<std::endl;
+			std::cerr << "accept error" << std::endl;
 
 		ft::fdSet(this->m_client_socket, &this->m_main_fds);
 		if (this->m_client_socket > this->maxfd)
@@ -399,26 +412,19 @@ Server::getRequest()
 	for (int i = 0; i <= this->maxfd; i++)
 	{
 		this->sockfd = i;
-		if (ft::fdIsSet(this->sockfd, &this->m_copy_fds))
+		if (ft::fdIsSet(this->sockfd, &this->m_read_fds))
 		{
 			/*
 			** Request 부분 시작, false시 에러 받아줘야
 			*/
-			this->m_requests[this->sockfd].getMessage(this->sockfd);
-			// std::cout << this->m_requests[this->sockfd] << std::endl;
-			//this->m_requests[this->sockfd].printHeaders();
-			//close(this->sockfd);
-			/*
-			**	Response 부분 시작
-			*/
-			sendResponse(this->sockfd);
-			/*
-			**	Response 부분 끝
-			*/
 			this->m_requests[this->sockfd] = Request();
+			this->m_requests[this->sockfd].getMessage(this->sockfd);
+
+			FD_SET(this->sockfd, &this->m_write_fds);
+			FD_CLR(this->sockfd, &this->m_main_fds);
+			FD_CLR(this->sockfd, &this->m_read_fds);
 			if (--this->fd_num <= 0)
 				break;
-			FD_CLR(this->sockfd, &this->m_main_fds);
 		}
 	}
 	return ;
