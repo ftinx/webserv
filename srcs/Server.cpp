@@ -50,6 +50,7 @@ Server& Server::operator=(Server const &rhs)
 	/* Request, Response */
 	this->m_requests = rhs.m_requests;
 	this->m_responses = rhs.m_responses;
+	this->m_queue = rhs.m_queue;
 	return (*this);
 };
 
@@ -328,7 +329,6 @@ Server::runServer()
 	timeout.tv_usec = 2;
 
 	FD_ZERO(&this->m_main_fds);
-	FD_ZERO(&this->m_write_fds);
 	FD_SET(this->m_server_socket, &this->m_main_fds);
 
 	this->maxfd = 0;
@@ -389,7 +389,7 @@ Server::getRequest()
 				reinterpret_cast<socklen_t *>(&addrlen)
 			)
 		) == -1)
-			std::cerr<<"accept error"<<std::endl;
+			std::cerr << "accept error" << std::endl;
 
 		ft::fdSet(this->m_client_socket, &this->m_main_fds);
 		if (this->m_client_socket > this->maxfd)
@@ -410,6 +410,8 @@ Server::getRequest()
 			// std::cout << this->m_requests[this->sockfd] << std::endl;
 			//this->m_requests[this->sockfd].printHeaders();
 			//close(this->sockfd);
+
+			this->m_fd_queue.push_back(this->sockfd);
 			/*
 			**	Response 부분 시작
 			*/

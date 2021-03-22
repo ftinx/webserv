@@ -72,6 +72,7 @@ class Server
 		/* Request, Response */
 		std::vector<Request> m_requests;
 		std::vector<Response> m_responses;
+		std::vector<int> m_fd_queue;
 
 	public:
 		Server();
