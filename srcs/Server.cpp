@@ -415,6 +415,7 @@ Server::getRequest()
 			/*
 			**	Response 부분 끝
 			*/
+			this->m_requests[this->sockfd] = Request();
 			if (--this->fd_num <= 0)
 				break;
 			FD_CLR(this->sockfd, &this->m_main_fds);
@@ -734,11 +735,7 @@ Server::methodPOST(int clientfd)
 	// 	location_iter++;
 	// }
 
-<<<<<<< HEAD
-	return (Server::makeResponseMessage(206, "./www/index.html"));
-=======
 	return (Server::makeResponseMessage(200, ""));
->>>>>>> 5ca27f32718c3b6e8e321030c5bb076a5950badb
 }
 
 /*============================================================================*/

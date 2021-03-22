@@ -211,7 +211,7 @@ Request::isBreakCondition(std::string str, bool *chunked, int body_bytes, int he
 		this->m_message = this->m_message.substr(0, pos);
 		return (true);
 	}
-	std::cout << "isBreakCondition False" << std::endl;
+	//td::cout << "isBreakCondition False" << std::endl;
 	return (false);
 }
 
@@ -226,10 +226,11 @@ Request::getMessage(int fd)
 	char recvline[MAXLINE + 1];
 
 
-	m_message = "";
 	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
 	{
+		recvline[ret] = '\0';
 		std::string str(recvline);
+
 		this->m_message.append(str);
 		if (this->m_message.find("\r\n\r\n") >= 0)
 		{
