@@ -345,6 +345,13 @@ Response::setPublicFileDocument(std::string publicPath)
 {
 	std::string body;
 
+	if (publicPath == "")
+	{
+		body = "";
+		this->m_html_document = body;
+		this->m_content_length = body.length();
+		return (*this);
+	}
 	try
 	{
 		body = ft::publicFileToString(publicPath);
