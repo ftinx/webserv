@@ -328,6 +328,7 @@ Server::runServer()
 	timeout.tv_usec = 2;
 
 	FD_ZERO(&this->m_main_fds);
+	FD_ZERO(&this->m_write_fds);
 	FD_SET(this->m_server_socket, &this->m_main_fds);
 
 	this->maxfd = 0;
@@ -335,12 +336,13 @@ Server::runServer()
 
 	while (42)
 	{
-		this->m_copy_fds = this->m_main_fds;
+		this->m_read_fds = this->m_main_fds;
+
 		printf("Select Wait %d\n", this->maxfd);
 		this->fd_num = select(
 			this->maxfd + 1 ,
-			&this->m_copy_fds,
-			reinterpret_cast<fd_set *>(0),
+			&this->m_read_fds,
+			&this->m_write_fds,
 			reinterpret_cast<fd_set *>(0),
 			&timeout
 		);
@@ -376,7 +378,7 @@ Server::closeServer()
 void
 Server::getRequest()
 {
-	if (ft::fdIsSet(this->m_server_socket, &this->m_copy_fds))
+	if (ft::fdIsSet(this->m_server_socket, &this->m_read_fds))
 	{
 		socklen_t addrlen;
 
@@ -401,7 +403,7 @@ Server::getRequest()
 	for (int i = 0; i <= this->maxfd; i++)
 	{
 		this->sockfd = i;
-		if (ft::fdIsSet(this->sockfd, &this->m_copy_fds))
+		if (ft::fdIsSet(this->sockfd, &this->m_read_fds))
 		{
 			/*
 			** Request 부분 시작, false시 에러 받아줘야
