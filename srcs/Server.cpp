@@ -542,7 +542,7 @@ Server::getRequest()
 			*/
 			if (--this->fd_num <= 0)
 				break;
-			FD_CLR(this->sockfd, &this->m_copy_fds);
+			FD_CLR(this->sockfd, &this->m_main_fds);
 		}
 	}
 	return ;
