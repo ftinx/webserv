@@ -50,7 +50,6 @@ Server& Server::operator=(Server const &rhs)
 	/* Request, Response */
 	this->m_requests = rhs.m_requests;
 	this->m_responses = rhs.m_responses;
-	this->m_queue = rhs.m_queue;
 	return (*this);
 };
 
@@ -329,6 +328,7 @@ Server::runServer()
 	timeout.tv_usec = 2;
 
 	FD_ZERO(&this->m_main_fds);
+	FD_ZERO(&this->m_write_fds);
 	FD_SET(this->m_server_socket, &this->m_main_fds);
 
 	this->maxfd = 0;
@@ -336,13 +336,14 @@ Server::runServer()
 
 	while (42)
 	{
+		printf("---Select Wait %d---\n", this->maxfd);
 		this->m_read_fds = this->m_main_fds;
+		this->m_copy_write_fds = this->m_write_fds;
 
-		printf("Select Wait %d\n", this->maxfd);
 		this->fd_num = select(
 			this->maxfd + 1 ,
 			&this->m_read_fds,
-			&this->m_write_fds,
+			&this->m_copy_write_fds,
 			reinterpret_cast<fd_set *>(0),
 			&timeout
 		);
@@ -353,7 +354,7 @@ Server::runServer()
 				perror("select error");
 				return ;
 			case 0:
-				perror("timeout error");
+				perror("---Timeout Reset---");
 			default:
 				getRequest();
 		}
@@ -377,6 +378,16 @@ Server::closeServer()
 void
 Server::getRequest()
 {
+
+	for (int i = 0; i <= this->maxfd; i++)
+	{
+		int sockfd = i;
+		if (ft::fdIsSet(sockfd, &this->m_copy_write_fds))
+		{
+			sendResponse(sockfd);
+			FD_CLR(sockfd, &this->m_write_fds);
+		}
+	}
 	if (ft::fdIsSet(this->m_server_socket, &this->m_read_fds))
 	{
 		socklen_t addrlen;
@@ -406,23 +417,14 @@ Server::getRequest()
 			/*
 			** Request 부분 시작, false시 에러 받아줘야
 			*/
-			this->m_requests[this->sockfd].getMessage(this->sockfd);
-			// std::cout << this->m_requests[this->sockfd] << std::endl;
-			//this->m_requests[this->sockfd].printHeaders();
-			//close(this->sockfd);
-
-			this->m_fd_queue.push_back(this->sockfd);
-			/*
-			**	Response 부분 시작
-			*/
-			sendResponse(this->sockfd);
-			/*
-			**	Response 부분 끝
-			*/
 			this->m_requests[this->sockfd] = Request();
+			this->m_requests[this->sockfd].getMessage(this->sockfd);
+
+			FD_SET(this->sockfd, &this->m_write_fds);
+			FD_CLR(this->sockfd, &this->m_main_fds);
+			FD_CLR(this->sockfd, &this->m_read_fds);
 			if (--this->fd_num <= 0)
 				break;
-			FD_CLR(this->sockfd, &this->m_main_fds);
 		}
 	}
 	return ;

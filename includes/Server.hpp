@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string>
 
+#include <queue>
 #include <vector>
 #include <map>
 
@@ -72,7 +73,6 @@ class Server
 		/* Request, Response */
 		std::vector<Request> m_requests;
 		std::vector<Response> m_responses;
-		std::vector<int> m_fd_queue;
 
 	public:
 		Server();
