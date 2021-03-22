@@ -134,7 +134,11 @@ class Server
 
 		/* METHOD */
 		Response methodHEAD(int clientfd);
+
+		std::string getMimeType(std::string extension);
+		static Response getTest(Request req, Response res);
 		Response methodGET(int clientfd);
+
 		Response methodPOST(int clientfd);
 		Response methodPUT(int clientfd);
 		Response methodDELETE(int clientfd);

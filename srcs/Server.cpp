@@ -558,6 +558,25 @@ Server::getRequest()
 /*********************************  HEAD  *************************************/
 /*============================================================================*/
 
+std::string
+Server::getMimeType(std::string extension)
+{
+	std::map<std::string, std::string> mime_type;
+	std::map<std::string, std::string>::const_iterator it;
+
+	mime_type.insert(std::make_pair("css","text/css"));
+	mime_type.insert(std::make_pair("ico","image/x-icon"));
+	mime_type.insert(std::make_pair("jpg","image/jpeg"));
+	mime_type.insert(std::make_pair("jpeg","image/jpeg"));
+	mime_type.insert(std::make_pair("js","application/js"));
+	mime_type.insert(std::make_pair("html","text/html"));
+
+	it = mime_type.find(extension);
+	if (it == mime_type.end())
+		return "none";
+	return (it->second);
+}
+
 Response
 Server::methodHEAD(int clientfd)
 {
@@ -571,55 +590,60 @@ Server::methodHEAD(int clientfd)
 /*============================================================================*/
 
 Response
+Server::getTest(Request req, Response res)
+{
+	(void)req;
+	return (res);
+}
+
+// int get_cnt = 0;
+
+Response
 Server::methodGET(int clientfd)
 {
-	(void) clientfd;
+	Response response;
+	std::string content_type;
+	std::string path;
 
-	return (
-		Server::makeResponseMessage(200)
-	);
-	// Response response;
-	// std::string path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	// std::vector<HttpConfigLocation> v = this->m_server_block.get_m_location_block();
-	// std::vector<HttpConfigLocation>::const_iterator location_it;
-	// std::vector<std::string> v2;
-	// std::vector<std::string>::const_iterator index_it;
-
-	// if (ft::isValidFilePath(std::string("/Users/holee/Desktop/webserv/www") + path)) // http block의 root 로 대체해야 함, 서버매니저에서 넘겨줘야 함
-	// {
-	// 	return (
-	// 		response
-	// 			.setPublicFileDocument(path)
-	// 			.makeHttpResponseMessage()
-	// 	);
-	// }
-	// else
-	// {
-	// 	std::string block;
-	// 	if (path.compare("/") == 0 || path.compare("") == 0)
-	// 		block = "/";
-	// 	else
-	// 		block = path.substr(0, path.find_last_of("/"));
-	// 	for (location_it = v.begin() ; location_it != v.end() ; ++location_it)
-	// 	{
-	// 		if (block.compare(location_it->get_m_path()) == 0)
-	// 		{
-	// 			v2 = location_it->get_m_index();
-	// 			for (index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
-	// 			{
-	// 				if (ft::isValidFilePath(location_it->get_m_root() + "/" + *index_it))
-	// 				{
-	// 					return (
-	// 						response
-	// 							.setPublicFileDocument(*index_it)
-	// 							.makeHttpResponseMessage()
-	// 					);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// return (Server::page404("/Users/holee/Desktop/webserv/www/errors/default_error.html"));
+	// get_cnt++;
+	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
+	path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	// std::cout << "---------request path : " << path << std::endl;
+	if (ft::isValidFilePath(this->m_root + path))
+	{
+		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
+		// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
+		// std::cout << "----1------ contenttype : " << content_type << std::endl;
+		return (Server::makeResponseMessage(200, this->m_root + path, content_type));
+	}
+	else if (ft::isValidDirPath(this->m_root + path))
+	{
+		std::string block;
+		if (path.compare("/") == 0 || path.compare("") == 0)
+			block = "/";
+		else
+			block = path.substr(0, path.find_last_of("/"));
+		std::vector<HttpConfigLocation> location = this->m_server_block.get_m_location_block();
+		for (std::vector<HttpConfigLocation>::const_iterator location_it = location.begin() ; location_it != location.end() ; ++location_it)
+		{
+			if (block.compare(location_it->get_m_path()) == 0)
+			{
+				std::vector<std::string> v2 = location_it->get_m_index();
+				for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
+				{
+					if (ft::isValidFilePath(location_it->get_m_root() + block + *index_it))
+					{
+						path = location_it->get_m_root() + block + *index_it;
+						content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
+						// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
+						// std::cout << "---2------- contenttype : " << content_type << std::endl;
+						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, content_type));
+					}
+				}
+			}
+		}
+	}
+	return (Server::page404("./www/errors/default_error.html"));
 }
 
 /*============================================================================*/
@@ -1263,7 +1287,7 @@ Server::sendResponse(int clientfd)
 	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
 	/* 전체 Response Message 확인 할 수 있음 */
-	// printf("%s\n", response.get_m_reponse_message().c_str());
+	printf("%s\n", response.get_m_reponse_message().c_str());
 
 	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
 	return ;
