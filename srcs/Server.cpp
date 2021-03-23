@@ -449,9 +449,7 @@ Server::getMimeType(std::string extension)
 Response
 Server::methodHEAD(int clientfd)
 {
-	Response response;
-	clientfd=0;
-	return (response);
+	return (methodGET(clientfd, "HEAD"));
 }
 /*============================================================================*/
 /**********************************  GET  *************************************/
@@ -508,7 +506,7 @@ Server::makeAutoindexPage(std::string path)
 }
 
 Response
-Server::methodGET(int clientfd)
+Server::methodGET(int clientfd, std::string method)
 {
 	// (void) clientfd;
 	// return (Server::makeResponseMessage(200, "./www/index.html"));
@@ -524,7 +522,7 @@ Server::methodGET(int clientfd)
 		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
 		// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
 		// std::cout << "----1------ contenttype : " << content_type << std::endl;
-		return (Server::makeResponseMessage(200, this->m_root + path, content_type));
+		return (Server::makeResponseMessage(200, this->m_root + path, method, content_type));
 	}
 	else if (ft::isValidDirPath(this->m_root + path))
 	{
@@ -539,7 +537,7 @@ Server::methodGET(int clientfd)
 			if (block.compare(location_it->get_m_path()) == 0)
 			{
 				if (location_it->get_m_autoindex() && location_it->get_m_index().empty() && ft::isValidDirPath(location_it->get_m_root() + block))
-					return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root())));
+					return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root()), method));
 				std::vector<std::string> v2 = location_it->get_m_index();
 				for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
 				{
@@ -549,7 +547,7 @@ Server::methodGET(int clientfd)
 						content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
 						// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
 						// std::cout << "---2------- contenttype : " << content_type << std::endl;
-						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, content_type));
+						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, method, content_type));
 					}
 					// else if (ft::isValidDirPath(location_it->get_m_root() + block)) // autoindex 파트 조건 수정 필요
 					// 	return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root() + block)));
@@ -931,7 +929,7 @@ Server::methodTRACE(int clientfd)
 
 Response
 Server::makeResponseMessage(
-	int statusCode, std::string path, std::string contentType,
+	int statusCode, std::string path, std::string method, std::string contentType,
 	int dateHour, int dateMinute, int dateSecond,
 	std::string contentLanguage, std::string server
 )
@@ -952,13 +950,13 @@ Server::makeResponseMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
+			.makeHttpResponseMessage(method)
 	);
 }
 
 Response
 Server::makeResponseBodyMessage(
-	int statusCode, std::string body, std::string contentType,
+	int statusCode, std::string body, std::string method, std::string contentType,
 	int dateHour, int dateMinute, int dateSecond,
 	std::string contentLanguage, std::string server
 )
@@ -979,7 +977,7 @@ Server::makeResponseBodyMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
+			.makeHttpResponseMessage(method)
 	);
 }
 

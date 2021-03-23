@@ -107,14 +107,14 @@ class Server
 		void getRequest();
 		static Response makeResponseMessage(
 			int statusCode,
-			std::string path = "./www/index.html", std::string contentType="text/html; charset=UTF-8",
+			std::string path = "./www/index.html", std::string method="", std::string contentType="text/html; charset=UTF-8",
 			int dateHour=0, int dateMinute=0, int dateSecond=0,
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
 		static Response
 		makeResponseBodyMessage(
 			int statusCode,
-			std::string body = "", std::string contentType="text/html; charset=UTF-8",
+			std::string body = "", std::string method="", std::string contentType="text/html; charset=UTF-8",
 			int dateHour=0, int dateMinute=0, int dateSecond=0,
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
@@ -141,13 +141,12 @@ class Server
 		Response trace(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 
 		/* METHOD */
-		Response methodHEAD(int clientfd);
-
 		std::string getMimeType(std::string extension);
 		std::string makeAutoindexPage(std::string path);
 		static Response getTest(Request req, Response res);
-		Response methodGET(int clientfd);
 
+		Response methodHEAD(int clientfd);
+		Response methodGET(int clientfd, std::string method="");
 		Response methodPOST(int clientfd);
 		Response methodPUT(int clientfd);
 		Response methodDELETE(int clientfd);
