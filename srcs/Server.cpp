@@ -462,52 +462,51 @@ Server::getTest(Request req, Response res)
 	(void)req;
 	return (res);
 }
-// int get_cnt = 0;
-// std::string         AutoIndexGenerator::getLink(std::string const &dirEntry, std::string const &dirName, std::string const &host, int port) {
-//     return "\t\t<p><a href=\"http://" + host + ":" + to_string(port) + dirName + "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
-// // }
-// std::string
-// Server::makeAutoindexPage(std::string path)
-// {
-// 	std::string page;
-// 	std::string dirName(path);
-// 	struct dirent *entry;
-// 	DIR *dirptr = opendir(path.c_str());
-// 	// if ((dirptr = opendir(path.c_str())) != NULL)
-// 	// {
-// 	// 	closedir(dirptr);
-// 	// 	return ("");
-// 	// }
-// 	page += std::string("<!DOCTYPE html>")
-// 			+ std::string("<html lang=\"en\">")
-// 			+ std::string("<head>")
-// 			+ std::string("<title>")
-// 			+ std::string(dirName)
-// 			+ std::string("</title>")
-// 			+ std::string("</head>")
-// 			+ std::string("<body>")
-// 			+ std::string("<p>");
-// 	if (dirName[0] != '/')
-// 	{
-// 		dirName = std::string("/") + dirName;
-// 		// std::cout << dirName << std::endl;
-// 	}
-// 	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
-// 	{
-// 		page += std::string("<p><a href=\"")
-// 				// + std::string(dirName)
-// 				// + std::string("/")
-// 				+ std::string(entry->d_name)
-// 				+ std::string("\">")
-// 				+ std::string(entry->d_name)
-// 				+ std::string("</a></p>\n");
-// 	}
-// 	page += std::string("</p>")
-// 			+ std::string("</body>")
-// 			+ std::string("</html>");
-// 	closedir(dirptr);
-// 	return (page);
-// }
+
+std::string
+Server::makeAutoindexPage(std::string path)
+{
+	std::string page;
+	std::string dirName(path);
+	struct dirent *entry;
+	DIR *dirptr = opendir(path.c_str());
+
+	// if ((dirptr = opendir(path.c_str())) != NULL)
+	// {
+	// 	closedir(dirptr);
+	// 	return ("");
+	// }
+	page += std::string("<!DOCTYPE html>")
+			+ std::string("<html lang=\"en\">")
+			+ std::string("<head>")
+			+ std::string("<title>")
+			+ std::string(dirName)
+			+ std::string("</title>")
+			+ std::string("</head>")
+			+ std::string("<body>")
+			+ std::string("<p>");
+	if (dirName[0] != '/')
+	{
+		dirName = std::string("/") + dirName;
+		// std::cout << dirName << std::endl;
+	}
+	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
+	{
+		page += std::string("<p><a href=\"")
+				// + std::string(dirName)
+				// + std::string("/")
+				+ std::string(entry->d_name)
+				+ std::string("\">")
+				+ std::string(entry->d_name)
+				+ std::string("</a></p>\n");
+	}
+	page += std::string("</p>")
+			+ std::string("</body>")
+			+ std::string("</html>");
+	closedir(dirptr);
+	return (page);
+}
+
 Response
 Server::methodGET(int clientfd)
 {
@@ -539,8 +538,8 @@ Server::methodGET(int clientfd)
 		{
 			if (block.compare(location_it->get_m_path()) == 0)
 			{
-				// if (location_it->get_m_autoindex() && location_it->get_m_index().empty() && ft::isValidDirPath(location_it->get_m_root() + block))
-				// 	return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root())));
+				if (location_it->get_m_autoindex() && location_it->get_m_index().empty() && ft::isValidDirPath(location_it->get_m_root() + block))
+					return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root())));
 				std::vector<std::string> v2 = location_it->get_m_index();
 				for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
 				{
@@ -947,6 +946,33 @@ Server::makeResponseMessage(
 			.setContentLanguage(contentLanguage)
 			.setContentType(contentType)
 			.setServer(server)
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::makeResponseBodyMessage(
+	int statusCode, std::string body, std::string contentType,
+	int dateHour, int dateMinute, int dateSecond,
+	std::string contentLanguage, std::string server
+)
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(statusCode)
+			.setCurrentDate(dateHour, dateMinute, dateSecond)
+			.setContentLanguage(contentLanguage)
+			.setContentType(contentType)
+			.setServer(server)
+			.setBodyDocument(body)
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
