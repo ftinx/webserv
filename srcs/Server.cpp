@@ -437,26 +437,15 @@ Server::getRequest()
 /*============================================================================*/
 /*********************************  HEAD  *************************************/
 /*============================================================================*/
-
 std::string
 Server::getMimeType(std::string extension)
 {
-	std::map<std::string, std::string> mime_type;
 	std::map<std::string, std::string>::const_iterator it;
-
-	mime_type.insert(std::make_pair("css","text/css"));
-	mime_type.insert(std::make_pair("ico","image/x-icon"));
-	mime_type.insert(std::make_pair("jpg","image/jpeg"));
-	mime_type.insert(std::make_pair("jpeg","image/jpeg"));
-	mime_type.insert(std::make_pair("js","application/js"));
-	mime_type.insert(std::make_pair("html","text/html"));
-
-	it = mime_type.find(extension);
-	if (it == mime_type.end())
+	it = this->m_mime_types.find(extension);
+	if (it == m_mime_types.end())
 		return "none";
 	return (it->second);
 }
-
 Response
 Server::methodHEAD(int clientfd)
 {
@@ -464,11 +453,9 @@ Server::methodHEAD(int clientfd)
 	clientfd=0;
 	return (response);
 }
-
 /*============================================================================*/
 /**********************************  GET  *************************************/
 /*============================================================================*/
-
 Response
 Server::getTest(Request req, Response res)
 {
@@ -476,10 +463,6 @@ Server::getTest(Request req, Response res)
 	return (res);
 }
 
-// int get_cnt = 0;
-// std::string         AutoIndexGenerator::getLink(std::string const &dirEntry, std::string const &dirName, std::string const &host, int port) {
-//     return "\t\t<p><a href=\"http://" + host + ":" + to_string(port) + dirName + "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
-// }
 std::string
 Server::makeAutoindexPage(std::string path)
 {
@@ -532,7 +515,6 @@ Server::methodGET(int clientfd)
 	Response response;
 	std::string content_type;
 	std::string path;
-
 	// get_cnt++;
 	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
 	path = this->m_requests[clientfd].get_m_uri().get_m_path();
@@ -1226,23 +1208,33 @@ Server::sendResponse(int clientfd)
 		response = this->parseErrorResponse(clientfd);
 
 	/* make Response for Method */
-	if (method == GET)
+	switch(method)
+	{
+	case GET:
 		response = this->methodGET(clientfd);
-	else if (method == HEAD)
+		break;
+	case HEAD:
 		response = this->methodHEAD(clientfd);
-	else if (method == POST)
+		break;
+	case POST:
 		response = this->methodPOST(clientfd);
-	else if (method == PUT)
+		break;
+	case PUT:
 		response = this->methodPUT(clientfd);
-	else if (method == DELETE)
+		break;
+	case DELETE:
 		response = this->methodDELETE(clientfd);
-	else if (method == TRACE)
+		break;
+	case TRACE:
 		response = this->methodTRACE(clientfd);
-	else if (method == OPTIONS)
+		break;
+	case OPTIONS:
 		response = this->methodOPTIONS(clientfd);
-	else
+		break;
+	default:
 		response = methodNotAllow_405();
-
+		break;
+	}
 	/* config Method */
 	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
