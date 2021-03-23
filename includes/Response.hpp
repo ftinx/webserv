@@ -119,7 +119,7 @@ class Response
 		void setPTag(std::string value);
 		void setDivTag(std::string value);
 		Response& setPublicFileDocument(std::string publicPath);
-		Response& setBodyDocument(std::string body);
+		Response& setBodyDocument(std::string body, std::string method = "");
 
 		/* util */
 		Response& setCurrentDate(int hour=0, int minute=0, int second=0);

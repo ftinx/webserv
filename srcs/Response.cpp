@@ -333,10 +333,12 @@ Response::set404HtmlDocument()
 }
 
 Response &
-Response::setBodyDocument(std::string body)
+Response::setBodyDocument(std::string body, std::string method)
 {
 	this->m_html_document = body;
 	this->m_content_length = body.length();
+	if (method == "HEAD")
+		this->m_html_document = "";
 	return (*this);
 }
 
