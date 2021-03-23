@@ -72,7 +72,7 @@ ServerManager::storeParseValue()
 void
 ServerManager::parseHttpConfig()
 {
-	this->m_httpConfig.parseConfigFile("ftinx_sample_holee.conf");
+	this->m_httpConfig.parseConfigFile("ftinx_sample.conf");
 	//this->m_httpConfig.printConfigFileInfo();
 
 	storeParseValue();
