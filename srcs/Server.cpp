@@ -28,12 +28,14 @@ Server& Server::operator=(Server const &rhs)
 	this->m_root = rhs.m_root;
 
 	/* Parse */
+	this->m_headLocation = rhs.m_headLocation;
 	this->m_getLocation = rhs.m_getLocation;
 	this->m_postLocation = rhs.m_postLocation;
 	this->m_putLocation = rhs.m_putLocation;
 	this->m_deleteLocation = rhs.m_deleteLocation;
 	this->m_optionsLocation = rhs.m_optionsLocation;
 	this->m_traceLocation = rhs.m_traceLocation;
+	this->m_httpConfigFilePathSet = rhs.m_httpConfigFilePathSet;
 
 	/* Socket */
 	this->m_server_addr = rhs.m_server_addr;
@@ -133,10 +135,14 @@ Server::noteHttpConfigLocation()
 	{
 		std::vector<Method> limit_except = location_iter->get_m_limit_except();
 		std::vector<Method>::const_iterator limit = limit_except.begin();
+		m_httpConfigFilePathSet.push_back(location_iter->get_m_path());
 		while (limit != limit_except.end())
 		{
 			switch (*limit)
 			{
+				// case HEAD:
+				// 	this->m_headLocation.push_back(*location_iter);
+				// 	break;
 				case GET:
 					this->m_getLocation.push_back(*location_iter);
 					break;
@@ -446,12 +452,11 @@ Server::getMimeType(std::string extension)
 		return "none";
 	return (it->second);
 }
+
 Response
 Server::methodHEAD(int clientfd)
 {
-	Response response;
-	clientfd=0;
-	return (response);
+	return (methodGET(clientfd, "HEAD"));
 }
 /*============================================================================*/
 /**********************************  GET  *************************************/
@@ -507,8 +512,40 @@ Server::makeAutoindexPage(std::string path)
 	return (page);
 }
 
+bool
+Server::checkHttpConfigFilePathHead(std::string path)
+{
+	std::vector<HttpConfigLocation>::const_iterator headlocation_iter = this->m_headLocation.begin();
+	while (headlocation_iter != this->m_headLocation.end())
+	{
+		if (path == headlocation_iter->get_m_path())
+			return (true);
+		headlocation_iter++;
+	}
+	return (false);
+}
+
+bool
+Server::checkHttpConfigFilePath(std::string path, std::string method)
+{
+	if (method == "HEAD" && checkHttpConfigFilePathHead(path))
+		return (false);
+	std::vector<std::string>::const_iterator path_iter = this->m_httpConfigFilePathSet.begin();
+	while (path_iter != this->m_httpConfigFilePathSet.end())
+	{
+		if (path == *path_iter)
+		{
+			if (method == "HEAD")
+				return (true);
+			return (false);
+		}
+		path_iter++;
+	}
+	return (true);
+}
+
 Response
-Server::methodGET(int clientfd)
+Server::methodGET(int clientfd, std::string method)
 {
 	// (void) clientfd;
 	// return (Server::makeResponseMessage(200, "./www/index.html"));
@@ -518,12 +555,14 @@ Server::methodGET(int clientfd)
 	// get_cnt++;
 	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
 	path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	if(checkHttpConfigFilePath(path, method))
+		return (Server::makeResponseMessage(405, ""));
 	if (ft::isValidFilePath(this->m_root + path))
 	{
 		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
 		// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
 		// std::cout << "----1------ contenttype : " << content_type << std::endl;
-		return (Server::makeResponseMessage(200, this->m_root + path, content_type));
+		return (Server::makeResponseMessage(200, this->m_root + path, method, content_type));
 	}
 	else if (ft::isValidDirPath(this->m_root + path))
 	{
@@ -538,7 +577,7 @@ Server::methodGET(int clientfd)
 			if (block.compare(location_it->get_m_path()) == 0)
 			{
 				if (location_it->get_m_autoindex() && location_it->get_m_index().empty() && ft::isValidDirPath(location_it->get_m_root() + block))
-					return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root())));
+					return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root()), method));
 				std::vector<std::string> v2 = location_it->get_m_index();
 				for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
 				{
@@ -548,7 +587,7 @@ Server::methodGET(int clientfd)
 						content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
 						// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
 						// std::cout << "---2------- contenttype : " << content_type << std::endl;
-						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, content_type));
+						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, method, content_type));
 					}
 					// else if (ft::isValidDirPath(location_it->get_m_root() + block)) // autoindex 파트 조건 수정 필요
 					// 	return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root() + block)));
@@ -772,6 +811,8 @@ Server::methodPOST(int clientfd)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
+	if(checkHttpConfigFilePath(this->m_requests[clientfd].get_m_uri().get_m_path()))
+		return (Server::makeResponseMessage(405, ""));
 	return (Server::makeResponseMessage(405, ""));
 }
 
@@ -963,7 +1004,7 @@ Server::methodTRACE(int clientfd)
 
 Response
 Server::makeResponseMessage(
-	int statusCode, std::string path, std::string contentType,
+	int statusCode, std::string path, std::string method, std::string contentType,
 	int dateHour, int dateMinute, int dateSecond,
 	std::string contentLanguage, std::string server
 )
@@ -984,13 +1025,13 @@ Server::makeResponseMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
+			.makeHttpResponseMessage(method)
 	);
 }
 
 Response
 Server::makeResponseBodyMessage(
-	int statusCode, std::string body, std::string contentType,
+	int statusCode, std::string body, std::string method, std::string contentType,
 	int dateHour, int dateMinute, int dateSecond,
 	std::string contentLanguage, std::string server
 )
@@ -1011,7 +1052,7 @@ Server::makeResponseBodyMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
+			.makeHttpResponseMessage(method)
 	);
 }
 

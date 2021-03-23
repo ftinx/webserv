@@ -101,7 +101,7 @@ class Response
 		bool parseCgiResponse(std::string&);
 
 		/* HTTP Response Util */
-		Response& makeHttpResponseMessage();
+		Response& makeHttpResponseMessage(std::string method = "");
 		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
 		std::string httpResponseHeader();
 		std::string setCRLF();
