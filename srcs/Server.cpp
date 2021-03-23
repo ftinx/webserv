@@ -517,10 +517,16 @@ Server::makeAutoindexPage(std::string path)
 bool
 Server::checkHttpConfigFilePathHead(std::string path)
 {
+	int path_length = path.length();
 	std::vector<HttpConfigLocation>::const_iterator headlocation_iter = this->m_headLocation.begin();
 	while (headlocation_iter != this->m_headLocation.end())
 	{
+		int headlocation_length = headlocation_iter->get_m_path().length();
 		if (path == headlocation_iter->get_m_path())
+			return (true);
+		if (path_length > headlocation_length
+		&& headlocation_length > 1
+		&& path.substr(0, headlocation_length) == headlocation_iter->get_m_path())
 			return (true);
 		headlocation_iter++;
 	}
@@ -530,17 +536,23 @@ Server::checkHttpConfigFilePathHead(std::string path)
 bool
 Server::checkHttpConfigFilePath(std::string path, std::string method)
 {
-	if (method == "HEAD" && checkHttpConfigFilePathHead(path))
-		return (false);
+	int path_length = path.length();
+	if (method == "HEAD")
+	{
+		if (checkHttpConfigFilePathHead(path))
+			return (false);
+		return (true);
+	}
 	std::vector<std::string>::const_iterator path_iter = this->m_httpConfigFilePathSet.begin();
 	while (path_iter != this->m_httpConfigFilePathSet.end())
 	{
+		int path_iter_length = (*path_iter).length();
 		if (path == *path_iter)
-		{
-			if (method == "HEAD")
-				return (true);
 			return (false);
-		}
+		if (path_length > path_iter_length
+		&& path_iter_length > 1
+		&& path.substr(0, path_iter_length) == *path_iter)
+			return (false);
 		path_iter++;
 	}
 	return (true);
