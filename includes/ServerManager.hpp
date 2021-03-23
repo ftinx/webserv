@@ -31,7 +31,7 @@ class ServerManager
 		ServerManager(ServerManager const &other);
 		ServerManager& operator=(ServerManager const &rhs);
 
-		void parseHttpConfig();
+		void parseHttpConfig(std::string config_path);
 		Server generateServer(
 			HttpConfigServer server_block,
 			std::string server_name,

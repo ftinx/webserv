@@ -70,9 +70,9 @@ ServerManager::storeParseValue()
 }
 
 void
-ServerManager::parseHttpConfig()
+ServerManager::parseHttpConfig(std::string config_path)
 {
-	this->m_httpConfig.parseConfigFile("ftinx_sample.conf");
+	this->m_httpConfig.parseConfigFile(config_path);
 	//this->m_httpConfig.printConfigFileInfo();
 
 	storeParseValue();
