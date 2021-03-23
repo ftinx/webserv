@@ -471,54 +471,105 @@ Server::getTest(Request req, Response res)
 }
 
 // int get_cnt = 0;
+// std::string         AutoIndexGenerator::getLink(std::string const &dirEntry, std::string const &dirName, std::string const &host, int port) {
+//     return "\t\t<p><a href=\"http://" + host + ":" + to_string(port) + dirName + "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
+// }
+std::string
+Server::makeAutoindexPage(std::string path)
+{
+	std::string page;
+	std::string dirName(path);
+	struct dirent *entry;
+	DIR *dirptr = opendir(path.c_str());
+
+	// if ((dirptr = opendir(path.c_str())) != NULL)
+	// {
+	// 	closedir(dirptr);
+	// 	return ("");
+	// }
+	page += std::string("<!DOCTYPE html>")
+			+ std::string("<html lang=\"en\">")
+			+ std::string("<head>")
+			+ std::string("<title>")
+			+ std::string(dirName)
+			+ std::string("</title>")
+			+ std::string("</head>")
+			+ std::string("<body>")
+			+ std::string("<p>");
+	if (dirName[0] != '/')
+	{
+		dirName = std::string("/") + dirName;
+		// std::cout << dirName << std::endl;
+	}
+	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
+	{
+		page += std::string("<p><a href=\"")
+				// + std::string(dirName)
+				// + std::string("/")
+				+ std::string(entry->d_name)
+				+ std::string("\">")
+				+ std::string(entry->d_name)
+				+ std::string("</a></p>\n");
+	}
+	page += std::string("</p>")
+			+ std::string("</body>")
+			+ std::string("</html>");
+	closedir(dirptr);
+	return (page);
+}
 
 Response
 Server::methodGET(int clientfd)
 {
-	(void) clientfd;
-	// Response response;
-	// std::string content_type;
-	// std::string path;
+	// (void) clientfd;
+	// return (Server::makeResponseMessage(200, "./www/index.html"));
+	Response response;
+	std::string content_type;
+	std::string path;
 
-	// // get_cnt++;
-	// // std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
-	// path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	// // std::cout << "---------request path : " << path << std::endl;
-	// if (ft::isValidFilePath(this->m_root + path))
-	// {
-	// 	content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
-	// 	// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
-	// 	// std::cout << "----1------ contenttype : " << content_type << std::endl;
-	// 	return (Server::makeResponseMessage(200, this->m_root + path, content_type));
-	// }
-	// else if (ft::isValidDirPath(this->m_root + path))
-	// {
-	// 	std::string block;
-	// 	if (path.compare("/") == 0 || path.compare("") == 0)
-	// 		block = "/";
-	// 	else
-	// 		block = path.substr(0, path.find_last_of("/"));
-	// 	std::vector<HttpConfigLocation> location = this->m_server_block.get_m_location_block();
-	// 	for (std::vector<HttpConfigLocation>::const_iterator location_it = location.begin() ; location_it != location.end() ; ++location_it)
-	// 	{
-	// 		if (block.compare(location_it->get_m_path()) == 0)
-	// 		{
-	// 			std::vector<std::string> v2 = location_it->get_m_index();
-	// 			for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
-	// 			{
-	// 				if (ft::isValidFilePath(location_it->get_m_root() + block + *index_it))
-	// 				{
-	// 					path = location_it->get_m_root() + block + *index_it;
-	// 					content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
-	// 					// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
-	// 					// std::cout << "---2------- contenttype : " << content_type << std::endl;
-	// 					return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, content_type));
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-	return (Server::makeResponseMessage(200, "./www/index.html"));
+	// get_cnt++;
+	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
+	path = this->m_requests[clientfd].get_m_uri().get_m_path();
+	// std::cout << "---------request path : " << path << std::endl;
+	if (ft::isValidFilePath(this->m_root + path))
+	{
+		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
+		// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
+		// std::cout << "----1------ contenttype : " << content_type << std::endl;
+		return (Server::makeResponseMessage(200, this->m_root + path, content_type));
+	}
+	else if (ft::isValidDirPath(this->m_root + path))
+	{
+		std::string block;
+		if (path.compare("/") == 0 || path.compare("") == 0)
+			block = "/";
+		else
+			block = path.substr(0, path.find_last_of("/"));
+		std::vector<HttpConfigLocation> location = this->m_server_block.get_m_location_block();
+		for (std::vector<HttpConfigLocation>::const_iterator location_it = location.begin() ; location_it != location.end() ; ++location_it)
+		{
+			if (block.compare(location_it->get_m_path()) == 0)
+			{
+				if (location_it->get_m_autoindex() && location_it->get_m_index().empty() && ft::isValidDirPath(location_it->get_m_root() + block))
+					return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root())));
+				std::vector<std::string> v2 = location_it->get_m_index();
+				for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
+				{
+					if (ft::isValidFilePath(location_it->get_m_root() + block + *index_it))
+					{
+						path = location_it->get_m_root() + block + *index_it;
+						content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
+						// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
+						// std::cout << "---2------- contenttype : " << content_type << std::endl;
+						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, content_type));
+					}
+					// else if (ft::isValidDirPath(location_it->get_m_root() + block)) // autoindex 파트 조건 수정 필요
+					// 	return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root() + block)));
+				}
+			}
+		}
+	}
+	return (Server::page404("./www/errors/default_error.html"));
 }
 
 /*============================================================================*/
@@ -907,6 +958,33 @@ Server::makeResponseMessage(
 			.setContentLanguage(contentLanguage)
 			.setContentType(contentType)
 			.setServer(server)
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.makeHttpResponseMessage()
+	);
+}
+
+Response
+Server::makeResponseBodyMessage(
+	int statusCode, std::string body, std::string contentType,
+	int dateHour, int dateMinute, int dateSecond,
+	std::string contentLanguage, std::string server
+)
+{
+	Response response = Response();
+
+	return (
+		response
+			.setStatusCode(statusCode)
+			.setCurrentDate(dateHour, dateMinute, dateSecond)
+			.setContentLanguage(contentLanguage)
+			.setContentType(contentType)
+			.setServer(server)
+			.setBodyDocument(body)
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
