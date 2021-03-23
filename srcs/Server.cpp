@@ -359,10 +359,10 @@ Server::runServer()
 		switch (this->fd_num)
 		{
 			case -1:
-				perror("select error");
+				std::cerr << "select error" << std::endl;
 				return ;
 			case 0:
-				perror("---Timeout Reset---");
+				std::cout << "---Timeout Reset---" << std::endl;
 			default:
 				getRequest();
 		}
@@ -575,8 +575,8 @@ Server::methodGET(int clientfd, std::string method)
 	// get_cnt++;
 	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
 	path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	if(checkHttpConfigFilePath(path, method))
-		return (Server::makeResponseMessage(405, ""));
+	// if(checkHttpConfigFilePath(path, method))
+	// 	return (Server::makeResponseMessage(405, ""));
 	if (ft::isValidFilePath(this->m_root + path))
 	{
 		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
