@@ -518,7 +518,6 @@ Server::methodGET(int clientfd)
 	// get_cnt++;
 	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
 	path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	// std::cout << "---------request path : " << path << std::endl;
 	if (ft::isValidFilePath(this->m_root + path))
 	{
 		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
@@ -557,7 +556,7 @@ Server::methodGET(int clientfd)
 			}
 		}
 	}
-	return (Server::page404("./www/errors/default_error.html"));
+	return (Server::page404(this->m_err_page_path));
 }
 
 /*============================================================================*/
@@ -636,7 +635,7 @@ Server::executeCgi(Request req, Response res, fd_set *write_fds)
 
 	std::cout << "Execute Cgi >0<" << std::endl;
 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-		return (Server::page404("errors/default_error.html"));
+		return (Server::page404(this->m_err_page_path));
 
 	int parent_stdout = pipe1[1];
 	int parent_stdin = pipe2[0];
@@ -652,7 +651,7 @@ Server::executeCgi(Request req, Response res, fd_set *write_fds)
 	fcntl(parent_stdin, F_SETFL, O_NONBLOCK);
 
 	if ((pid = fork()) < 0)
-		return (Server::page404("errors/default_error.html"));
+		return (Server::page404(this->m_err_page_path));
 	if (pid == 0)
 	{
 		close(parent_stdout);
@@ -773,7 +772,6 @@ Server::methodPOST(int clientfd)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
-
 	return (Server::makeResponseMessage(405, ""));
 }
 
@@ -784,8 +782,39 @@ Server::methodPOST(int clientfd)
 Response
 Server::methodPUT(int clientfd)
 {
-	(void) clientfd;
-	return (Server::page404("errors/default_error.html"));
+	Request req = this->m_requests[clientfd];
+	std::string path = req.get_m_uri().get_m_path();
+	int fd;
+	const char *body;
+	int status_code = 0;
+
+	/* cgi part should be added */
+	std::cout << this->m_root + path << std::endl;
+	if (ft::isValidFilePath(this->m_root + path) == false)
+	{
+		if ((fd = open((this->m_root + path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
+ 			return (Server::page404(this->m_err_page_path));
+		status_code = 201;
+	}
+	else
+	{
+		if ((fd = open((this->m_root + path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
+			return (Server::page404(this->m_err_page_path));
+		status_code = 200;
+	}
+	/* 405 check */
+	body = req.get_m_body().c_str();
+	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
+	{
+		close(fd);
+		return (Server::page404(this->m_err_page_path));
+	}
+	else
+	{
+		close(fd);
+		return (Server::makeResponseBodyMessage(status_code, ""));
+	}
+	return (Server::page404(this->m_err_page_path));
 }
 
 /*============================================================================*/
@@ -798,12 +827,13 @@ Server::methodDELETE(int clientfd)
 	Uri uri = this->m_requests[clientfd].get_m_uri();
 	std::string path = uri.get_m_path();
 
-	if (ft::isValidFilePath(path))
+	/* 405 check */
+	if (ft::isValidFilePath(this->m_root + path))
 	{
 		if (unlink(path.c_str()) == 0)
 			return (Server::page200());
 	}
-	return (Server::page404("errors/default_error.html"));
+	return (Server::page404(this->m_err_page_path));
 }
 
 /*============================================================================*/
@@ -871,9 +901,11 @@ Server::methodOPTIONS(int clientfd)
 	const std::vector<HttpConfigLocation> locations = m_server_block.get_m_location_block();
 	std::vector<HttpConfigLocation>::const_iterator i = locations.begin();
 
+	/* 405 check --  should be changed */
 	size_t pos = path.find_first_of("/", 1);
 	if (pos != std::string::npos)
 		path = path.substr(0, pos);
+
 
 	while (i != locations.end())
 	{
@@ -1116,7 +1148,7 @@ Server::parseErrorResponse(int clientfd)
 	else if (this->m_requests[clientfd].get_m_error_code() == 501)
 		return (methodNotImplemented_501());
 	else
-		return (page404("errors/default_error.html"));
+		return (page404(this->m_err_page_path));
 }
 
 Response
