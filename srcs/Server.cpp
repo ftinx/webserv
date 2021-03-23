@@ -36,6 +36,7 @@ Server& Server::operator=(Server const &rhs)
 	this->m_optionsLocation = rhs.m_optionsLocation;
 	this->m_traceLocation = rhs.m_traceLocation;
 	this->m_httpConfigFilePathSet = rhs.m_httpConfigFilePathSet;
+	this->m_getLocationAutoIndex = rhs.m_getLocationAutoIndex;
 
 	/* Socket */
 	this->m_server_addr = rhs.m_server_addr;
@@ -140,11 +141,12 @@ Server::noteHttpConfigLocation()
 		{
 			switch (*limit)
 			{
-				// case HEAD:
-				// 	this->m_headLocation.push_back(*location_iter);
-				// 	break;
+				case HEAD:
+					this->m_headLocation.push_back(*location_iter);
+					break;
 				case GET:
 					this->m_getLocation.push_back(*location_iter);
+					this->m_getLocationAutoIndex.insert(std::pair<std::string, bool>(location_iter->get_m_path(), location_iter->get_m_autoindex()));
 					break;
 				case POST:
 					this->m_postLocation.push_back(*location_iter);
@@ -547,6 +549,12 @@ Server::checkHttpConfigFilePath(std::string path, std::string method)
 Response
 Server::methodGET(int clientfd, std::string method)
 {
+	/* map < path, autoindex 여부 > 예시 */
+	std::map<std::string, bool>::iterator iter;
+	for(iter = this->m_getLocationAutoIndex.begin(); iter != this->m_getLocationAutoIndex.end(); iter++){
+		std::cout << "[\"" << iter->first << "\", " << iter->second << "]" << std::endl;
+	}
+
 	// (void) clientfd;
 	// return (Server::makeResponseMessage(200, "./www/index.html"));
 	Response response;

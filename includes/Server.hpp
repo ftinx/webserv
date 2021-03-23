@@ -58,6 +58,7 @@ class Server
 		std::vector<HttpConfigLocation> m_optionsLocation;
 		std::vector<HttpConfigLocation> m_traceLocation;
 		std::vector<std::string> m_httpConfigFilePathSet;
+		std::map<std::string, bool> m_getLocationAutoIndex;
 
 		/* Socket */
 		struct sockaddr_in m_server_addr;
