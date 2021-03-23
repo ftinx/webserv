@@ -192,6 +192,8 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 
 	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
 		*chunked = true;
+	else if ((pos = this->m_message.find("transfer-encoding: chunked")) != std::string::npos)
+		*chunked = true;
 	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) != std::string::npos)
 	{
 		this->m_message = this->m_message.substr(0, pos + 5);
@@ -201,6 +203,15 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
 	{
 		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
+		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
+		{
+			tmp = ft::trim(tmp.substr(0, pos), " \r");
+			content_length = ft::stoi(tmp);
+		}
+	}
+	else if ((pos = this->m_message.find("content-length:")) != std::string::npos)
+	{
+		tmp = m_message.substr(pos + strlen("content-length:"), std::string::npos);
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
