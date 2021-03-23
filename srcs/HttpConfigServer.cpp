@@ -112,7 +112,7 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 		{
 			location_block_exist = true;
 			HttpConfigLocation location = HttpConfigLocation();
-			this->m_location_block.push_back(location.parseLocationBlock(lines, idx));
+			this->m_location_block.push_back(location.parseLocationBlock(lines, root, idx));
 			continue ;
 		}
 		else if (line.front().compare("}") == 0)

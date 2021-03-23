@@ -225,7 +225,8 @@ HttpConfig::parseConfigFile(std::string file_path)
 		else if (line.front().compare("include") == 0)
 		{
 			this->m_include = line.back();
-			parseMimeTypes();
+			if (ft::checkValidFileExtension(this->m_include, "types"))
+				parseMimeTypes();
 		}
 		else if (line.front().compare("root") == 0)
 		{
