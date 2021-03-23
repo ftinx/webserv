@@ -71,6 +71,7 @@ namespace ft
 	std::string publicFileToString(std::string file_path);
 	Method getMethodType(std::string str);
 	std::string getMethodString(Method method);
+	bool checkValidFileExtension(std::string file_name, std::string ext);
 	bool checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list);
 }
 
