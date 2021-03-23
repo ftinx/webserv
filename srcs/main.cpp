@@ -2,13 +2,15 @@
 #include <iostream>
 
 int
-main()
+main(int argc, char *argv[])
 {
 	ServerManager serverManager;
 
+	if (argc != 2)
+		return (EXIT_FAILURE);
 	try
 	{
-		serverManager.parseHttpConfig();
+		serverManager.parseHttpConfig(argv[1]);
 		serverManager.initServers();
 	}
 	catch (const std::exception& e)
