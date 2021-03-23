@@ -101,7 +101,7 @@ class Response
 		bool parseCgiResponse(std::string&);
 
 		/* HTTP Response Util */
-		Response& makeHttpResponseMessage();
+		Response& makeHttpResponseMessage(std::string method = "");
 		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
 		std::string httpResponseHeader();
 		std::string setCRLF();
@@ -119,7 +119,7 @@ class Response
 		void setPTag(std::string value);
 		void setDivTag(std::string value);
 		Response& setPublicFileDocument(std::string publicPath);
-		Response& setBodyDocument(std::string body, std::string method = "");
+		Response& setBodyDocument(std::string body);
 
 		/* util */
 		Response& setCurrentDate(int hour=0, int minute=0, int second=0);

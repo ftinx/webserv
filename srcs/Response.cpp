@@ -333,12 +333,10 @@ Response::set404HtmlDocument()
 }
 
 Response &
-Response::setBodyDocument(std::string body, std::string method)
+Response::setBodyDocument(std::string body)
 {
 	this->m_html_document = body;
 	this->m_content_length = body.length();
-	if (method == "HEAD")
-		this->m_html_document = "";
 	return (*this);
 }
 
@@ -582,8 +580,10 @@ Response::setServer(std::string server)
 }
 
 Response &
-Response::makeHttpResponseMessage()
+Response::makeHttpResponseMessage(std::string method)
 {
+	if (method == "HEAD")
+		this->m_html_document = "";
 	/* Concat HTTP Response  */
 	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
 		+ httpResponseHeader()
