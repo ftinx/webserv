@@ -50,12 +50,14 @@ class Server
 		std::string m_root;
 
 		/* Parse */
+		std::vector<HttpConfigLocation> m_headLocation;
 		std::vector<HttpConfigLocation> m_getLocation;
 		std::vector<HttpConfigLocation> m_postLocation;
 		std::vector<HttpConfigLocation> m_putLocation;
 		std::vector<HttpConfigLocation> m_deleteLocation;
 		std::vector<HttpConfigLocation> m_optionsLocation;
 		std::vector<HttpConfigLocation> m_traceLocation;
+		std::vector<std::string> m_httpConfigFilePathSet;
 
 		/* Socket */
 		struct sockaddr_in m_server_addr;
@@ -88,6 +90,7 @@ class Server
 
 		/* setter */
 
+		/* util */
 		void noteHttpConfigLocation();
 		void init(
 			HttpConfigServer server_block,
@@ -120,6 +123,8 @@ class Server
 		);
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
+		bool checkHttpConfigFilePath(std::string path, std::string method="");
+		bool checkHttpConfigFilePathHead(std::string path);
 
 		/* SERVER METHOD UTIL */
 		static Response getDirectory(Request req, Response res);

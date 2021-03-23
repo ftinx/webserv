@@ -28,12 +28,14 @@ Server& Server::operator=(Server const &rhs)
 	this->m_root = rhs.m_root;
 
 	/* Parse */
+	this->m_headLocation = rhs.m_headLocation;
 	this->m_getLocation = rhs.m_getLocation;
 	this->m_postLocation = rhs.m_postLocation;
 	this->m_putLocation = rhs.m_putLocation;
 	this->m_deleteLocation = rhs.m_deleteLocation;
 	this->m_optionsLocation = rhs.m_optionsLocation;
 	this->m_traceLocation = rhs.m_traceLocation;
+	this->m_httpConfigFilePathSet = rhs.m_httpConfigFilePathSet;
 
 	/* Socket */
 	this->m_server_addr = rhs.m_server_addr;
@@ -133,10 +135,14 @@ Server::noteHttpConfigLocation()
 	{
 		std::vector<Method> limit_except = location_iter->get_m_limit_except();
 		std::vector<Method>::const_iterator limit = limit_except.begin();
+		m_httpConfigFilePathSet.push_back(location_iter->get_m_path());
 		while (limit != limit_except.end())
 		{
 			switch (*limit)
 			{
+				// case HEAD:
+				// 	this->m_headLocation.push_back(*location_iter);
+				// 	break;
 				case GET:
 					this->m_getLocation.push_back(*location_iter);
 					break;
@@ -446,6 +452,7 @@ Server::getMimeType(std::string extension)
 		return "none";
 	return (it->second);
 }
+
 Response
 Server::methodHEAD(int clientfd)
 {
@@ -505,6 +512,38 @@ Server::makeAutoindexPage(std::string path)
 	return (page);
 }
 
+bool
+Server::checkHttpConfigFilePathHead(std::string path)
+{
+	std::vector<HttpConfigLocation>::const_iterator headlocation_iter = this->m_headLocation.begin();
+	while (headlocation_iter != this->m_headLocation.end())
+	{
+		if (path == headlocation_iter->get_m_path())
+			return (true);
+		headlocation_iter++;
+	}
+	return (false);
+}
+
+bool
+Server::checkHttpConfigFilePath(std::string path, std::string method)
+{
+	if (method == "HEAD" && checkHttpConfigFilePathHead(path))
+		return (false);
+	std::vector<std::string>::const_iterator path_iter = this->m_httpConfigFilePathSet.begin();
+	while (path_iter != this->m_httpConfigFilePathSet.end())
+	{
+		if (path == *path_iter)
+		{
+			if (method == "HEAD")
+				return (true);
+			return (false);
+		}
+		path_iter++;
+	}
+	return (true);
+}
+
 Response
 Server::methodGET(int clientfd, std::string method)
 {
@@ -516,7 +555,8 @@ Server::methodGET(int clientfd, std::string method)
 	// get_cnt++;
 	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
 	path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	// std::cout << "---------request path : " << path << std::endl;
+	if(checkHttpConfigFilePath(path, method))
+		return (Server::makeResponseMessage(405, ""));
 	if (ft::isValidFilePath(this->m_root + path))
 	{
 		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
@@ -771,7 +811,8 @@ Server::methodPOST(int clientfd)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
-
+	if(checkHttpConfigFilePath(this->m_requests[clientfd].get_m_uri().get_m_path()))
+		return (Server::makeResponseMessage(405, ""));
 	return (Server::makeResponseMessage(405, ""));
 }
 
