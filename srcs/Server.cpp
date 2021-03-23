@@ -533,10 +533,12 @@ Server::checkHttpConfigFilePath(std::string path, std::string method)
 	std::vector<std::string>::const_iterator path_iter = this->m_httpConfigFilePathSet.begin();
 	while (path_iter != this->m_httpConfigFilePathSet.end())
 	{
-		if (path == *path_iter && method != "HEAD")
+		if (path == *path_iter)
+		{
+			if (method == "HEAD")
+				return (true);
 			return (false);
-		if (path == *path_iter && method == "HEAD")
-			return (true);
+		}
 		path_iter++;
 	}
 	return (true);
