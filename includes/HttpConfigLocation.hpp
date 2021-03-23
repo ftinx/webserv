@@ -31,6 +31,7 @@ class HttpConfigLocation
 		bool get_m_autoindex() const;
 
 		/* setter */
+		void set_m_root(std::string root);
 
 		/* utils */
 		static bool checkCommentLine(std::string str);
@@ -45,7 +46,7 @@ class HttpConfigLocation
 		};
 
 		/* key func. */
-		HttpConfigLocation& parseLocationBlock(std::vector<std::string> lines, size_t &idx);
+		HttpConfigLocation& parseLocationBlock(std::vector<std::string> lines, std::string root, size_t &idx);
 };
 
 #endif

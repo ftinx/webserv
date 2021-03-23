@@ -89,6 +89,12 @@ HttpConfigLocation::get_m_autoindex() const
 /********************************  Setter  ************************************/
 /*============================================================================*/
 
+void
+HttpConfigLocation::set_m_root(std::string root)
+{
+	this->m_root = root;
+}
+
 /*============================================================================*/
 /******************************  Exception  ***********************************/
 /*============================================================================*/
@@ -133,7 +139,7 @@ const char* HttpConfigLocation::parseErrorException::what() const throw()
 }
 
 HttpConfigLocation&
-HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, size_t &idx)
+HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::string root, size_t &idx)
 {
 	while (42)
 	{
@@ -204,5 +210,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, size_t &i
 		}
 		idx++;
 	}
+	if (this->m_root.compare("") == 0)
+		this->m_root = root;
 	return (*this);
 }

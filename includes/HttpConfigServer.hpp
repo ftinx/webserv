@@ -28,6 +28,8 @@ class HttpConfigServer
 
 		/* setter */
 
+		void set_m_root(std::string m_root);
+
 		/* key func. */
 		HttpConfigServer& parseServerBlock(std::vector<std::string> lines, std::string root, size_t &idx);
 };
