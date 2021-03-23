@@ -1208,23 +1208,33 @@ Server::sendResponse(int clientfd)
 		response = this->parseErrorResponse(clientfd);
 
 	/* make Response for Method */
-	if (method == GET)
+	switch(method)
+	{
+	case GET:
 		response = this->methodGET(clientfd);
-	else if (method == HEAD)
+		break;
+	case HEAD:
 		response = this->methodHEAD(clientfd);
-	else if (method == POST)
+		break;
+	case POST:
 		response = this->methodPOST(clientfd);
-	else if (method == PUT)
+		break;
+	case PUT:
 		response = this->methodPUT(clientfd);
-	else if (method == DELETE)
+		break;
+	case DELETE:
 		response = this->methodDELETE(clientfd);
-	else if (method == TRACE)
+		break;
+	case TRACE:
 		response = this->methodTRACE(clientfd);
-	else if (method == OPTIONS)
+		break;
+	case OPTIONS:
 		response = this->methodOPTIONS(clientfd);
-	else
+		break;
+	default:
 		response = methodNotAllow_405();
-
+		break;
+	}
 	/* config Method */
 	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
 
