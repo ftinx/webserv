@@ -467,7 +467,7 @@ Server::getMethodLocation(Method method)
 }
 
 bool
-isMatchingLocation(std::string location, std::string path_in, std::string *rest)
+Server::isMatchingLocation(std::string location, std::string path_in, std::string *rest)
 {
 	try
 	{
