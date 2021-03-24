@@ -1045,6 +1045,7 @@ Server::makeResponseMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("last-modified", response.get_m_date())
 			.makeHttpResponseMessage(method)
 	);
 }
