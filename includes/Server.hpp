@@ -111,6 +111,7 @@ class Server
 		void getRequest();
 		std::vector<HttpConfigLocation> getMethodLocation(Method method);
 		bool checkAcceptedMethod(std::vector<Method> v, Method method);
+		std::string checkHttpConfigFilePath(std::string path_in);
 		void resetRequest(Request *req);
 		static Response makeResponseMessage(
 			int statusCode,
@@ -127,8 +128,8 @@ class Server
 		);
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
-		bool checkHttpConfigFilePath(std::string path, std::string method="");
-		bool checkHttpConfigFilePathHead(std::string path);
+		// bool checkHttpConfigFilePath(std::string path, std::string method="");
+		// bool checkHttpConfigFilePathHead(std::string path);
 
 		/* SERVER METHOD UTIL */
 		static Response getDirectory(Request req, Response res);
