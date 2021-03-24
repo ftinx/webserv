@@ -9,6 +9,7 @@
 #include <map>
 #include "Uri.hpp"
 #include "Utils.hpp"
+#include "HttpConfigLocation.hpp"
 
 #define MAXLINE 2048
 #define SOCK_SETSIZE 1021
@@ -25,6 +26,8 @@ class Request
 		std::map<std::string, std::string> m_headers;
 		std::string m_body;
 		int m_error_code;
+		std::string m_reset_path;
+		HttpConfigLocation m_location_block;
 
 	public:
 		Request();
@@ -42,6 +45,8 @@ class Request
 		std::map<std::string, std::string> get_m_headers() const;
 		std::string get_m_body() const;
 		int	get_m_error_code() const;
+		std::string get_m_reset_path() const;
+		HttpConfigLocation get_m_location_block() const;
 		void set_m_http_version(std::string);
 		void set_m_cgi_version(std::string);
 		void set_m_check_cgi(bool);
@@ -49,6 +54,9 @@ class Request
 		//setHeaders
 		void set_m_body(std::string);
 		void set_m_error_code(int);
+		void set_m_reset_path(std::string);
+		void set_m_location_block(HttpConfigLocation);
+
 		std::string getMethod();
 		std::string getContentLength();
 		std::string getContentType();

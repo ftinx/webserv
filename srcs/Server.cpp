@@ -427,6 +427,7 @@ Server::getRequest()
 			*/
 			this->m_requests[this->sockfd] = Request();
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
+			this->resetRequest(&this->m_requests[this->sockfd]);
 
 			FD_SET(this->sockfd, &this->m_write_fds);
 			//FD_CLR(this->sockfd, &this->m_main_fds);
@@ -436,6 +437,91 @@ Server::getRequest()
 		}
 	}
 	return ;
+}
+
+std::vector<HttpConfigLocation>
+Server::getMethodLocation(Method method)
+{
+	switch(method)
+	{
+		case GET:
+			return (m_getLocation);
+		case HEAD:
+			return (m_headLocation);
+		case POST:
+			return (m_postLocation);
+		case PUT:
+			return (m_putLocation);
+		case DELETE:
+			return (m_deleteLocation);
+		case OPTIONS:
+			return (m_optionsLocation);
+		case TRACE:
+			return (m_traceLocation);
+		default:
+			return (std::vector<HttpConfigLocation>());
+	}
+	return (std::vector<HttpConfigLocation>());
+}
+
+bool
+Server::checkAcceptedMethod(std::vector<Method> v, Method method)
+{
+	std::vector<Method>::const_iterator it;
+
+	for(it = v.begin(); it != v.end(); ++it)
+	{
+		if (*it == method)
+			return (true);
+	}
+	return (false);
+}
+
+void
+Server::resetRequest(Request *req)
+{
+	std::vector<HttpConfigLocation> loc_block = getMethodLocation(req->get_m_method());
+	std::vector<HttpConfigLocation>::const_iterator it;
+	HttpConfigLocation block;
+	std::string path_in = req->get_m_uri().get_m_path();
+	std::string path_out("");
+	std::string tmp;
+	std::string rest;
+	bool method_accepted;
+
+	if (loc_block.empty())
+	{
+		req->set_m_error_code(405);
+		return;
+	}
+	for (it = loc_block.begin(); it != loc_block.end(); ++it)
+	{
+		tmp = it->get_m_path();
+		try
+		{
+			if (path_in.compare(0, tmp.size(), tmp) != 0)
+				continue;
+			rest = path_in.substr(tmp.size(), std::string::npos);
+			if (rest.size() && rest[0] != '/')
+				continue;
+			if (path_out.size() < tmp.size())
+			{
+				path_out = tmp;
+				block = *it;
+				method_accepted = checkAcceptedMethod(it->get_m_limit_except(), req->get_m_method());
+			}
+		}
+		catch(const std::exception &e)
+		{
+		}
+	}
+	if (method_accepted == false)
+		req->set_m_error_code(405);
+	else
+	{
+		req->set_m_reset_path(path_out);
+		req->set_m_location_block(block);
+	}
 }
 
 /*============================================================================*/

@@ -103,6 +103,18 @@ Request::get_m_error_code() const
 	return (this->m_error_code);
 }
 
+std::string
+Request::get_m_reset_path() const
+{
+	return (this->m_reset_path);
+}
+
+HttpConfigLocation
+Request::get_m_location_block() const
+{
+	return (this->m_location_block);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -135,6 +147,18 @@ void
 Request::set_m_error_code(int error_code)
 {
 	this->m_error_code = error_code;
+}
+
+void
+Request::set_m_reset_path(std::string path)
+{
+	this->m_reset_path = path;
+}
+
+void
+Request::set_m_location_block(HttpConfigLocation block)
+{
+	this->m_location_block = block;
 }
 
 /*============================================================================*/

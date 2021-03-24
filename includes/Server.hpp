@@ -109,6 +109,9 @@ class Server
 		void closeServer();
 
 		void getRequest();
+		std::vector<HttpConfigLocation> getMethodLocation(Method method);
+		bool checkAcceptedMethod(std::vector<Method> v, Method method);
+		void resetRequest(Request *req);
 		static Response makeResponseMessage(
 			int statusCode,
 			std::string path = "./www/index.html", std::string method="", std::string contentType="text/html; charset=UTF-8",
