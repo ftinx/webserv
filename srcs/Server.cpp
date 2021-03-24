@@ -710,6 +710,7 @@ Server::methodGET(int clientfd, std::string method)
 
 
 
+
 // Response
 // Server::methodGET(int clientfd, std::string method)
 // {
