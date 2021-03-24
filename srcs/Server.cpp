@@ -428,6 +428,8 @@ Server::getRequest()
 			this->m_requests[this->sockfd] = Request();
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
 			this->resetRequest(&this->m_requests[this->sockfd]);
+			std::cout << "[\033" << std::endl;
+			std::cout << this->m_requests[this->sockfd].get_m_reset_path << std::endl;
 
 			FD_SET(this->sockfd, &this->m_write_fds);
 			//FD_CLR(this->sockfd, &this->m_main_fds);
