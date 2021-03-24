@@ -830,6 +830,8 @@ Server::methodPUT(int clientfd)
 	int status_code = 0;
 
 	/* cgi part should be added */
+	if(checkHttpConfigFilePath(path))
+		return (Server::makeResponseMessage(405, ""));
 	std::cout << this->m_root + path << std::endl;
 	if (ft::isValidFilePath(this->m_root + path) == false)
 	{
@@ -843,7 +845,6 @@ Server::methodPUT(int clientfd)
 			return (Server::page404(this->m_err_page_path));
 		status_code = 200;
 	}
-	/* 405 check */
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
