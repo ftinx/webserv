@@ -649,6 +649,13 @@ Server::checkHttpConfigFilePath(std::string path, std::string method)
 Response
 Server::methodGET(int clientfd, std::string method)
 {
+	/* If-Modified-Since: Wed, 24 Mar 2021 15:27:59 KST 가 request에 있을경우 비교함수 실행
+	** 현재 60초 이상 경과되면 200 아니면 304 response message
+	** ft::compareTimestampToCurrent("현재 시간")
+	*/
+	if (ft::compareTimestampToCurrent("Wed, 24 Mar 2021 14:24:57 KST") > 60)
+		return (makeResponseBodyMessage(304, "", method));
+
 	/* map < path, autoindex 여부 > 예시 */
 	std::map<std::string, bool>::iterator iter;
 	for(iter = this->m_getLocationAutoIndex.begin(); iter != this->m_getLocationAutoIndex.end(); iter++){
@@ -1134,6 +1141,7 @@ Server::makeResponseMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("last-modified", response.get_m_date())
 			.makeHttpResponseMessage(method)
 	);
 }

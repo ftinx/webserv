@@ -316,6 +316,19 @@ getDateTimestamp(int hour, int minute, int second)
 	return (buf);
 }
 
+int
+compareTimestampToCurrent(std::string timestamp)
+{
+	struct timeval current_timeval;
+	struct timeval timestamp_timeval;
+	struct tm timestamp_tm;
+
+	gettimeofday(&current_timeval, NULL);
+	strptime(timestamp.c_str(), "%a, %d %b %Y %H:%M:%S %Z", &timestamp_tm);
+	timestamp_timeval.tv_sec = mktime(&timestamp_tm);
+	return (current_timeval.tv_sec - timestamp_timeval.tv_sec);
+}
+
 /*============================================================================*/
 /*******************************  ETC  ****************************************/
 /*============================================================================*/

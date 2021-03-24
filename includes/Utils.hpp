@@ -63,6 +63,7 @@ namespace ft
 
 	/* TIME */
 	std::string getDateTimestamp(int hour, int minute, int second);
+	int compareTimestampToCurrent(std::string timestamp);
 
 	/* ETC */
 	bool isValidFilePath(std::string path);
