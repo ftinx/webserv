@@ -442,6 +442,21 @@ getMethodString(Method method)
 
 
 bool
+checkValidFileExtension(std::string file_name, std::string ext)
+{
+	std::vector<std::string> tmp;
+	std::string extension;
+
+	if (file_name.find(".") == std::string::npos)
+		return (false);
+	tmp = ft::split(file_name, '.');
+	extension = tmp.back();
+	if (ext.compare(extension) == 0)
+		return (true);
+	return (false);
+}
+
+bool
 checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list)
 {
 	std::vector<std::string> tmp;

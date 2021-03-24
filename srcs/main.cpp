@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		std::cerr << "[Err] main.c: " << e.what() << std::endl;
 	}
 	serverManager.runServers();
 	return (EXIT_SUCCESS);

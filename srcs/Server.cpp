@@ -36,6 +36,7 @@ Server& Server::operator=(Server const &rhs)
 	this->m_optionsLocation = rhs.m_optionsLocation;
 	this->m_traceLocation = rhs.m_traceLocation;
 	this->m_httpConfigFilePathSet = rhs.m_httpConfigFilePathSet;
+	this->m_getLocationAutoIndex = rhs.m_getLocationAutoIndex;
 
 	/* Socket */
 	this->m_server_addr = rhs.m_server_addr;
@@ -140,11 +141,12 @@ Server::noteHttpConfigLocation()
 		{
 			switch (*limit)
 			{
-				// case HEAD:
-				// 	this->m_headLocation.push_back(*location_iter);
-				// 	break;
+				case HEAD:
+					this->m_headLocation.push_back(*location_iter);
+					break;
 				case GET:
 					this->m_getLocation.push_back(*location_iter);
+					this->m_getLocationAutoIndex.insert(std::pair<std::string, bool>(location_iter->get_m_path(), location_iter->get_m_autoindex()));
 					break;
 				case POST:
 					this->m_postLocation.push_back(*location_iter);
@@ -357,10 +359,10 @@ Server::runServer()
 		switch (this->fd_num)
 		{
 			case -1:
-				perror("select error");
+				std::cerr << "select error" << std::endl;
 				return ;
 			case 0:
-				perror("---Timeout Reset---");
+				std::cout << "---Timeout Reset---" << std::endl;
 			default:
 				getRequest();
 		}
@@ -515,10 +517,16 @@ Server::makeAutoindexPage(std::string path)
 bool
 Server::checkHttpConfigFilePathHead(std::string path)
 {
+	int path_length = path.length();
 	std::vector<HttpConfigLocation>::const_iterator headlocation_iter = this->m_headLocation.begin();
 	while (headlocation_iter != this->m_headLocation.end())
 	{
+		int headlocation_length = headlocation_iter->get_m_path().length();
 		if (path == headlocation_iter->get_m_path())
+			return (true);
+		if (path_length > headlocation_length
+		&& headlocation_length > 1
+		&& path.substr(0, headlocation_length) == headlocation_iter->get_m_path())
 			return (true);
 		headlocation_iter++;
 	}
@@ -528,17 +536,23 @@ Server::checkHttpConfigFilePathHead(std::string path)
 bool
 Server::checkHttpConfigFilePath(std::string path, std::string method)
 {
-	if (method == "HEAD" && checkHttpConfigFilePathHead(path))
-		return (false);
+	int path_length = path.length();
+	if (method == "HEAD")
+	{
+		if (checkHttpConfigFilePathHead(path))
+			return (false);
+		return (true);
+	}
 	std::vector<std::string>::const_iterator path_iter = this->m_httpConfigFilePathSet.begin();
 	while (path_iter != this->m_httpConfigFilePathSet.end())
 	{
+		int path_iter_length = (*path_iter).length();
 		if (path == *path_iter)
-		{
-			if (method == "HEAD")
-				return (true);
 			return (false);
-		}
+		if (path_length > path_iter_length
+		&& path_iter_length > 1
+		&& path.substr(0, path_iter_length) == *path_iter)
+			return (false);
 		path_iter++;
 	}
 	return (true);
@@ -547,6 +561,12 @@ Server::checkHttpConfigFilePath(std::string path, std::string method)
 Response
 Server::methodGET(int clientfd, std::string method)
 {
+	/* map < path, autoindex 여부 > 예시 */
+	std::map<std::string, bool>::iterator iter;
+	for(iter = this->m_getLocationAutoIndex.begin(); iter != this->m_getLocationAutoIndex.end(); iter++){
+		std::cout << "[\"" << iter->first << "\", " << iter->second << "]" << std::endl;
+	}
+
 	// (void) clientfd;
 	// return (Server::makeResponseMessage(200, "./www/index.html"));
 	Response response;
@@ -555,8 +575,8 @@ Server::methodGET(int clientfd, std::string method)
 	// get_cnt++;
 	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
 	path = this->m_requests[clientfd].get_m_uri().get_m_path();
-	if(checkHttpConfigFilePath(path, method))
-		return (Server::makeResponseMessage(405, ""));
+	// if(checkHttpConfigFilePath(path, method))
+	// 	return (Server::makeResponseMessage(405, ""));
 	if (ft::isValidFilePath(this->m_root + path))
 	{
 		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
