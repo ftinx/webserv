@@ -576,45 +576,66 @@ Server::getTest(Request req, Response res)
 }
 
 std::string
-Server::makeAutoindexPage(std::string path)
+Server::makeAutoindexPage(std::string root, std::string path)
 {
 	std::string page;
-	std::string dirName(path);
+	std::string dir_name = path.substr(root.length() + 1, std::string::npos);
 	struct dirent *entry;
+	std::vector<std::string> entry_dir;
+	std::vector<std::string> entry_file;
 	DIR *dirptr = opendir(path.c_str());
 
-	// if ((dirptr = opendir(path.c_str())) != NULL)
-	// {
-	// 	closedir(dirptr);
-	// 	return ("");
-	// }
-	page += std::string("<!DOCTYPE html>")
-			+ std::string("<html lang=\"en\">")
-			+ std::string("<head>")
-			+ std::string("<title>")
-			+ std::string(dirName)
-			+ std::string("</title>")
-			+ std::string("</head>")
-			+ std::string("<body>")
-			+ std::string("<p>");
-	if (dirName[0] != '/')
-	{
-		dirName = std::string("/") + dirName;
-		// std::cout << dirName << std::endl;
-	}
 	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
 	{
-		page += std::string("<p><a href=\"")
-				// + std::string(dirName)
-				// + std::string("/")
-				+ std::string(entry->d_name)
-				+ std::string("\">")
-				+ std::string(entry->d_name)
-				+ std::string("</a></p>\n");
+		if (std::string(entry->d_name).compare(".") == 0)
+			continue ;
+		if (ft::isValidDirPath(path + std::string(entry->d_name)))
+			entry_dir.push_back(std::string(entry->d_name));
+		if (ft::isValidFilePath(path + std::string(entry->d_name)))
+			entry_file.push_back(std::string(entry->d_name));
 	}
-	page += std::string("</p>")
-			+ std::string("</body>")
-			+ std::string("</html>");
+	std::sort(entry_dir.begin(), entry_dir.end());
+	std::sort(entry_file.begin(), entry_file.end());
+	page += std::string("<!DOCTYPE html>\n")
+			+ std::string("<html lang=\"en\">\n")
+			+ std::string("<head>\n")
+			+ std::string("<title>")
+			+ std::string(dir_name)
+			+ std::string("</title>\n")
+			+ std::string("</head>\n")
+			+ std::string("<body>\n")
+			+ std::string("<h2>Directory Listing</h2>\n")
+			+ std::string("<h3>Index of /")
+			+ std::string(dir_name)
+			+ std::string("</h3>\n");
+	if (dir_name[0] != '/')
+		dir_name = std::string("/") + dir_name;
+	page += std::string("<hr><p>name</p>")
+			+ std::string("<hr><table><p>\n");
+	for (std::vector<std::string>::const_iterator it = entry_dir.begin() ; it != entry_dir.end() ; ++it)
+	{
+		page += std::string("<a href=\"")
+				+ std::string(dir_name + *it)
+				+ std::string("\">")
+				+ std::string(*it)
+				+ std::string("</a></br>\n");
+	}
+	for (std::vector<std::string>::const_iterator it = entry_file.begin() ; it != entry_file.end() ; ++it)
+	{
+		page += std::string("<a href=\"")
+				+ std::string(dir_name + *it)
+				+ std::string("\">")
+				+ std::string(*it)
+				+ std::string("</a></br>\n");
+	}
+	page += std::string("</p><hr>\n")
+			+ std::string("<i>")
+			+ std::string(m_server_name)
+			+ std::string(" by ftinx 0.1 port ")
+			+ std::string(std::to_string(m_port))
+			+ std::string("</i>\n")
+			+ std::string("</body>\n")
+			+ std::string("</html>\n");
 	closedir(dirptr);
 	return (page);
 }
@@ -685,15 +706,12 @@ Server::methodGET(int clientfd, std::string method)
 				type = getMimeType(extension);
 				return (Server::makeResponseMessage(200, absolute_path + *index_it, method, type)); // 200 응답과 반환
 			}
-			else // index 순회했는데 일치하는게 없으면 오토인덱스 체크
-			{
-				std::map<std::string, bool>::const_iterator autoindex_it;
-				for (autoindex_it = this->m_getLocationAutoIndex.begin() ; autoindex_it != this->m_getLocationAutoIndex.end() ; ++autoindex_it)
-				{
-					if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true)
-						return (Server::makeResponseBodyMessage(200, makeAutoindexPage(absolute_path)));
-				}
-			}
+		}
+		std::map<std::string, bool>::const_iterator autoindex_it;
+		for (autoindex_it = this->m_getLocationAutoIndex.begin() ; autoindex_it != this->m_getLocationAutoIndex.end() ; ++autoindex_it)
+		{
+			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true)
+				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path)));
 		}
 	}
 	else // 폴더가 아니라면
@@ -708,75 +726,6 @@ Server::methodGET(int clientfd, std::string method)
 	return (Server::page404(this->m_err_page_path));
 }
 
-
-
-
-// Response
-// Server::methodGET(int clientfd, std::string method)
-// {
-// 	/* If-Modified-Since: Wed, 24 Mar 2021 15:27:59 KST 가 request에 있을경우 비교함수 실행
-// 	** 현재 60초 이상 경과되면 200 아니면 304 response message
-// 	** ft::compareTimestampToCurrent("현재 시간")
-// 	*/
-// 	// if (ft::compareTimestampToCurrent("Wed, 24 Mar 2021 14:24:57 KST") > 60)
-// 	// 	return (makeResponseBodyMessage(304, "", method));
-
-// 	/* map < path, autoindex 여부 > 예시 */
-// 	std::map<std::string, bool>::iterator iter;
-// 	for(iter = this->m_getLocationAutoIndex.begin(); iter != this->m_getLocationAutoIndex.end(); iter++){
-// 		std::cout << "[\"" << iter->first << "\", " << iter->second << "]" << std::endl;
-// 	}
-
-// 	// (void) clientfd;
-// 	// return (Server::makeResponseMessage(200, "./www/index.html"));
-// 	Response response;
-// 	std::string content_type;
-// 	std::string path;
-// 	// get_cnt++;
-// 	// std::cout << "---------------------get_cnt : "<< get_cnt << std::endl;
-// 	path = this->m_requests[clientfd].get_m_uri().get_m_path();
-// 	// if(checkHttpConfigFilePath(path, method))
-// 	// 	return (Server::makeResponseMessage(405, ""));
-// 	if (ft::isValidFilePath(this->m_root + path))
-// 	{
-// 		content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
-// 		// std::cout << "----1------ entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
-// 		// std::cout << "----1------ contenttype : " << content_type << std::endl;
-// 		return (Server::makeResponseMessage(200, this->m_root + path, method, content_type));
-// 	}
-// 	else if (ft::isValidDirPath(this->m_root + path))
-// 	{
-// 		std::string block;
-// 		if (path.compare("/") == 0 || path.compare("") == 0)
-// 			block = "/";
-// 		else
-// 			block = path.substr(0, path.find_last_of("/"));
-// 		std::vector<HttpConfigLocation> location = this->m_server_block.get_m_location_block();
-// 		for (std::vector<HttpConfigLocation>::const_iterator location_it = location.begin() ; location_it != location.end() ; ++location_it)
-// 		{
-// 			if (block.compare(location_it->get_m_path()) == 0)
-// 			{
-// 				if (location_it->get_m_autoindex() && location_it->get_m_index().empty() && ft::isValidDirPath(location_it->get_m_root() + block))
-// 					return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root()), method));
-// 				std::vector<std::string> v2 = location_it->get_m_index();
-// 				for (std::vector<std::string>::const_iterator index_it = v2.begin() ; index_it != v2.end() ; ++index_it)
-// 				{
-// 					if (ft::isValidFilePath(location_it->get_m_root() + block + *index_it))
-// 					{
-// 						path = location_it->get_m_root() + block + *index_it;
-// 						content_type = getMimeType(path.substr(path.find_last_of(".") + 1, std::string::npos));
-// 						// std::cout << "---2------- entension : " << path.substr(path.find_last_of(".") + 1, std::string::npos) << std::endl;
-// 						// std::cout << "---2------- contenttype : " << content_type << std::endl;
-// 						return (Server::makeResponseMessage(200, location_it->get_m_root() + block + *index_it, method, content_type));
-// 					}
-// 					// else if (ft::isValidDirPath(location_it->get_m_root() + block)) // autoindex 파트 조건 수정 필요
-// 					// 	return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_it->get_m_root() + block)));
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return (Server::page404(this->m_err_page_path));
-// }
 
 /*============================================================================*/
 /**********************************  POST  ************************************/
