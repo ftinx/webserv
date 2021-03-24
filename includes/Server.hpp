@@ -111,7 +111,7 @@ class Server
 		void getRequest();
 		std::vector<HttpConfigLocation> getMethodLocation(Method method);
 		bool checkAcceptedMethod(std::vector<Method> v, Method method);
-		bool isMatchingLocation(std::string location, std::string path_in, std::string *rest)
+		bool isMatchingLocation(std::string location, std::string path_in, std::string *rest);
 		std::string checkHttpConfigFilePath(std::string path_in);
 		void resetRequest(Request *req);
 		static Response makeResponseMessage(
