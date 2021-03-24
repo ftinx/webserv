@@ -427,6 +427,9 @@ Server::getRequest()
 			*/
 			this->m_requests[this->sockfd] = Request();
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
+			this->resetRequest(&this->m_requests[this->sockfd]);
+			std::cout << "\033[32m****************\033[0m" << std::endl;
+			std::cout << this->m_requests[this->sockfd].get_m_reset_path() << std::endl;
 
 			FD_SET(this->sockfd, &this->m_write_fds);
 			//FD_CLR(this->sockfd, &this->m_main_fds);
@@ -436,6 +439,108 @@ Server::getRequest()
 		}
 	}
 	return ;
+}
+
+std::vector<HttpConfigLocation>
+Server::getMethodLocation(Method method)
+{
+	switch(method)
+	{
+		case GET:
+			return (m_getLocation);
+		case HEAD:
+			return (m_headLocation);
+		case POST:
+			return (m_postLocation);
+		case PUT:
+			return (m_putLocation);
+		case DELETE:
+			return (m_deleteLocation);
+		case OPTIONS:
+			return (m_optionsLocation);
+		case TRACE:
+			return (m_traceLocation);
+		default:
+			return (std::vector<HttpConfigLocation>());
+	}
+	return (std::vector<HttpConfigLocation>());
+}
+
+bool
+Server::isMatchingLocation(std::string location, std::string path_in, std::string *rest)
+{
+	try
+	{
+		if (path_in.compare(0, location.size(), location) != 0)
+			return (false);
+		*rest = path_in.substr(location.size(), std::string::npos);
+		if (location == "/")
+			*rest = "/" + *rest;
+		if ((*rest).size() && (*rest)[0] != '/')
+			return (false);
+	}
+	catch(const std::exception& e)
+	{
+		return (false);
+	}
+	return (true);
+}
+
+std::string
+Server::checkHttpConfigFilePath(std::string path_in)
+{
+	std::vector<std::string>::const_iterator it;
+	std::string rest;
+	std::string ret("");
+
+	for(it = m_httpConfigFilePathSet.begin(); it != m_httpConfigFilePathSet.end(); it++)
+	{
+		if (isMatchingLocation(*it, path_in, &rest) == true)
+		{
+			if (ret.size() < (*it).size())
+				ret = *it;
+		}
+	}
+	return (ret);
+}
+
+void
+Server::resetRequest(Request *req)
+{
+	std::vector<HttpConfigLocation> loc_block = getMethodLocation(req->get_m_method());
+	std::vector<HttpConfigLocation>::const_iterator it;
+	HttpConfigLocation block;
+	std::string path_in = req->get_m_uri().get_m_path();
+	std::string path_loc("");
+	std::string path_out("");
+	std::string tmp;
+	std::string rest;
+
+	if (loc_block.empty())
+	{
+		req->set_m_error_code(405);
+		return;
+	}
+	for (it = loc_block.begin(); it != loc_block.end(); ++it)
+	{
+		tmp = it->get_m_path();
+		if (isMatchingLocation(tmp, path_in, &rest) == false)
+			continue;
+		if (path_loc.size() < tmp.size())
+		{
+			path_loc = tmp;
+			path_out = it->get_m_root() + rest;
+			block = *it;
+			std::cout << "PATH_LOC: " << path_loc << std::endl;
+		}
+	}
+	if (checkHttpConfigFilePath(path_in) != path_loc)
+	{
+		req->set_m_error_code(405);
+		return;
+	}
+	req->set_m_reset_path(path_out);
+	req->set_m_location_block(block);
 }
 
 /*============================================================================*/
@@ -514,49 +619,49 @@ Server::makeAutoindexPage(std::string path)
 	return (page);
 }
 
-bool
-Server::checkHttpConfigFilePathHead(std::string path)
-{
-	int path_length = path.length();
-	std::vector<HttpConfigLocation>::const_iterator headlocation_iter = this->m_headLocation.begin();
-	while (headlocation_iter != this->m_headLocation.end())
-	{
-		int headlocation_length = headlocation_iter->get_m_path().length();
-		if (path == headlocation_iter->get_m_path())
-			return (true);
-		if (path_length > headlocation_length
-		&& headlocation_length > 1
-		&& path.substr(0, headlocation_length) == headlocation_iter->get_m_path())
-			return (true);
-		headlocation_iter++;
-	}
-	return (false);
-}
+// bool
+// Server::checkHttpConfigFilePathHead(std::string path)
+// {
+// 	int path_length = path.length();
+// 	std::vector<HttpConfigLocation>::const_iterator headlocation_iter = this->m_headLocation.begin();
+// 	while (headlocation_iter != this->m_headLocation.end())
+// 	{
+// 		int headlocation_length = headlocation_iter->get_m_path().length();
+// 		if (path == headlocation_iter->get_m_path())
+// 			return (true);
+// 		if (path_length > headlocation_length
+// 		&& headlocation_length > 1
+// 		&& path.substr(0, headlocation_length) == headlocation_iter->get_m_path())
+// 			return (true);
+// 		headlocation_iter++;
+// 	}
+// 	return (false);
+// }
 
-bool
-Server::checkHttpConfigFilePath(std::string path, std::string method)
-{
-	int path_length = path.length();
-	if (method == "HEAD")
-	{
-		if (checkHttpConfigFilePathHead(path))
-			return (false);
-		return (true);
-	}
-	std::vector<std::string>::const_iterator path_iter = this->m_httpConfigFilePathSet.begin();
-	while (path_iter != this->m_httpConfigFilePathSet.end())
-	{
-		int path_iter_length = (*path_iter).length();
-		if (path == *path_iter)
-			return (false);
-		if (path_length > path_iter_length
-		&& path_iter_length > 1
-		&& path.substr(0, path_iter_length) == *path_iter)
-			return (false);
-		path_iter++;
-	}
-	return (true);
-}
+// bool
+// Server::checkHttpConfigFilePath(std::string path, std::string method)
+// {
+// 	int path_length = path.length();
+// 	if (method == "HEAD")
+// 	{
+// 		if (checkHttpConfigFilePathHead(path))
+// 			return (false);
+// 		return (true);
+// 	}
+// 	std::vector<std::string>::const_iterator path_iter = this->m_httpConfigFilePathSet.begin();
+// 	while (path_iter != this->m_httpConfigFilePathSet.end())
+// 	{
+// 		int path_iter_length = (*path_iter).length();
+// 		if (path == *path_iter)
+// 			return (false);
+// 		if (path_length > path_iter_length
+// 		&& path_iter_length > 1
+// 		&& path.substr(0, path_iter_length) == *path_iter)
+// 			return (false);
+// 		path_iter++;
+// 	}
+// 	return (true);
+// }
 
 Response
 Server::methodGET(int clientfd, std::string method)
@@ -565,8 +670,8 @@ Server::methodGET(int clientfd, std::string method)
 	** 현재 60초 이상 경과되면 200 아니면 304 response message
 	** ft::compareTimestampToCurrent("현재 시간")
 	*/
-	if (ft::compareTimestampToCurrent("Wed, 24 Mar 2021 14:24:57 KST") > 60)
-		return (makeResponseBodyMessage(304, "", method));
+	// if (ft::compareTimestampToCurrent("Wed, 24 Mar 2021 14:24:57 KST") > 60)
+	// 	return (makeResponseBodyMessage(304, "", method));
 
 	/* map < path, autoindex 여부 > 예시 */
 	std::map<std::string, bool>::iterator iter;
@@ -838,8 +943,6 @@ Server::methodPOST(int clientfd)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
-	if(checkHttpConfigFilePath(this->m_requests[clientfd].get_m_uri().get_m_path()))
-		return (Server::makeResponseMessage(405, ""));
 	return (Server::makeResponseMessage(405, ""));
 }
 
@@ -870,7 +973,6 @@ Server::methodPUT(int clientfd)
 			return (Server::page404(this->m_err_page_path));
 		status_code = 200;
 	}
-	/* 405 check */
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
@@ -1212,12 +1314,7 @@ Server::methodNotImplemented_501()
 Response
 Server::parseErrorResponse(int clientfd)
 {
-	if (this->m_requests[clientfd].get_m_error_code() == 400)
-		return (badRequest_400());
-	else if (this->m_requests[clientfd].get_m_error_code() == 501)
-		return (methodNotImplemented_501());
-	else
-		return (page404(this->m_err_page_path));
+	return (makeResponseBodyMessage(this->m_requests[clientfd].get_m_error_code()));
 }
 
 Response
@@ -1306,35 +1403,39 @@ Server::sendResponse(int clientfd)
 
 	/* make Response for Parse Error */
 	if (this->m_requests[clientfd].get_m_error_code())
-		response = this->parseErrorResponse(clientfd);
-
-	/* make Response for Method */
-	switch(method)
 	{
-	case GET:
-		response = this->methodGET(clientfd);
-		break;
-	case HEAD:
-		response = this->methodHEAD(clientfd);
-		break;
-	case POST:
-		response = this->methodPOST(clientfd);
-		break;
-	case PUT:
-		response = this->methodPUT(clientfd);
-		break;
-	case DELETE:
-		response = this->methodDELETE(clientfd);
-		break;
-	case TRACE:
-		response = this->methodTRACE(clientfd);
-		break;
-	case OPTIONS:
-		response = this->methodOPTIONS(clientfd);
-		break;
-	default:
-		response = methodNotAllow_405();
-		break;
+		response = this->parseErrorResponse(clientfd);
+	}
+	else
+	{
+	/* make Response for Method */
+		switch(method)
+		{
+		case GET:
+			response = this->methodGET(clientfd);
+			break;
+		case HEAD:
+			response = this->methodHEAD(clientfd);
+			break;
+		case POST:
+			response = this->methodPOST(clientfd);
+			break;
+		case PUT:
+			response = this->methodPUT(clientfd);
+			break;
+		case DELETE:
+			response = this->methodDELETE(clientfd);
+			break;
+		case TRACE:
+			response = this->methodTRACE(clientfd);
+			break;
+		case OPTIONS:
+			response = this->methodOPTIONS(clientfd);
+			break;
+		default:
+			response = methodNotAllow_405();
+			break;
+		}
 	}
 	/* config Method */
 	// response = get("/hi", this->m_requests[clientfd], response, Server::getDirectory);
