@@ -164,7 +164,7 @@ class Server
 
 		Response options_405(std::string allow_method);
 		Response options_204(std::string allow_method);
-		std::string makeAllowMethod(std::vector<Method> v, bool *options_allowed);
+		std::string makeAllowMethod(std::vector<Method> v);
 		Response methodOPTIONS(int clientfd);
 		Response methodTRACE(int clientfd);
 

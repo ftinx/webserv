@@ -8,7 +8,8 @@
 
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
-m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0)
+m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
+m_reset_path(""), m_location_block()
 {
 }
 
@@ -30,6 +31,8 @@ Request& Request::operator=(Request const &rhs)
 	this->m_headers = rhs.get_m_headers();
 	this->m_body = rhs.get_m_body();
 	this->m_error_code = rhs.get_m_error_code();
+	this->m_reset_path = rhs.get_m_reset_path();
+	this->m_location_block = rhs.get_m_location_block();
 	return (*this);
 }
 
