@@ -28,6 +28,9 @@ class Request
 		int m_error_code;
 		std::string m_reset_path;
 		HttpConfigLocation m_location_block;
+		/* cgi envp */
+		std::string m_path_translated;
+		std::string m_path_info;
 
 	public:
 		Request();
@@ -47,6 +50,8 @@ class Request
 		int	get_m_error_code() const;
 		std::string get_m_reset_path() const;
 		HttpConfigLocation get_m_location_block() const;
+		std::string get_m_path_translated() const;
+		std::string get_m_path_info() const;
 		void set_m_http_version(std::string);
 		void set_m_cgi_version(std::string);
 		void set_m_check_cgi(bool);
@@ -65,11 +70,12 @@ class Request
 		bool parseMessage(bool);
 		bool parseRequestLine(std::string);
 		bool checkMethod();
-		bool checkCGI();
 		bool parseHeader(std::string);
 		bool checkBlankLine(std::string);
 		bool parseBody(std::string, int, int, bool);
 		void checkChunked(std::string);
+		std::string getRestPath();
+		bool checkCGI();
 		void printHeaders() const;
 };
 
