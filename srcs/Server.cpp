@@ -730,18 +730,15 @@ Server::methodGET(int clientfd, std::string method)
 		{
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
 			type = getMimeType(extension);
-			std::cout << "----------type : " << type << std::endl;
 			if (type.compare(0, 5, "image") == 0)
 			{
-				std::cout << "--------------------------------------" << std::endl;
-				return (Server::makeResponseBodyMessage(200, std::string("data:image/jpeg;base64,") + ft::encode(absolute_path), method, type));
+				return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), method, type));
 			}
 			return (Server::makeResponseMessage(200, absolute_path, method, type));
 		}
 	}
 	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
-
 
 /*============================================================================*/
 /**********************************  POST  ************************************/
