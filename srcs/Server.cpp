@@ -755,7 +755,7 @@ Server::methodGET(int clientfd, std::string method)
 			return (Server::makeResponseMessage(200, absolute_path, method, type));
 		}
 	}
-	return (Server::makeResponseBodyMessage(405, makeErrorPage(405)));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404)));
 	// return (Server::page404(this->m_err_page_path));
 }
 
