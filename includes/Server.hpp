@@ -153,7 +153,7 @@ class Server
 
 		/* METHOD */
 		std::string getMimeType(std::string extension);
-		std::string makeAutoindexPage(std::string path);
+		std::string makeAutoindexPage(std::string root, std::string path);
 		static Response getTest(Request req, Response res);
 
 		Response methodHEAD(int clientfd);
