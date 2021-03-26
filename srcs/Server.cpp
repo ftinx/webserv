@@ -22,7 +22,6 @@ Server& Server::operator=(Server const &rhs)
 	this->m_server_block = rhs.m_server_block;
 	this->m_server_name = rhs.m_server_name;
 	this->m_port = rhs.m_port;
-	this->m_err_page_path = rhs.m_err_page_path;
 	this->m_content_length = rhs.m_content_length;
 	this->m_location_size = rhs.m_location_size;
 	this->m_root = rhs.m_root;
@@ -175,17 +174,13 @@ Server::noteHttpConfigLocation()
 }
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
+Server::init(HttpConfigServer server_block, std::string server_name, int port, int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
 	this->m_server_block = server_block;
 	this->m_server_name = server_name;
 	this->m_port = port;
-	if (err_page_path != "")
-		this->m_err_page_path = err_page_path;
-	else
-		this->m_err_page_path = "./www/errors/default_error.html";
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	this->m_root = root;
@@ -551,29 +546,24 @@ Server::makeErrorPage(int status_code)
 {
 	std::string page;
 
-	page += std::string("<!DOCTYPE html>\n")
-			+ std::string("<html lang=\"en\">\n")
-			+ std::string("<head>\n")
-			+ std::string("<title>")
+	if (this->m_server_block.get_m_default_error_page().empty() == false)
+	{
+		std::string path(this->m_root + this->m_server_block.get_m_default_error_page());
+		if (ft::isValidFilePath(path))
+			return (ft::fileToString(path));
+	}
+	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<title>")
 			+ std::string(std::to_string(status_code))
-			+ std::string(" Error</title>\n")
-			+ std::string("</head>\n")
-			+ std::string("<body>\n<center>\n")
-			+ std::string("<h1>")
+			+ std::string(" Error</title>\n</head>\n<body>\n<center>\n<h1>")
 			+ std::string(std::to_string(status_code))
-			+ std::string("</h1>\n")
-			+ std::string("<h3>")
+			+ std::string("</h1>\n<h3>")
 			+ ft::getErrorMessage(status_code)
-			+ std::string("</h3>\n")
-			+ std::string("<p>The server encountered an unexpected condition that prevented it from fulfilling the request.<br>\n")
-			+ std::string("We are sorry for the inconvenience.</p>\n")
-			+ std::string("<hr>\n<i>")
+			+ std::string("</h3>\n<p>The server encountered an unexpected condition that prevented it from fulfilling the request.<br>\n")
+			+ std::string("We are sorry for the inconvenience.</p>\n<hr>\n<i>")
 			+ std::string(m_server_name)
 			+ std::string(" by ftinx 0.1 port ")
 			+ std::string(std::to_string(m_port))
-			+ std::string("</i>\n")
-			+ std::string("</center>\n</body>\n")
-			+ std::string("</html>\n");
+			+ std::string("</i>\n</center>\n</body>\n</html>\n");
 	return (page);
 }
 
@@ -609,7 +599,7 @@ std::string
 Server::makeAutoindexPage(std::string root, std::string path)
 {
 	std::string page;
-	std::string dir_name = path.substr(root.length() + 1, std::string::npos);
+	std::string dir_name(path.substr(root.length() + 1, std::string::npos));
 	struct dirent *entry;
 	std::vector<std::string> entry_dir;
 	std::vector<std::string> entry_file;
@@ -626,22 +616,14 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	}
 	std::sort(entry_dir.begin(), entry_dir.end());
 	std::sort(entry_file.begin(), entry_file.end());
-	page += std::string("<!DOCTYPE html>\n")
-			+ std::string("<html lang=\"en\">\n")
-			+ std::string("<head>\n")
-			+ std::string("<title>Index of /")
+	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<title>Index of /")
 			+ std::string(dir_name)
-			+ std::string("</title>\n")
-			+ std::string("</head>\n")
-			+ std::string("<body>\n")
-			+ std::string("<h2>Directory Listing</h2>\n")
-			+ std::string("<h3>Index of /")
+			+ std::string("</title>\n</head>\n<body>\n<h2>Directory Listing</h2>\n<h3>Index of /")
 			+ std::string(dir_name)
 			+ std::string("</h3>\n");
 	if (dir_name[0] != '/')
 		dir_name = std::string("/") + dir_name;
-	page += std::string("<hr><p>name</p>")
-			+ std::string("<hr><table><p>\n");
+	page += std::string("<hr><p>name</p><hr><table><p>\n");
 	for (std::vector<std::string>::const_iterator it = entry_dir.begin() ; it != entry_dir.end() ; ++it)
 	{
 		page += std::string("<a href=\"")
@@ -658,14 +640,11 @@ Server::makeAutoindexPage(std::string root, std::string path)
 				+ std::string(*it)
 				+ std::string("</a></br>\n");
 	}
-	page += std::string("</p><hr>\n")
-			+ std::string("<i>")
+	page += std::string("</p><hr>\n<i>")
 			+ std::string(this->m_server_name)
 			+ std::string(" by ftinx 0.1 port ")
 			+ std::string(std::to_string(this->m_port))
-			+ std::string("</i>\n")
-			+ std::string("</body>\n")
-			+ std::string("</html>\n");
+			+ std::string("</i>\n</body>\n</html>\n");
 	closedir(dirptr);
 	return (page);
 }
@@ -718,8 +697,8 @@ Response
 Server::methodGET(int clientfd, std::string method)
 {
 	Response response;
-	std::string absolute_path = this->m_requests[clientfd].get_m_reset_path();
-	HttpConfigLocation location_block = this->m_requests[clientfd].get_m_location_block();
+	std::string absolute_path(this->m_requests[clientfd].get_m_reset_path());
+	HttpConfigLocation location_block(this->m_requests[clientfd].get_m_location_block());
 	std::string type;
 	std::string extension;
 
@@ -753,7 +732,7 @@ Server::methodGET(int clientfd, std::string method)
 			return (Server::makeResponseMessage(200, absolute_path, method, type));
 		}
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404)));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
 
 
@@ -833,7 +812,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 
 	std::cout << "Execute Cgi >0<" << std::endl;
 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-		return (Server::makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 
 	int parent_stdout = pipe1[1];
 	int parent_stdin = pipe2[0];
@@ -849,7 +828,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 	fcntl(parent_stdin, F_SETFL, O_NONBLOCK);
 
 	if ((pid = fork()) < 0)
-		return (Server::makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	if (pid == 0)
 	{
 		close(parent_stdout);
@@ -983,8 +962,13 @@ Server::methodPOST(int clientfd, std::string method)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
+<<<<<<< HEAD
 // 	return (Server::makeResponseMessage(405, "", method));
 // }
+=======
+	return (Server::makeResponseBodyMessage(405, makeErrorPage(405), method));
+}
+>>>>>>> a2a9a694f90a354a69aa161a04a2c21dbef8be12
 
 /*============================================================================*/
 /**********************************  PUT  *************************************/
@@ -1006,7 +990,7 @@ Server::methodPUT(int clientfd, std::string method)
 		std::cout << "PATH: " << path << std::endl;
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
 		{
- 			return (Server::makeResponseMessage(404, this->m_err_page_path, method));
+ 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 		}
 		status_code = 201;
 	}
@@ -1014,7 +998,7 @@ Server::methodPUT(int clientfd, std::string method)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
 		{
-			return (Server::makeResponseMessage(404, this->m_err_page_path, method));
+			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 		}
 		status_code = 200;
 	}
@@ -1022,14 +1006,14 @@ Server::methodPUT(int clientfd, std::string method)
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		close(fd);
-		return (Server::makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	}
 	else
 	{
 		close(fd);
 		return (Server::makeResponseBodyMessage(status_code, req.get_m_uri().get_m_path(), method));
 	}
-	return (makeResponseMessage(404, this->m_err_page_path, method));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
 
 /*============================================================================*/
@@ -1046,9 +1030,7 @@ Server::methodDELETE(int clientfd, std::string method)
 		if (unlink(path.c_str()) == 0)
 			return (Server::makeResponseMessage(200, "./www/index.html", method));
 	}
-	return (
-		Server::makeResponseMessage(404, this->m_err_page_path, method)
-	);
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
 
 /*============================================================================*/
@@ -1079,11 +1061,9 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
 
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
-		return (Server::makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
-	return (
-		Server::makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method)
-	);
+	return (Server::makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method));
 }
 
 
@@ -1239,7 +1219,7 @@ Server::getDirectory(Request req, Response res)
 			.setCurrentDate()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
+			.setServer("ftinx/1.0 (MacOS)")
 			.setPublicFileDocument("index.html")
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))

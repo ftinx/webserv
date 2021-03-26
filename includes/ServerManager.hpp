@@ -36,7 +36,6 @@ class ServerManager
 			HttpConfigServer server_block,
 			std::string server_name,
 			int port,
-			std::string err_page_path,
 			int content_length,
 			size_t location_size,
 			std::string root,
