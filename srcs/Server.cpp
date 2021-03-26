@@ -754,7 +754,6 @@ Server::methodGET(int clientfd, std::string method)
 		}
 	}
 	return (Server::makeResponseBodyMessage(404, makeErrorPage(404)));
-	// return (Server::page404(this->m_err_page_path));
 }
 
 
@@ -884,7 +883,6 @@ Server::executeCgi(Request req, Response res, std::string method)
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
 			.makeHttpResponseMessage();
-		ft::fdSet(parent_stdout, write_fds);
 	}
 	return (response);
 }
@@ -1070,7 +1068,7 @@ Server::methodOPTIONS(int clientfd, std::string method)
 		return (makeResponseMessage(404, this->m_err_page_path, method));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
 	return (
-		makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method);
+		makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method)
 	);
 }
 
@@ -1094,7 +1092,7 @@ Server::methodTRACE(int clientfd, std::string method)
 	Response response = Response();
 
 	return (
-		makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), method, "message/http");
+		makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), method, "message/http")
 	);
 }
 
@@ -1192,7 +1190,10 @@ Server::makeResponseBodyMessage(
 Response
 Server::parseErrorResponse(int clientfd)
 {
-	return (makeResponseBodyMessage(this->m_requests[clientfd].get_m_error_code()));
+	int status_code(this->m_requests[clientfd].get_m_error_code());
+	return (
+		Server::makeResponseBodyMessage(status_code, makeErrorPage(status_code))
+	);
 }
 
 Response
@@ -1311,7 +1312,7 @@ Server::sendResponse(int clientfd)
 			response = this->methodOPTIONS(clientfd);
 			break;
 		default:
-			response = methodNotAllow_405();
+			response = Server::makeResponseBodyMessage(405, makeErrorPage(405));
 			break;
 		}
 	}
