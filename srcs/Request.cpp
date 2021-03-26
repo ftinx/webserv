@@ -387,7 +387,7 @@ Request::parseHeader(std::string line)
 bool
 Request::parseBody(std::string line, int i, int size, bool chunked)
 {
-	static int content_length = -1;
+	static long int content_length = -1;
 	long int num;
 	std::string newline;
 
