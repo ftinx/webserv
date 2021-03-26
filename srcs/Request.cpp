@@ -8,7 +8,8 @@
 
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
-m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0)
+m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
+m_reset_path(""), m_location_block()
 {
 }
 
@@ -30,6 +31,8 @@ Request& Request::operator=(Request const &rhs)
 	this->m_headers = rhs.get_m_headers();
 	this->m_body = rhs.get_m_body();
 	this->m_error_code = rhs.get_m_error_code();
+	this->m_reset_path = rhs.get_m_reset_path();
+	this->m_location_block = rhs.get_m_location_block();
 	return (*this);
 }
 
@@ -384,8 +387,8 @@ Request::parseHeader(std::string line)
 bool
 Request::parseBody(std::string line, int i, int size, bool chunked)
 {
-	static int content_length = 0;
-	int stoi_ret;
+	static long int content_length = -1;
+	long int num;
 	std::string newline;
 
 	if (chunked == false)
@@ -398,11 +401,16 @@ Request::parseBody(std::string line, int i, int size, bool chunked)
 	}
 	/* else chunked == true */
 	newline = ft::rtrim(line, "\r");
-	stoi_ret = ft::stoi(newline);
-	if (stoi_ret == 0 && newline != "0")
+	num = std::strtol(newline.c_str(), 0, 16);
+	if (content_length != -1 && newline != "0")
+	{
 		this->m_body += newline.substr(0, content_length);
-	else if (stoi_ret != 0)
-		content_length = stoi_ret;
+		content_length = -1;
+	}
+	else if (num != 0 && content_length == -1)
+	{
+		content_length = num;
+	}
 	return (true);
 }
 

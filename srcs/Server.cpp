@@ -428,8 +428,7 @@ Server::getRequest()
 			this->m_requests[this->sockfd] = Request();
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
 			this->resetRequest(&this->m_requests[this->sockfd]);
-			std::cout << "\033[32m****************\033[0m" << std::endl;
-			std::cout << this->m_requests[this->sockfd].get_m_reset_path() << std::endl;
+			std::cout << "\033[32m" << this->m_requests[this->sockfd].get_m_reset_path() << "\033[0m" << std::endl;
 
 			FD_SET(this->sockfd, &this->m_write_fds);
 			//FD_CLR(this->sockfd, &this->m_main_fds);
@@ -531,7 +530,6 @@ Server::resetRequest(Request *req)
 			path_loc = tmp;
 			path_out = it->get_m_root() + rest;
 			block = *it;
-			std::cout << "PATH_LOC: " << path_loc << std::endl;
 		}
 	}
 	if (checkHttpConfigFilePath(path_in) != path_loc)
@@ -984,23 +982,28 @@ Response
 Server::methodPUT(int clientfd)
 {
 	Request req = this->m_requests[clientfd];
-	std::string path = req.get_m_uri().get_m_path();
+	std::string path = req.get_m_reset_path();
+
 	int fd;
 	const char *body;
 	int status_code = 0;
 
 	/* cgi part should be added */
-	std::cout << this->m_root + path << std::endl;
-	if (ft::isValidFilePath(this->m_root + path) == false)
+	if (ft::isValidFilePath(path) == false)
 	{
-		if ((fd = open((this->m_root + path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
+		std::cout << "PATH: " << path << std::endl;
+		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
+		{
  			return (Server::page404(this->m_err_page_path));
+		}
 		status_code = 201;
 	}
 	else
 	{
-		if ((fd = open((this->m_root + path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
+		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
+		{
 			return (Server::page404(this->m_err_page_path));
+		}
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
@@ -1024,11 +1027,9 @@ Server::methodPUT(int clientfd)
 Response
 Server::methodDELETE(int clientfd)
 {
-	Uri uri = this->m_requests[clientfd].get_m_uri();
-	std::string path = uri.get_m_path();
+	std::string path = m_requests[clientfd].get_m_reset_path();
 
-	/* 405 check */
-	if (ft::isValidFilePath(this->m_root + path))
+	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
 			return (Server::page200());
@@ -1076,52 +1077,51 @@ Server::options_204(std::string allow_method)
 	);
 }
 
-
 std::string
-Server::makeAllowMethod(std::vector<Method> v, bool *options_allowed)
+Server::makeAllowMethod(std::vector<Method> v)
 {
 	std::string ret("");
+	std::vector<Method>::const_iterator i = v.begin();
 
-	for(std::vector<Method>::const_iterator i = v.begin(); i != v.end(); ++i)
+	while (i != v.end())
 	{
-		if (*i == OPTIONS)
-			*options_allowed = true;
 		ret += ft::getMethodString(*i) + ", ";
+		i++;
 	}
-	ret = ret.substr(0, ret.size() - 2);
+	if (i == v.end())
+		ret = ret.substr(0, ret.size() - 2);
 	return (ret);
 }
 
 Response
 Server::methodOPTIONS(int clientfd)
 {
-	std::string path = m_requests[clientfd].get_m_uri().get_m_path();
-	bool options_allowed = false;
+	Response response = Response();
 	std::string allow_method("");
-	const std::vector<HttpConfigLocation> locations = m_server_block.get_m_location_block();
-	std::vector<HttpConfigLocation>::const_iterator i = locations.begin();
+	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
 
-	/* 405 check --  should be changed */
-	size_t pos = path.find_first_of("/", 1);
-	if (pos != std::string::npos)
-		path = path.substr(0, pos);
-
-
-	while (i != locations.end())
-	{
-		if (path == i->get_m_path())
-		{
-			allow_method = makeAllowMethod(i->get_m_limit_except(), &options_allowed);
-			break;
-		}
-		i++;
-	}
-	if (i == locations.end())
+	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
 		return (Server::page404(this->m_err_page_path));
-	else if (options_allowed == false)
-		return (Server::options_405(allow_method));
-	return (Server::options_204(allow_method));
+	allow_method = makeAllowMethod(location.get_m_limit_except());
+	return (
+		response
+			.setStatusCode(204)
+			.setCurrentDate(0, 0, 0)
+			.setContentLanguage("ko, en")
+			.setContentType("text/html; charset=UTF-8")
+			.setServer("ftnix/1.0 (MacOS)")
+			.setBodyDocument("")
+			.setHttpResponseHeader("date", response.get_m_date())
+			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
+			.setHttpResponseHeader("content-language", response.get_m_content_language())
+			.setHttpResponseHeader("content-type", response.get_m_content_type())
+			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
+			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("allow", allow_method)
+			.makeHttpResponseMessage("OPTIONS")
+	);
 }
+
 
 /*============================================================================*/
 /**********************************  TRACE  ***********************************/
