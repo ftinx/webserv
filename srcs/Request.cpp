@@ -445,6 +445,13 @@ Request::checkBlankLine(std::string str)
 	return (false);
 }
 
+std::string
+Request::getPathInfo()
+{
+
+}
+
+
 void
 Request::printHeaders() const
 {

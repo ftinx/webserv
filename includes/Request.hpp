@@ -70,6 +70,7 @@ class Request
 		bool checkBlankLine(std::string);
 		bool parseBody(std::string, int, int, bool);
 		void checkChunked(std::string);
+		std::string findPathInfo();
 		void printHeaders() const;
 };
 

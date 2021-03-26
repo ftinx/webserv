@@ -790,9 +790,10 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
 	map["REQUEST_METHOD"] = req.getMethod();
-	//map["PATH_INFO"] = this->parseCgiPathInfo(req);
-	// map["PATH_INFO"] = "/cgi-bin/cgi_tester";
-	map["PATH_TRANSLATED"] = uri.get_m_path();
+	map["PATH_INFO"] = req.findPathInfo();
+	map["PATH_TRANSLATED"] = req.get_m_reset_path();
+	map["REDIRECT_STATUS"] = "";
+	map["SCRIPT_FILENAME"] = "";
 	map["SCRIPT_NAME"] = uri.get_m_path();
 	map["QUERY_STRING"] = uri.get_m_query_string();
 	map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
