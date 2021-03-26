@@ -547,6 +547,38 @@ Server::resetRequest(Request *req)
 /*******************************  Response  ***********************************/
 /*============================================================================*/
 
+
+std::string
+Server::makeErrorPage(int status_code)
+{
+	std::string page;
+
+	page += std::string("<!DOCTYPE html>\n")
+			+ std::string("<html lang=\"en\">\n")
+			+ std::string("<head>\n")
+			+ std::string("<title>")
+			+ std::string(std::to_string(status_code))
+			+ std::string(" Error</title>\n")
+			+ std::string("</head>\n")
+			+ std::string("<body>\n<center>\n")
+			+ std::string("<h1>")
+			+ std::string(std::to_string(status_code))
+			+ std::string("</h1>\n")
+			+ std::string("<h3>")
+			+ ft::getErrorMessage(status_code)
+			+ std::string("</h3>\n")
+			+ std::string("<p>The server encountered an unexpected condition that prevented it from fulfilling the request.<br>\n")
+			+ std::string("We are sorry for the inconvenience.</p>\n")
+			+ std::string("<hr>\n<i>")
+			+ std::string(m_server_name)
+			+ std::string(" by ftinx 0.1 port ")
+			+ std::string(std::to_string(m_port))
+			+ std::string("</i>\n")
+			+ std::string("</center>\n</body>\n")
+			+ std::string("</html>\n");
+	return (page);
+}
+
 /*============================================================================*/
 /*********************************  HEAD  *************************************/
 /*============================================================================*/
@@ -599,7 +631,7 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	page += std::string("<!DOCTYPE html>\n")
 			+ std::string("<html lang=\"en\">\n")
 			+ std::string("<head>\n")
-			+ std::string("<title>")
+			+ std::string("<title>Index of /")
 			+ std::string(dir_name)
 			+ std::string("</title>\n")
 			+ std::string("</head>\n")
@@ -630,9 +662,9 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	}
 	page += std::string("</p><hr>\n")
 			+ std::string("<i>")
-			+ std::string(m_server_name)
+			+ std::string(this->m_server_name)
 			+ std::string(" by ftinx 0.1 port ")
-			+ std::string(std::to_string(m_port))
+			+ std::string(std::to_string(this->m_port))
 			+ std::string("</i>\n")
 			+ std::string("</body>\n")
 			+ std::string("</html>\n");
@@ -723,7 +755,8 @@ Server::methodGET(int clientfd, std::string method)
 			return (Server::makeResponseMessage(200, absolute_path, method, type));
 		}
 	}
-	return (Server::page404(this->m_err_page_path));
+	return (Server::makeResponseBodyMessage(405, makeErrorPage(405)));
+	// return (Server::page404(this->m_err_page_path));
 }
 
 

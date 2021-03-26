@@ -487,4 +487,97 @@ checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list
 	return (false);
 }
 
+
+std::string
+getErrorMessage(int status_code)
+{
+	switch (status_code)
+	{
+		case 100:
+			return (std::string("Continue"));
+		case 101:
+			return (std::string("Switching Protocols"));
+		case 200:
+			return (std::string("OK"));
+		case 201:
+			return (std::string("Created"));
+		case 202:
+			return (std::string("Accepted"));
+		case 203:
+			return (std::string("Non-Authoritative Information"));
+		case 204:
+			return (std::string("No Content"));
+		case 205:
+			return (std::string("Reset Content"));
+		case 206:
+			return (std::string("Partial Content"));
+		case 300:
+			return (std::string("Multiple Choices"));
+		case 301:
+			return (std::string("Moved Permanently"));
+		case 302:
+			return (std::string("Found"));
+		case 303:
+			return (std::string("See Other"));
+		case 304:
+			return (std::string("Not Modified"));
+		case 305:
+			return (std::string("Use Proxy"));
+		case 307:
+			return (std::string("Temporary Redirect"));
+		case 400:
+			return (std::string("Bad Request"));
+		case 401:
+			return (std::string("Unauthorized"));
+		case 402:
+			return (std::string("Payment Requied"));
+		case 403:
+			return (std::string("Forbidden"));
+		case 404:
+			return (std::string("Not Found"));
+		case 405:
+			return (std::string("Method Not Allowed"));
+		case 406:
+			return (std::string("Not Acceptable"));
+		case 407:
+			return (std::string("Proxy Authentication Required"));
+		case 408:
+			return (std::string("Request Timeout"));
+		case 409:
+			return (std::string("Conflict"));
+		case 410:
+			return (std::string("Gone"));
+		case 411:
+			return (std::string("Length Required"));
+		case 412:
+			return (std::string("Precondition Failed"));
+		case 413:
+			return (std::string("Payload Too Large"));
+		case 414:
+			return (std::string("URI Too Long"));
+		case 415:
+			return (std::string("Unsupported Media Type"));
+		case 416:
+			return (std::string("Range Not Satisfiable"));
+		case 417:
+			return (std::string("Expectation Failed"));
+		case 426:
+			return (std::string("Upgrade Required"));
+		case 500:
+			return (std::string("Internal Server Error"));
+		case 501:
+			return (std::string("Not Implemented"));
+		case 502:
+			return (std::string("Bad Gateway"));
+		case 503:
+			return (std::string("Service Unavailable"));
+		case 504:
+			return (std::string("Gateway Timeout"));
+		case 505:
+			return (std::string("HTTP Version Not Supported"));
+		default:
+			return (std::string("Undefined Status Code"));
+	}
+}
+
 }
