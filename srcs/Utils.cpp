@@ -460,7 +460,7 @@ checkValidFileExtension(std::string file_name, std::string ext)
 	std::vector<std::string> tmp;
 	std::string extension;
 
-	if (file_name.find(".") == std::string::npos)
+	if (file_name.find_last_of(".") == std::string::npos)
 		return (false);
 	tmp = ft::split(file_name, '.');
 	extension = tmp.back();
@@ -472,16 +472,16 @@ checkValidFileExtension(std::string file_name, std::string ext)
 bool
 checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list)
 {
-	std::vector<std::string> tmp;
+	std::vector<std::string>::const_iterator it;
 	std::string extension;
+	size_t pos;
 
-	if (file_name.find(".") == std::string::npos)
+	if ((pos = file_name.find_last_of(".")) == std::string::npos)
 		return (false);
-	tmp = ft::split(file_name, '.');
-	extension = tmp.back();
-	for (size_t i = 0 ; i < ext_list.size() ; i++)
+	extension = file_name.substr(pos, std::string::npos);
+	for (it = ext_list.begin() ; it != ext_list.end() ; it++)
 	{
-		if (ext_list[i].compare(extension) == 0)
+		if (*it == extension)
 			return (true);
 	}
 	return (false);
