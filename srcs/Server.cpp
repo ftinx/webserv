@@ -552,29 +552,18 @@ Server::makeErrorPage(int status_code)
 		if (ft::isValidFilePath(path))
 			return (ft::fileToString(path));
 	}
-	page += std::string("<!DOCTYPE html>\n")
-			+ std::string("<html lang=\"en\">\n")
-			+ std::string("<head>\n")
-			+ std::string("<title>")
+	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<title>")
 			+ std::string(std::to_string(status_code))
-			+ std::string(" Error</title>\n")
-			+ std::string("</head>\n")
-			+ std::string("<body>\n<center>\n")
-			+ std::string("<h1>")
+			+ std::string(" Error</title>\n</head>\n<body>\n<center>\n<h1>")
 			+ std::string(std::to_string(status_code))
-			+ std::string("</h1>\n")
-			+ std::string("<h3>")
+			+ std::string("</h1>\n<h3>")
 			+ ft::getErrorMessage(status_code)
-			+ std::string("</h3>\n")
-			+ std::string("<p>The server encountered an unexpected condition that prevented it from fulfilling the request.<br>\n")
-			+ std::string("We are sorry for the inconvenience.</p>\n")
-			+ std::string("<hr>\n<i>")
+			+ std::string("</h3>\n<p>The server encountered an unexpected condition that prevented it from fulfilling the request.<br>\n")
+			+ std::string("We are sorry for the inconvenience.</p>\n<hr>\n<i>")
 			+ std::string(m_server_name)
 			+ std::string(" by ftinx 0.1 port ")
 			+ std::string(std::to_string(m_port))
-			+ std::string("</i>\n")
-			+ std::string("</center>\n</body>\n")
-			+ std::string("</html>\n");
+			+ std::string("</i>\n</center>\n</body>\n</html>\n");
 	return (page);
 }
 
@@ -610,7 +599,7 @@ std::string
 Server::makeAutoindexPage(std::string root, std::string path)
 {
 	std::string page;
-	std::string dir_name = path.substr(root.length() + 1, std::string::npos);
+	std::string dir_name(path.substr(root.length() + 1, std::string::npos));
 	struct dirent *entry;
 	std::vector<std::string> entry_dir;
 	std::vector<std::string> entry_file;
@@ -627,22 +616,14 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	}
 	std::sort(entry_dir.begin(), entry_dir.end());
 	std::sort(entry_file.begin(), entry_file.end());
-	page += std::string("<!DOCTYPE html>\n")
-			+ std::string("<html lang=\"en\">\n")
-			+ std::string("<head>\n")
-			+ std::string("<title>Index of /")
+	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<title>Index of /")
 			+ std::string(dir_name)
-			+ std::string("</title>\n")
-			+ std::string("</head>\n")
-			+ std::string("<body>\n")
-			+ std::string("<h2>Directory Listing</h2>\n")
-			+ std::string("<h3>Index of /")
+			+ std::string("</title>\n</head>\n<body>\n<h2>Directory Listing</h2>\n<h3>Index of /")
 			+ std::string(dir_name)
 			+ std::string("</h3>\n");
 	if (dir_name[0] != '/')
 		dir_name = std::string("/") + dir_name;
-	page += std::string("<hr><p>name</p>")
-			+ std::string("<hr><table><p>\n");
+	page += std::string("<hr><p>name</p><hr><table><p>\n");
 	for (std::vector<std::string>::const_iterator it = entry_dir.begin() ; it != entry_dir.end() ; ++it)
 	{
 		page += std::string("<a href=\"")
@@ -659,14 +640,11 @@ Server::makeAutoindexPage(std::string root, std::string path)
 				+ std::string(*it)
 				+ std::string("</a></br>\n");
 	}
-	page += std::string("</p><hr>\n")
-			+ std::string("<i>")
+	page += std::string("</p><hr>\n<i>")
 			+ std::string(this->m_server_name)
 			+ std::string(" by ftinx 0.1 port ")
 			+ std::string(std::to_string(this->m_port))
-			+ std::string("</i>\n")
-			+ std::string("</body>\n")
-			+ std::string("</html>\n");
+			+ std::string("</i>\n</body>\n</html>\n");
 	closedir(dirptr);
 	return (page);
 }
@@ -719,8 +697,8 @@ Response
 Server::methodGET(int clientfd, std::string method)
 {
 	Response response;
-	std::string absolute_path = this->m_requests[clientfd].get_m_reset_path();
-	HttpConfigLocation location_block = this->m_requests[clientfd].get_m_location_block();
+	std::string absolute_path(this->m_requests[clientfd].get_m_reset_path());
+	HttpConfigLocation location_block(this->m_requests[clientfd].get_m_location_block());
 	std::string type;
 	std::string extension;
 

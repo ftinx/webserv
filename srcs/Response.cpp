@@ -9,11 +9,10 @@
 /*============================================================================*/
 
 Response::Response()
-:m_status_code(404), m_date(""), m_content_language("ko, en"), m_content_type("text/html; charset=UTF-8"),
-m_server("ftinx/1.0 (MacOS)"), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
+:m_status_code(0), m_date(""), m_content_language(""), m_content_type(""),
+m_server(""), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_index_file(),
-m_err_page_path("./www/errors/default_error.html"), m_root(""), m_cgi_extension(), m_cgi_server_name(""),
-m_cgi_client_addr(), m_cgi_port(0)
+m_root(""), m_cgi_extension(), m_cgi_server_name(""), m_cgi_client_addr(), m_cgi_port(0)
 {
 }
 
@@ -44,7 +43,6 @@ Response::operator=(Response const &rhs)
 	this->m_response_size = rhs.m_response_size;
 
 	/* Config */
-	this->m_err_page_path = rhs.m_err_page_path;
 	this->m_index_file = rhs.m_index_file;
 	this->m_root = rhs.m_root;
 
@@ -132,12 +130,6 @@ Response::get_m_server() const
 	return (this->m_server);
 }
 
-std::string
-Response::get_m_err_page_path() const
-{
-	return (this->m_err_page_path);
-}
-
 in_addr_t
 Response::get_m_cgi_client_addr() const
 {
@@ -194,13 +186,6 @@ void
 Response::set_m_status_description(std::string statusDescription)
 {
 	this->m_status_description = statusDescription;
-	return ;
-}
-
-void
-Response::set_m_err_page_path(std::string err_page_path)
-{
-	this->m_err_page_path = err_page_path;
 	return ;
 }
 
@@ -478,7 +463,7 @@ Response::makeHttpResponseMessage(std::string method)
 **	getDateTimestamp함수 Util.hpp 로 옮김.
 */
 
-Response&
+Response &
 Response::setCurrentDate(int hour, int minute, int second)
 {
 	this->m_date = ft::getDateTimestamp(hour, minute, second);

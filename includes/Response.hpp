@@ -49,7 +49,6 @@ class Response
 
 		/* Config */
 		std::vector<std::string> m_index_file;
-		std::string m_err_page_path;
 		std::string m_root;
 
 		/* CGI */
@@ -76,7 +75,6 @@ class Response
 		std::string get_m_content_language() const;
 		std::string get_m_content_type() const;
 		std::string get_m_server() const;
-		std::string get_m_err_page_path() const;
 		in_addr_t get_m_cgi_client_addr() const;
 		std::string get_m_cgi_server_name() const;
 		int get_m_cgi_port() const;
@@ -88,7 +86,6 @@ class Response
 		/* setter */
 		void set_m_status_code(int statusCode);
 		void set_m_status_description(std::string statusDescription);
-		void set_m_err_page_path(std::string err_page_path);
 		void set_m_cgi_client_addr(in_addr_t cgi_client_addr);
 		void set_m_cgi_server_name(std::string cgi_server_name);
 		void set_m_cgi_port(int cgi_port);
@@ -113,7 +110,6 @@ class Response
 
 		/* HTML Document Util */
 		Response& setHtmlDocument();
-		std::string set404HtmlDocument();
 		Response& setHtmlAttribute(htmlTag tag, std::string value);
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);
