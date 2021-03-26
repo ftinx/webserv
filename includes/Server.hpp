@@ -152,6 +152,8 @@ class Server
 		Response trace(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 
 		/* METHOD */
+		std::string makeErrorPage(int status);
+
 		std::string getMimeType(std::string extension);
 		std::string makeAutoindexPage(std::string root, std::string path);
 		static Response getTest(Request req, Response res);
