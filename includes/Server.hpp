@@ -117,14 +117,13 @@ class Server
 		static Response makeResponseMessage(
 			int statusCode,
 			std::string path="./www/index.html", std::string method="", std::string contentType="text/html; charset=UTF-8",
-			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="",
+			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="", std::string content_location="",
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
-		static Response
-		makeResponseBodyMessage(
+		static Response makeResponseBodyMessage(
 			int statusCode,
 			std::string body="", std::string method="", std::string contentType="text/html; charset=UTF-8",
-			int dateHour=0, int dateMinute=0, int dateSecond=0,
+			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="", std::string content_location="",
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
 		void sendResponse(int clientfd);
