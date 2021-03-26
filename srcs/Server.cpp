@@ -1044,7 +1044,7 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
-	return (Server::makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method));
+	return (Server::makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", "", 0, 0, 0, allow_method));
 }
 
 
@@ -1077,15 +1077,24 @@ Server::methodTRACE(int clientfd, std::string method)
 
 Response
 Server::makeResponseMessage(
-	int statusCode, std::string path, std::string method, std::string contentType,
+	int statusCode, std::string path, bool transfer_encoding, std::string method, std::string contentType,
+	std::string referer,
 	int dateHour, int dateMinute, int dateSecond, std::string allow_method, std::string content_location,
+	std::string location,
 	std::string contentLanguage, std::string server
 )
 {
+	(void) transfer_encoding;
 	Response response = Response();
 
 	if (statusCode == 301 || statusCode == 503)
 		response.setHttpResponseHeader("retry-after", 10);
+	if (300 <= statusCode < 400 || statusCode == 201)
+		response.setHttpResponseHeader("location", location);
+
+	if (contentType != "image/gif" || contentType != "image/jpeg"
+	|| contentType != "image/png" || contentType != "image/x-icon")
+		response.setHttpResponseHeader("referer", referer);
 
 	if (method == "GET")
 		response.setHttpResponseHeader("last-modified", response.get_m_date());
@@ -1095,6 +1104,7 @@ Server::makeResponseMessage(
 		response.setHttpResponseHeader("content-location", content_location);
 	else if (method == "OPTIONS")
 		response.setHttpResponseHeader("allow", allow_method);
+
 	return (
 		response
 			.setStatusCode(statusCode)
@@ -1115,15 +1125,20 @@ Server::makeResponseMessage(
 
 Response
 Server::makeResponseBodyMessage(
-	int statusCode, std::string body, std::string method, std::string contentType,
+	int statusCode, std::string body, std::string method, bool transfer_encoding, std::string contentType,
+	std::string referer,
 	int dateHour, int dateMinute, int dateSecond, std::string allow_method, std::string content_location,
+	std::string location,
 	std::string contentLanguage, std::string server
 )
 {
+	(void) transfer_encoding;
 	Response response = Response();
 
 	if (statusCode == 301 || statusCode == 503)
 		response.setHttpResponseHeader("retry-after", 10);
+	if (300 <= statusCode < 400 || statusCode == 201)
+		response.setHttpResponseHeader("location", location);
 
 	if (method == "TRACE")
 		response.setHttpResponseHeader("connection", "close");
@@ -1133,6 +1148,7 @@ Server::makeResponseBodyMessage(
 		response.setHttpResponseHeader("content-location", content_location);
 	else if (method == "OPTIONS")
 		response.setHttpResponseHeader("allow", allow_method);
+
 	return (
 		response
 			.setStatusCode(statusCode)
