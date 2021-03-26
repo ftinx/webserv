@@ -114,18 +114,24 @@ class Server
 		void resetRequest(Request *req);
 		static Response makeResponseMessage(
 			int statusCode,
-			std::string path="./www/index.html", std::string method="", std::string contentType="text/html; charset=UTF-8",
+			std::string path="./www/index.html", std::string transfer_encoding="", std::string method="", std::string contentType="text/html; charset=UTF-8",
+			std::string referer="",
 			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="", std::string content_location="",
+			std::string location="./www/index.html",
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
 		static Response makeResponseBodyMessage(
 			int statusCode,
-			std::string body="", std::string method="", std::string contentType="text/html; charset=UTF-8",
+			std::string body="", std::string transfer_encoding="", std::string method="", std::string contentType="text/html; charset=UTF-8",
+			std::string referer="",
 			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="", std::string content_location="",
+			std::string location="./www/index.html",
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
+		Response checkValidRequestHeader(int clientfd);
+
 		// bool checkHttpConfigFilePath(std::string path, std::string method="");
 		// bool checkHttpConfigFilePathHead(std::string path);
 

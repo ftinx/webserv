@@ -347,6 +347,7 @@ Response::setHtmlDocument()
 						+ this->m_body
 					+ std::string("</body>")
 				+ std::string("</html>");
+
 	this->m_html_document = body;
 	this->m_content_length = body.length();
 	return (*this);
