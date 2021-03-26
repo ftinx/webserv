@@ -837,7 +837,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 		dup2(cgi_stdout, STDOUT_FILENO);
 		dup2(cgi_stdin, STDIN_FILENO);
 		// 일반화 해줘야
-		ret = execve("./cgi-bin/cgi_tester", 0, envp);
+		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
 		exit(ret);
 	}
 	else
@@ -917,6 +917,7 @@ Server::methodPOST(int clientfd, std::string method)
 
 	if (request.checkCGI() == true)
 	{
+		std::cout << "##### START CGI PART #####" << std::endl;
 		executeCgi(request, response, method);
 	}
 	return (response);
@@ -962,13 +963,8 @@ Server::methodPOST(int clientfd, std::string method)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
-<<<<<<< HEAD
-// 	return (Server::makeResponseMessage(405, "", method));
+// 	return (Server::makeResponseBodyMessage(405, makeErrorPage(405), method));
 // }
-=======
-	return (Server::makeResponseBodyMessage(405, makeErrorPage(405), method));
-}
->>>>>>> a2a9a694f90a354a69aa161a04a2c21dbef8be12
 
 /*============================================================================*/
 /**********************************  PUT  *************************************/
