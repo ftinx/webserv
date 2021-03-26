@@ -116,14 +116,14 @@ class Server
 		void resetRequest(Request *req);
 		static Response makeResponseMessage(
 			int statusCode,
-			std::string path = "./www/index.html", std::string method="", std::string contentType="text/html; charset=UTF-8",
-			int dateHour=0, int dateMinute=0, int dateSecond=0,
+			std::string path="./www/index.html", std::string method="", std::string contentType="text/html; charset=UTF-8",
+			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="",
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
 		static Response
 		makeResponseBodyMessage(
 			int statusCode,
-			std::string body = "", std::string method="", std::string contentType="text/html; charset=UTF-8",
+			std::string body="", std::string method="", std::string contentType="text/html; charset=UTF-8",
 			int dateHour=0, int dateMinute=0, int dateSecond=0,
 			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
 		);
@@ -142,7 +142,7 @@ class Server
 		//static std::string parseCgiPathInfo(Request req);
 		std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		char** makeCgiEnvp(Request req, Response res);
-		Response executeCgi(Request req, Response res, fd_set *write_fds);
+		Response executeCgi(Request req, Response res, std::string method);
 
 		Response get(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 		Response post(std::string path, Request req, Response res, fd_set *write_fds, Response (*func)(Request req, Response res, fd_set *write_fds));
@@ -158,65 +158,19 @@ class Server
 		std::string makeAutoindexPage(std::string root, std::string path);
 		static Response getTest(Request req, Response res);
 
-		Response methodHEAD(int clientfd);
-		Response methodGET(int clientfd, std::string method="");
-		Response methodPOST(int clientfd);
-		Response methodPUT(int clientfd);
-		Response methodDELETE(int clientfd);
+		Response methodHEAD(int clientfd, std::string method="HEAD");
+		Response methodGET(int clientfd, std::string method="GET");
+		Response methodPOST(int clientfd, std::string method="POST");
+		Response methodPUT(int clientfd, std::string method="PUT");
+		Response methodDELETE(int clientfd, std::string method="DELETE");
 
 		Response options_405(std::string allow_method);
 		Response options_204(std::string allow_method);
 		std::string makeAllowMethod(std::vector<Method> v);
-		Response methodOPTIONS(int clientfd);
-		Response methodTRACE(int clientfd);
+		Response methodOPTIONS(int clientfd, std::string method="OPTIONS");
+		Response methodTRACE(int clientfd, std::string method="TRACE");
 
 		Response OptionsPathRoot();
-
-		// Response continue_100();
-		// Response switchingProtocols_101();
-
-		static Response page200();
-		// Response created_201();
-		// Response Accepted_202();
-		// Response nonAuthoritativeInformation_203();
-		// Response noContent_204();
-		// Response resetContetn_205();
-		// Response partialContent_206();
-
-		// Response multipleChoices_300();
-		// Response movedPermanently_301();
-		// Response found_302();
-		// Response seeOther_303();
-		// Response notModified_304();
-		// Response useProxy_305();
-		// Response temporaryRedirect_307();
-
-		static Response badRequest_400();
-		// Response unauthorized_401();
-		// Response paymentRequired_402();
-		// Response forbidden_403();
-		static Response page404(std::string path);
-		static Response methodNotAllow_405();
-		// Response notAcceptable_406();
-		// Response proxyAuthenticationRequired_407();
-		// Response requestTimeout_408();
-		// Response conflick_409();
-		// Response gone_410();
-		// Response lengthRequired_411();
-		// Response preconditionFailed_412();
-		// Response payloadTooLarge_413();
-		// Response uriTooLong_414();
-		// Response unsupportedMediaType_415();
-		// Response rangeNotSatisfiable_416();
-		// Response expectationFailed_417();
-		// Response upgradeRequired_426();
-
-		// Response internalServerError_500();
-		static Response methodNotImplemented_501();
-		// Response badGateWay_502();
-		// Response serviceUnavailble_503();
-		// Response gatewayTimeout_504();
-		// Response HTTPVersionNotSupproted_505();
 };
 
 #endif
