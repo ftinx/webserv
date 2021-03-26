@@ -997,17 +997,13 @@ Server::methodPUT(int clientfd, std::string method)
 	{
 		std::cout << "PATH: " << path << std::endl;
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
-		{
  			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
-		}
 		status_code = 201;
 	}
 	else
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
-		{
 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
-		}
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
@@ -1036,7 +1032,7 @@ Server::methodDELETE(int clientfd, std::string method)
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
-			return (makeResponseMessage(200, "./www/index.html", method));
+			return (Server::makeResponseMessage(200, "./www/index.html", method));
 	}
 	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
@@ -1094,7 +1090,7 @@ Server::methodTRACE(int clientfd, std::string method)
 	Response response = Response();
 
 	return (
-		makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), method, "message/http")
+		Server::makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), method, "message/http")
 	);
 }
 
@@ -1105,7 +1101,7 @@ Server::methodTRACE(int clientfd, std::string method)
 Response
 Server::makeResponseMessage(
 	int statusCode, std::string path, std::string method, std::string contentType,
-	int dateHour, int dateMinute, int dateSecond, std::string allow_method,
+	int dateHour, int dateMinute, int dateSecond, std::string allow_method, std::string content_location,
 	std::string contentLanguage, std::string server
 )
 {
@@ -1113,6 +1109,14 @@ Server::makeResponseMessage(
 
 	if (method == "GET")
 		response.setHttpResponseHeader("last-modified", response.get_m_date());
+	else if (method == "POST")
+	{
+		response.setHttpResponseHeader("content-location", content_location);
+	}
+	else if (method == "PUT")
+	{
+		response.setHttpResponseHeader("content-location", content_location);
+	}
 	else if (method == "OPTIONS")
 		response.setHttpResponseHeader("allow", allow_method);
 
@@ -1137,7 +1141,7 @@ Server::makeResponseMessage(
 Response
 Server::makeResponseBodyMessage(
 	int statusCode, std::string body, std::string method, std::string contentType,
-	int dateHour, int dateMinute, int dateSecond,
+	int dateHour, int dateMinute, int dateSecond, std::string allow_method, std::string content_location,
 	std::string contentLanguage, std::string server
 )
 {
@@ -1145,7 +1149,16 @@ Server::makeResponseBodyMessage(
 
 	if (method == "TRACE")
 		response.setHttpResponseHeader("connection", "close");
-
+	else if (method == "POST")
+	{
+		response.setHttpResponseHeader("content-location", content_location);
+	}
+	else if (method == "PUT")
+	{
+		response.setHttpResponseHeader("content-location", content_location);
+	}
+	else if (method == "OPTIONS")
+		response.setHttpResponseHeader("allow", allow_method);
 	return (
 		response
 			.setStatusCode(statusCode)
