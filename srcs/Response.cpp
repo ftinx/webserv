@@ -314,24 +314,6 @@ Response::setHtmlAttribute(htmlTag tag, std::string value)
 	return (*this);
 }
 
-std::string
-Response::set404HtmlDocument()
-{
-	std::string body;
-
-	body += std::string("<!DOCTYPE html>")
-				+ std::string("<html lang=\"en\">")
-					+ std::string("<head>")
-						+ this->m_head
-					+ std::string("</head>")
-					+ std::string("<body>")
-						+ std::string("<p>404 Not Found</p>")
-						+ std::string("<p>- ftinx/1.0 -</p>")
-					+ std::string("</body>")
-				+ std::string("</html>");
-	return (body);
-}
-
 Response &
 Response::setBodyDocument(std::string body)
 {
@@ -371,22 +353,16 @@ Response::setHtmlDocument()
 {
 	std::string body;
 
-	if (this->m_status_code == 404)
-	{
-		body += set404HtmlDocument();
-	}
-	else
-	{
-		body += std::string("<!DOCTYPE html>")
-					+ std::string("<html lang=\"en\">")
-						+ std::string("<head>")
-							+ this->m_head
-						+ std::string("</head>")
-						+ std::string("<body>")
-							+ this->m_body
-						+ std::string("</body>")
-					+ std::string("</html>");
-	}
+	body += std::string("<!DOCTYPE html>")
+				+ std::string("<html lang=\"en\">")
+					+ std::string("<head>")
+						+ this->m_head
+					+ std::string("</head>")
+					+ std::string("<body>")
+						+ this->m_body
+					+ std::string("</body>")
+				+ std::string("</html>");
+
 	this->m_html_document = body;
 	this->m_content_length = body.length();
 	return (*this);
