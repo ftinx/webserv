@@ -961,7 +961,6 @@ Server::methodPUT(int clientfd)
 		std::cout << "PATH: " << path << std::endl;
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
 		{
-			std::cout << "aaaCASE 1 " << path << std::endl;
  			return (Server::page404(this->m_err_page_path));
 		}
 		status_code = 201;
@@ -970,7 +969,6 @@ Server::methodPUT(int clientfd)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
 		{
-			std::cout << "CASE 2" << std::endl;
 			return (Server::page404(this->m_err_page_path));
 		}
 		status_code = 200;
@@ -979,7 +977,6 @@ Server::methodPUT(int clientfd)
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		close(fd);
-		std::cout << "CASE 3" << std::endl;
 		return (Server::page404(this->m_err_page_path));
 	}
 	else
@@ -1087,6 +1084,7 @@ Server::methodOPTIONS(int clientfd)
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("allow", allow_method)
 			.makeHttpResponseMessage("OPTIONS")
 	);
 }
