@@ -790,10 +790,10 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
 	map["REQUEST_METHOD"] = req.getMethod();
-	map["PATH_INFO"] = req.findPathInfo();
-	map["PATH_TRANSLATED"] = req.get_m_reset_path();
-	map["REDIRECT_STATUS"] = "";
-	map["SCRIPT_FILENAME"] = "";
+	map["PATH_INFO"] = req.get_m_path_info();
+	map["PATH_TRANSLATED"] = req.get_m_path_translated();
+	// map["REDIRECT_STATUS"] = "";
+	// map["SCRIPT_FILENAME"] = "";
 	map["SCRIPT_NAME"] = uri.get_m_path();
 	map["QUERY_STRING"] = uri.get_m_query_string();
 	map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
@@ -825,9 +825,8 @@ Response
 Server::executeCgi(Request req, Response res, std::string method)
 {
 	pid_t pid;
-	// Request &request = req;
-	Response &response = res;
 	char** envp = Server::makeCgiEnvp(req, res);
+	Response response(res);
 	int pipe1[2];
 	int pipe2[2];
 	int ret;
@@ -930,10 +929,24 @@ Server::HttpConfigPost(Request req, Response res)
 	);
 }
 
+
 Response
 Server::methodPOST(int clientfd, std::string method)
 {
-	(void) clientfd;
+	Response response;
+	Request request(m_requests[clientfd]);
+
+	if (request.checkCGI() == true)
+	{
+		executeCgi(request, response, method);
+	}
+	return (response);
+}
+
+// Response
+// Server::methodPOST(int clientfd, std::string method)
+// {
+// 	(void) clientfd;
 	// Response response;
 
 	// /* Response Setting */
@@ -970,8 +983,8 @@ Server::methodPOST(int clientfd, std::string method)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
-	return (Server::makeResponseMessage(405, "", method));
-}
+// 	return (Server::makeResponseMessage(405, "", method));
+// }
 
 /*============================================================================*/
 /**********************************  PUT  *************************************/
@@ -1014,7 +1027,7 @@ Server::methodPUT(int clientfd, std::string method)
 	else
 	{
 		close(fd);
-		return (Server::makeResponseBodyMessage(status_code, "", method));
+		return (Server::makeResponseBodyMessage(status_code, req.get_m_uri().get_m_path(), method));
 	}
 	return (makeResponseMessage(404, this->m_err_page_path, method));
 }
