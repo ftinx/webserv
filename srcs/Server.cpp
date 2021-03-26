@@ -1077,7 +1077,7 @@ Server::methodTRACE(int clientfd, std::string method)
 
 Response
 Server::makeResponseMessage(
-	int statusCode, std::string path, bool transfer_encoding, std::string method, std::string contentType,
+	int statusCode, std::string path, std::string transfer_encoding, std::string method, std::string contentType,
 	std::string referer,
 	int dateHour, int dateMinute, int dateSecond, std::string allow_method, std::string content_location,
 	std::string location,
@@ -1125,7 +1125,7 @@ Server::makeResponseMessage(
 
 Response
 Server::makeResponseBodyMessage(
-	int statusCode, std::string body, std::string method, bool transfer_encoding, std::string contentType,
+	int statusCode, std::string body, std::string transfer_encoding, std::string method, std::string contentType,
 	std::string referer,
 	int dateHour, int dateMinute, int dateSecond, std::string allow_method, std::string content_location,
 	std::string location,
