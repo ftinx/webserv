@@ -559,9 +559,9 @@ Server::getMimeType(std::string extension)
 }
 
 Response
-Server::methodHEAD(int clientfd)
+Server::methodHEAD(int clientfd, std::string method)
 {
-	return (methodGET(clientfd, "HEAD"));
+	return (methodGET(clientfd, method));
 }
 /*============================================================================*/
 /**********************************  GET  *************************************/
@@ -709,7 +709,7 @@ Server::methodGET(int clientfd, std::string method)
 		for (autoindex_it = this->m_getLocationAutoIndex.begin() ; autoindex_it != this->m_getLocationAutoIndex.end() ; ++autoindex_it)
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true)
-				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path)));
+				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), method));
 		}
 	}
 	else // 폴더가 아니라면
@@ -789,7 +789,7 @@ Server::makeCgiEnvp(Request req, Response res)
 }
 
 Response
-Server::executeCgi(Request req, Response res, fd_set *write_fds)
+Server::executeCgi(Request req, Response res, std::string method)
 {
 	pid_t pid;
 	// Request &request = req;
@@ -801,7 +801,7 @@ Server::executeCgi(Request req, Response res, fd_set *write_fds)
 
 	std::cout << "Execute Cgi >0<" << std::endl;
 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-		return (Server::page404(this->m_err_page_path));
+		return (makeResponseMessage(404, this->m_err_page_path, method));
 
 	int parent_stdout = pipe1[1];
 	int parent_stdin = pipe2[0];
@@ -817,7 +817,7 @@ Server::executeCgi(Request req, Response res, fd_set *write_fds)
 	fcntl(parent_stdin, F_SETFL, O_NONBLOCK);
 
 	if ((pid = fork()) < 0)
-		return (Server::page404(this->m_err_page_path));
+		return (makeResponseMessage(404, this->m_err_page_path, method));
 	if (pid == 0)
 	{
 		close(parent_stdout);
@@ -899,7 +899,7 @@ Server::HttpConfigPost(Request req, Response res)
 }
 
 Response
-Server::methodPOST(int clientfd)
+Server::methodPOST(int clientfd, std::string method)
 {
 	(void) clientfd;
 	// Response response;
@@ -915,7 +915,7 @@ Server::methodPOST(int clientfd)
 
 	/* Route */
 	// if (this->m_requests[clientfd].get_m_uri().get_m_path() == "/cgi-bin/cgi_tester")
-	// 	response = executeCgi(this->m_requests[clientfd], response, &this->m_write_fds);
+		// response = executeCgi(this->m_requests[clientfd], response, method);
 	// response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
 	// response = post("/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
 
@@ -938,7 +938,7 @@ Server::methodPOST(int clientfd)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
-	return (Server::makeResponseMessage(405, ""));
+	return (Server::makeResponseMessage(405, "", method));
 }
 
 /*============================================================================*/
@@ -946,7 +946,7 @@ Server::methodPOST(int clientfd)
 /*============================================================================*/
 
 Response
-Server::methodPUT(int clientfd)
+Server::methodPUT(int clientfd, std::string method)
 {
 	Request req = this->m_requests[clientfd];
 	std::string path = req.get_m_reset_path();
@@ -961,7 +961,7 @@ Server::methodPUT(int clientfd)
 		std::cout << "PATH: " << path << std::endl;
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
 		{
- 			return (Server::page404(this->m_err_page_path));
+ 			return (makeResponseMessage(404, this->m_err_page_path, method));
 		}
 		status_code = 201;
 	}
@@ -969,7 +969,7 @@ Server::methodPUT(int clientfd)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
 		{
-			return (Server::page404(this->m_err_page_path));
+			return (makeResponseMessage(404, this->m_err_page_path, method));
 		}
 		status_code = 200;
 	}
@@ -977,14 +977,14 @@ Server::methodPUT(int clientfd)
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		close(fd);
-		return (Server::page404(this->m_err_page_path));
+		return (makeResponseMessage(404, this->m_err_page_path, method));
 	}
 	else
 	{
 		close(fd);
-		return (Server::makeResponseBodyMessage(status_code, ""));
+		return (Server::makeResponseBodyMessage(status_code, "", method));
 	}
-	return (Server::page404(this->m_err_page_path));
+	return (makeResponseMessage(404, this->m_err_page_path, method));
 }
 
 /*============================================================================*/
@@ -992,57 +992,23 @@ Server::methodPUT(int clientfd)
 /*============================================================================*/
 
 Response
-Server::methodDELETE(int clientfd)
+Server::methodDELETE(int clientfd, std::string method)
 {
 	std::string path = m_requests[clientfd].get_m_reset_path();
 
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
-			return (Server::page200());
+			return (makeResponseMessage(200, "./www/index.html", method));
 	}
-	return (Server::page404(this->m_err_page_path));
+	return (
+		makeResponseMessage(404, this->m_err_page_path, method)
+	);
 }
 
 /*============================================================================*/
 /*********************************  OPTIONS  **********************************/
 /*============================================================================*/
-
-Response
-Server::options_405(std::string allow_method)
-{
-	Response response;
-
-	return (
-		response
-			.setStatusCode(405)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("Allow", allow_method)
-			.makeHttpResponseMessage()
-	);
-}
-
-Response
-Server::options_204(std::string allow_method)
-{
-	Response response;
-
-	return (
-		response
-			.setStatusCode(204)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("Allow", allow_method)
-			.makeHttpResponseMessage()
-	);
-}
 
 std::string
 Server::makeAllowMethod(std::vector<Method> v)
@@ -1061,31 +1027,17 @@ Server::makeAllowMethod(std::vector<Method> v)
 }
 
 Response
-Server::methodOPTIONS(int clientfd)
+Server::methodOPTIONS(int clientfd, std::string method)
 {
 	Response response = Response();
 	std::string allow_method("");
 	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
 
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
-		return (Server::page404(this->m_err_page_path));
+		return (makeResponseMessage(404, this->m_err_page_path, method));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
 	return (
-		response
-			.setStatusCode(204)
-			.setCurrentDate(0, 0, 0)
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setBodyDocument("")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.setHttpResponseHeader("allow", allow_method)
-			.makeHttpResponseMessage("OPTIONS")
+		makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method);
 	);
 }
 
@@ -1104,23 +1056,12 @@ Server::methodOPTIONS(int clientfd)
 **	Allowed in HTML forms: No
 */
 Response
-Server::methodTRACE(int clientfd)
+Server::methodTRACE(int clientfd, std::string method)
 {
 	Response response = Response();
 
 	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setServer("ftnix/1.0 (MacOS)")
-			.setBodyDocument(this->m_requests[clientfd].get_m_message())
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-type", "message/http")
-			.setHttpResponseHeader("connection", "close")
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
+		makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), method, "message/http");
 	);
 }
 
@@ -1131,11 +1072,16 @@ Server::methodTRACE(int clientfd)
 Response
 Server::makeResponseMessage(
 	int statusCode, std::string path, std::string method, std::string contentType,
-	int dateHour, int dateMinute, int dateSecond,
+	int dateHour, int dateMinute, int dateSecond, std::string allow_method,
 	std::string contentLanguage, std::string server
 )
 {
 	Response response = Response();
+
+	if (method == "GET")
+		response.setHttpResponseHeader("last-modified", response.get_m_date());
+	else if (method == "OPTIONS")
+		response.setHttpResponseHeader("allow", allow_method);
 
 	return (
 		response
@@ -1151,7 +1097,6 @@ Server::makeResponseMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
-			.setHttpResponseHeader("last-modified", response.get_m_date())
 			.makeHttpResponseMessage(method)
 	);
 }
@@ -1164,6 +1109,9 @@ Server::makeResponseBodyMessage(
 )
 {
 	Response response = Response();
+
+	if (method == "TRACE")
+		response.setHttpResponseHeader("connection", "close");
 
 	return (
 		response
@@ -1191,29 +1139,6 @@ Server::makeResponseBodyMessage(
 /**********************************  2XX  *************************************/
 /*============================================================================*/
 
-Response
-Server::page200()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument("index.html")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
 /*============================================================================*/
 /**********************************  3XX  *************************************/
 /*============================================================================*/
@@ -1223,86 +1148,9 @@ Server::page200()
 /**********************************  4XX  *************************************/
 /*============================================================================*/
 
-Response
-Server::badRequest_400()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(400)
-			.setCurrentDate()
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
-Response
-Server::page404(std::string path)
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(404)
-			.setCurrentDate()
-			.setContentLanguage("ko, en")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
-			.setPublicFileDocument(path)
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
-Response
-Server::methodNotAllow_405()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(405)
-			.setCurrentDate()
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
-
 /*============================================================================*/
 /**********************************  5XX  *************************************/
 /*============================================================================*/
-
-Response
-Server::methodNotImplemented_501()
-{
-	Response response = Response();
-
-	return (
-		response
-			.setStatusCode(501)
-			.setCurrentDate()
-			.setServer("ftnix/1.0 (MacOS)")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage()
-	);
-}
 
 /*============================================================================*/
 /***************************  SERVER METHOD UTIL  *****************************/
