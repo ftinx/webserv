@@ -1084,19 +1084,17 @@ Server::makeResponseMessage(
 {
 	Response response = Response();
 
+	if (statusCode == 301 || statusCode == 503)
+		response.setHttpResponseHeader("retry-after", 10);
+
 	if (method == "GET")
 		response.setHttpResponseHeader("last-modified", response.get_m_date());
 	else if (method == "POST")
-	{
 		response.setHttpResponseHeader("content-location", content_location);
-	}
 	else if (method == "PUT")
-	{
 		response.setHttpResponseHeader("content-location", content_location);
-	}
 	else if (method == "OPTIONS")
 		response.setHttpResponseHeader("allow", allow_method);
-
 	return (
 		response
 			.setStatusCode(statusCode)
@@ -1124,16 +1122,15 @@ Server::makeResponseBodyMessage(
 {
 	Response response = Response();
 
+	if (statusCode == 301 || statusCode == 503)
+		response.setHttpResponseHeader("retry-after", 10);
+
 	if (method == "TRACE")
 		response.setHttpResponseHeader("connection", "close");
 	else if (method == "POST")
-	{
 		response.setHttpResponseHeader("content-location", content_location);
-	}
 	else if (method == "PUT")
-	{
 		response.setHttpResponseHeader("content-location", content_location);
-	}
 	else if (method == "OPTIONS")
 		response.setHttpResponseHeader("allow", allow_method);
 	return (
