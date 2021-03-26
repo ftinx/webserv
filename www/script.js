@@ -22,3 +22,15 @@ function cgilogin42() {
 		signupForm.submit();
 	}
 }
+
+fetch('http://localhost:8080/imgs/favicon.jpg')
+.then((response) => {
+	return response.text()
+})
+.then((data) => {
+	document.getElementById("b64").src = 'data:image/png;base64,' + data;
+	console.log(data)
+})
+
+// convert to Base64
+// var b64Response = btoa(rawResponse);
