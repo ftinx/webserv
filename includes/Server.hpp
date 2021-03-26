@@ -44,7 +44,6 @@ class Server
 		HttpConfigServer m_server_block;
 		std::string m_server_name;
 		int m_port;
-		std::string m_err_page_path;
 		int m_content_length;
 		size_t m_location_size;
 		std::string m_root;
@@ -97,7 +96,6 @@ class Server
 			HttpConfigServer server_block,
 			std::string server_name,
 			int port,
-			std::string err_page_path,
 			int content_length,
 			size_t location_size,
 			std::string root,

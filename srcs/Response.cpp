@@ -10,7 +10,7 @@
 
 Response::Response()
 :m_status_code(404), m_date(""), m_content_language("ko, en"), m_content_type("text/html; charset=UTF-8"),
-m_server("ftnix/1.0 (MacOS)"), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
+m_server("ftinx/1.0 (MacOS)"), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_index_file(),
 m_err_page_path("./www/errors/default_error.html"), m_root(""), m_cgi_extension(), m_cgi_server_name(""),
 m_cgi_client_addr(), m_cgi_port(0)
@@ -326,7 +326,7 @@ Response::set404HtmlDocument()
 					+ std::string("</head>")
 					+ std::string("<body>")
 						+ std::string("<p>404 Not Found</p>")
-						+ std::string("<p>- ftnix/1.0 -</p>")
+						+ std::string("<p>- ftinx/1.0 -</p>")
 					+ std::string("</body>")
 				+ std::string("</html>");
 	return (body);
