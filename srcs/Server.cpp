@@ -950,13 +950,12 @@ Server::methodPUT(int clientfd)
 {
 	Request req = this->m_requests[clientfd];
 	std::string path = req.get_m_reset_path();
-	// std::string absolute_path = this->m_requests[clientfd].get_m_reset_path();
+
 	int fd;
 	const char *body;
 	int status_code = 0;
 
 	/* cgi part should be added */
-	std::cout << "PATH: " << req.get_m_reset_path() << std::endl;
 	if (ft::isValidFilePath(path) == false)
 	{
 		std::cout << "PATH: " << path << std::endl;
@@ -998,10 +997,8 @@ Server::methodPUT(int clientfd)
 Response
 Server::methodDELETE(int clientfd)
 {
-	Uri uri = this->m_requests[clientfd]..get_m_reset_path();
-	std::string path = uri.get_m_path();
+	std::string path = m_requests[clientfd].get_m_reset_path();
 
-	/* 405 check */
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
