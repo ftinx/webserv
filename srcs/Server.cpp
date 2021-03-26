@@ -22,7 +22,6 @@ Server& Server::operator=(Server const &rhs)
 	this->m_server_block = rhs.m_server_block;
 	this->m_server_name = rhs.m_server_name;
 	this->m_port = rhs.m_port;
-	this->m_err_page_path = rhs.m_err_page_path;
 	this->m_content_length = rhs.m_content_length;
 	this->m_location_size = rhs.m_location_size;
 	this->m_root = rhs.m_root;
@@ -175,17 +174,13 @@ Server::noteHttpConfigLocation()
 }
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port, std::string err_page_path, int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
+Server::init(HttpConfigServer server_block, std::string server_name, int port, int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
 	this->m_server_block = server_block;
 	this->m_server_name = server_name;
 	this->m_port = port;
-	if (err_page_path != "")
-		this->m_err_page_path = err_page_path;
-	else
-		this->m_err_page_path = "./www/errors/default_error.html";
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	this->m_root = root;
@@ -997,13 +992,17 @@ Server::methodPUT(int clientfd, std::string method)
 	{
 		std::cout << "PATH: " << path << std::endl;
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
+		{
  			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
+		}
 		status_code = 201;
 	}
 	else
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
+		{
 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
+		}
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
@@ -1067,7 +1066,7 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
-	return (makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method));
+	return (Server::makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method));
 }
 
 
@@ -1223,7 +1222,7 @@ Server::getDirectory(Request req, Response res)
 			.setCurrentDate()
 			.setContentLanguage("ko, en")
 			.setContentType("text/html; charset=UTF-8")
-			.setServer("ftnix/1.0 (MacOS)")
+			.setServer("ftinx/1.0 (MacOS)")
 			.setPublicFileDocument("index.html")
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
