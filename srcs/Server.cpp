@@ -599,7 +599,7 @@ std::string
 Server::makeAutoindexPage(std::string root, std::string path)
 {
 	std::string page;
-	std::string dir_name = path.substr(root.length() + 1, std::string::npos);
+	std::string dir_name(path.substr(root.length() + 1, std::string::npos));
 	struct dirent *entry;
 	std::vector<std::string> entry_dir;
 	std::vector<std::string> entry_file;
@@ -697,8 +697,8 @@ Response
 Server::methodGET(int clientfd, std::string method)
 {
 	Response response;
-	std::string absolute_path = this->m_requests[clientfd].get_m_reset_path();
-	HttpConfigLocation location_block = this->m_requests[clientfd].get_m_location_block();
+	std::string absolute_path(this->m_requests[clientfd].get_m_reset_path());
+	HttpConfigLocation location_block(this->m_requests[clientfd].get_m_location_block());
 	std::string type;
 	std::string extension;
 
