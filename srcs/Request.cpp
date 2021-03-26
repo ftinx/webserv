@@ -9,7 +9,7 @@
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
-m_reset_path(""), m_location_block()
+m_reset_path(""), m_location_block(), m_path_translated(""), m_path_info("")
 {
 }
 
@@ -33,6 +33,8 @@ Request& Request::operator=(Request const &rhs)
 	this->m_error_code = rhs.get_m_error_code();
 	this->m_reset_path = rhs.get_m_reset_path();
 	this->m_location_block = rhs.get_m_location_block();
+	this->m_path_translated = rhs.get_m_path_translated();
+	this->m_path_info = rhs.get_m_path_info();
 	return (*this);
 }
 
@@ -93,7 +95,6 @@ Request::get_m_headers() const
 	return (this->m_headers);
 }
 
-
 std::string
 Request::get_m_body() const
 {
@@ -116,6 +117,18 @@ HttpConfigLocation
 Request::get_m_location_block() const
 {
 	return (this->m_location_block);
+}
+
+std::string
+Request::get_m_path_translated() const
+{
+	return (this->m_path_translated);
+}
+
+std::string
+Request::get_m_path_info() const
+{
+	return (this->m_path_info);
 }
 
 /*============================================================================*/
@@ -354,7 +367,6 @@ Request::parseRequestLine(std::string request_line)
 		this->m_error_code = error_code;
 		return(false);
 	}
-	checkCGI();
 	return (true);
 }
 
@@ -423,25 +435,54 @@ Request::checkMethod()
 }
 
 bool
-Request::checkCGI()
-{
-	size_t pos;
-	std::string path = std::string(".") + this->m_uri.get_m_path();
-
-	pos = path.find("cgi-bin");
-	if (pos != 0)
-		return (this->m_check_cgi = false);
-	if (ft::isValidFilePath(path))
-		return (this->m_check_cgi = true);
-	else
-		return (this->m_check_cgi = false);
-}
-
-bool
 Request::checkBlankLine(std::string str)
 {
 	if (str[0] == '\r')
 		return (true);
+	return (false);
+}
+
+std::string
+Request::getRestPath()
+{
+	std::vector<std::string> v(m_location_block.get_m_cgi());
+	std::vector<std::string>::const_iterator it;
+	size_t pos;
+
+	for (it = v.begin(); it != v.end(); it++)
+	{
+		if ((pos = m_reset_path.find(*it)) != std::string::npos)
+		{
+			return (m_reset_path.substr(pos + (*it).size(), std::string::npos));
+		}
+	}
+	return ("");
+}
+
+bool
+Request::checkCGI()
+{
+	std::string path(m_reset_path);
+	HttpConfigLocation loc(m_location_block);
+	size_t pos;
+
+	if (ft::checkValidFileExtension(path, loc.get_m_cgi()))
+	{
+		if (ft::isValidFilePath(path))
+		{
+			this->m_path_translated = path;
+			path = path.substr(0, m_location_block.get_m_root().size());
+			if ((pos = path.find_first_of("/")) != std::string::npos)
+				path = path.substr(pos + 1, std::string::npos);
+			this->m_path_info = path;
+		}
+		else
+		{
+			this->m_path_translated = loc.get_m_cgi_path();
+			this->m_path_info = getRestPath();
+		}
+		return (true);
+	}
 	return (false);
 }
 
