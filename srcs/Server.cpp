@@ -1213,7 +1213,9 @@ Server::parseErrorResponse(int clientfd)
 Response
 Server::checkValidRequestHeader(int clientfd)
 {
-	int status_code(this->m_requests[clientfd].get_m_error_code());
+	/* If request has no Host Header */
+	if (this->m_requests[clientfd].get_m_uri().get_m_host() == "")
+		return (Server::makeResponseBodyMessage(400, makeErrorPage(400)));
 	return (
 		Server::makeResponseBodyMessage(400, makeErrorPage(400))
 	);
