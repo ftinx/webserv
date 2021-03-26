@@ -551,6 +551,12 @@ Server::makeErrorPage(int status_code)
 {
 	std::string page;
 
+	if (this->m_server_block.get_m_default_error_page().empty() == false)
+	{
+		std::string path(this->m_root + this->m_server_block.get_m_default_error_page());
+		if (ft::isValidFilePath(path))
+			return (ft::fileToString(path));
+	}
 	page += std::string("<!DOCTYPE html>\n")
 			+ std::string("<html lang=\"en\">\n")
 			+ std::string("<head>\n")
@@ -753,7 +759,7 @@ Server::methodGET(int clientfd, std::string method)
 			return (Server::makeResponseMessage(200, absolute_path, method, type));
 		}
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404)));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
 
 
@@ -833,7 +839,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 
 	std::cout << "Execute Cgi >0<" << std::endl;
 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-		return (makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 
 	int parent_stdout = pipe1[1];
 	int parent_stdin = pipe2[0];
@@ -849,7 +855,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 	fcntl(parent_stdin, F_SETFL, O_NONBLOCK);
 
 	if ((pid = fork()) < 0)
-		return (makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	if (pid == 0)
 	{
 		close(parent_stdout);
@@ -969,7 +975,7 @@ Server::methodPOST(int clientfd, std::string method)
 	// 	// 	response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, Server::HttpConfigPost);
 	// 	location_iter++;
 	// }
-	return (Server::makeResponseMessage(405, "", method));
+	return (Server::makeResponseBodyMessage(405, makeErrorPage(405), method));
 }
 
 /*============================================================================*/
@@ -992,7 +998,7 @@ Server::methodPUT(int clientfd, std::string method)
 		std::cout << "PATH: " << path << std::endl;
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
 		{
- 			return (makeResponseMessage(404, this->m_err_page_path, method));
+ 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 		}
 		status_code = 201;
 	}
@@ -1000,7 +1006,7 @@ Server::methodPUT(int clientfd, std::string method)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
 		{
-			return (makeResponseMessage(404, this->m_err_page_path, method));
+			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 		}
 		status_code = 200;
 	}
@@ -1008,14 +1014,14 @@ Server::methodPUT(int clientfd, std::string method)
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		close(fd);
-		return (makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	}
 	else
 	{
 		close(fd);
 		return (Server::makeResponseBodyMessage(status_code, "", method));
 	}
-	return (makeResponseMessage(404, this->m_err_page_path, method));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
 
 /*============================================================================*/
@@ -1032,9 +1038,7 @@ Server::methodDELETE(int clientfd, std::string method)
 		if (unlink(path.c_str()) == 0)
 			return (makeResponseMessage(200, "./www/index.html", method));
 	}
-	return (
-		makeResponseMessage(404, this->m_err_page_path, method)
-	);
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 }
 
 /*============================================================================*/
@@ -1065,11 +1069,9 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
 
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
-		return (makeResponseMessage(404, this->m_err_page_path, method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), method));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
-	return (
-		makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method)
-	);
+	return (makeResponseBodyMessage(204, "", method, "text/html; charset=UTF-8", 0, 0, 0, allow_method));
 }
 
 
