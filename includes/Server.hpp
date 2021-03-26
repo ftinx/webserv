@@ -128,6 +128,8 @@ class Server
 		);
 		void sendResponse(int clientfd);
 		Response parseErrorResponse(int clientfd);
+		Response checkValidRequestHeader(int clientfd);
+
 		// bool checkHttpConfigFilePath(std::string path, std::string method="");
 		// bool checkHttpConfigFilePathHead(std::string path);
 

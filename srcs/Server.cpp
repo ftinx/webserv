@@ -1214,6 +1214,15 @@ Server::parseErrorResponse(int clientfd)
 }
 
 Response
+Server::checkValidRequestHeader(int clientfd)
+{
+	int status_code(this->m_requests[clientfd].get_m_error_code());
+	return (
+		Server::makeResponseBodyMessage(400, makeErrorPage(400))
+	);
+}
+
+Response
 Server::getDirectory(Request req, Response res)
 {
 	Response response = Response();
@@ -1299,9 +1308,7 @@ Server::sendResponse(int clientfd)
 
 	/* make Response for Parse Error */
 	if (this->m_requests[clientfd].get_m_error_code())
-	{
 		response = this->parseErrorResponse(clientfd);
-	}
 	else
 	{
 	/* make Response for Method */
