@@ -707,7 +707,8 @@ Server::methodGET(int clientfd, std::string method)
 		if (absolute_path.find("/", absolute_path.length() - 1) == std::string::npos)
 			absolute_path = absolute_path + std::string("/");
 		std::vector<std::string> index = location_block.get_m_index();
-		for (std::vector<std::string>::const_iterator index_it = index.begin() ; index_it != index.end() ; ++index_it) // index 벡터 순회
+		std::vector<std::string>::const_iterator index_it;
+		for (index_it = index.begin() ; index_it != index.end() ; ++index_it) // index 벡터 순회
 		{
 			if (ft::isValidFilePath(absolute_path + *index_it)) // 만약 유효한 파일이면
 			{
@@ -729,6 +730,12 @@ Server::methodGET(int clientfd, std::string method)
 		{
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
 			type = getMimeType(extension);
+			std::cout << "----------type : " << type << std::endl;
+			if (type.compare(0, 5, "image") == 0)
+			{
+				std::cout << "--------------------------------------" << std::endl;
+				return (Server::makeResponseBodyMessage(200, std::string("data:image/jpeg;base64,") + ft::encode(absolute_path), method, type));
+			}
 			return (Server::makeResponseMessage(200, absolute_path, method, type));
 		}
 	}
