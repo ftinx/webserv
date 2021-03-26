@@ -380,7 +380,14 @@ Request::parseHeader(std::string line)
 	else if (key_value[0] == "Port")
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
 	else
-		this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " ")));
+	{
+		if (this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " "))) == false
+		&& key_value[0] == "Host")
+		{
+			this->m_error_code = 400;
+			return (false);
+		}
+	}
 	return (true);
 }
 
