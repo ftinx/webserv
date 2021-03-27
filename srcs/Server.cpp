@@ -341,6 +341,8 @@ Server::getRequest()
 				if (--this->fd_num <= 0)
 					break;
 			}
+			std::cout << "\033[43;31m**** request header *****\033[0m" << std::endl;
+			this->m_requests[this->sockfd].printHeaders();
 			this->resetRequest(&this->m_requests[this->sockfd]);
 
 			ft::fdSet(this->sockfd, &this->m_write_fds);
@@ -858,7 +860,6 @@ Server::methodPUT(int clientfd, std::string method)
 
 	if (ft::isValidFilePath(path) == false)
 	{
-		std::cout << "PATH: " << path << std::endl;
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
  			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 		status_code = 201;
@@ -1152,7 +1153,7 @@ Server::sendResponse(int clientfd)
 	}
 
 	std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
-	std::cout << response.get_m_reponse_message() << std::endl;
+	// std::cout << response.get_m_reponse_message() << std::endl;
 
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
 	if (send(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size(), 0) <= 0)

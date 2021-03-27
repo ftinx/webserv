@@ -311,8 +311,8 @@ Request::getMessage(int fd)
 		close(fd);
 		return (false);
 	}
-	std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
-	std::cout << m_message << std::endl;
+	// std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
+	// std::cout << m_message << std::endl;
 	if (this->parseMessage(chunked) == false)
 		return (false);
 	return (true);
