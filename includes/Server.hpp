@@ -22,20 +22,6 @@
 #define MAX_SOCK_NUM 1024
 #define CGI_ENV_NUM 16
 
-/*
-**  ** TODO
-**
-**  1. MAXLINE과 SOCK_SETSIZE size 설정 이유 찾기
-**  2. perror() => message 함수로 교체하기
-**  3. char *bin2hex 개조
-**
-**
-**  ** Config file 에서 반영해야하는 것들
-**
-**  1. listen(this->m_server_socket, 5) 의 연결 대기열 개수 => 임의로 10개 지정
-**  2. this->m_server_addr.sin_port = htons(PORT);의 PORT => 임의로 #define PORT 3601로 지정
-*/
-
 class Server
 {
 	private:
@@ -49,15 +35,15 @@ class Server
 		std::string m_root;
 
 		/* Parse */
-		std::vector<HttpConfigLocation> m_headLocation;
-		std::vector<HttpConfigLocation> m_getLocation;
-		std::vector<HttpConfigLocation> m_postLocation;
-		std::vector<HttpConfigLocation> m_putLocation;
-		std::vector<HttpConfigLocation> m_deleteLocation;
-		std::vector<HttpConfigLocation> m_optionsLocation;
-		std::vector<HttpConfigLocation> m_traceLocation;
-		std::vector<std::string> m_httpConfigFilePathSet;
-		std::map<std::string, bool> m_getLocationAutoIndex;
+		std::vector<HttpConfigLocation> m_head_location;
+		std::vector<HttpConfigLocation> m_get_location;
+		std::vector<HttpConfigLocation> m_post_location;
+		std::vector<HttpConfigLocation> m_put_location;
+		std::vector<HttpConfigLocation> m_delete_location;
+		std::vector<HttpConfigLocation> m_options_location;
+		std::vector<HttpConfigLocation> m_trace_location;
+		std::vector<std::string> m_http_config_file_path_set;
+		std::map<std::string, bool> m_get_location_auto_index;
 
 		/* Socket */
 		struct sockaddr_in m_server_addr;
@@ -82,15 +68,15 @@ class Server
 		Server(Server const &other);
 		Server& operator=(Server const &rhs);
 
-		/* getter */
+		/* Getter */
 		std::string get_m_server_name();
 		int get_m_port();
-		std::vector<HttpConfigLocation> get_m_postLocation();
+		std::vector<HttpConfigLocation> get_m_post_location();
 		fd_set get_m_write_fds();
 
-		/* setter */
+		/* Setter */
 
-		/* util */
+		/* Init */
 		void noteHttpConfigLocation();
 		void init(
 			HttpConfigServer server_block,
@@ -101,79 +87,79 @@ class Server
 			std::string root,
 			std::map<std::string, std::string> mime_types
 		);
+
+		/* Socket */
 		void setServerAddr(int port);
 		bool setServerSocket();
 		void runServer();
 		void closeServer();
 
+		/* Request */
 		void getRequest();
+
+		/* Server Util */
 		std::vector<HttpConfigLocation> getMethodLocation(Method method);
-		bool checkAcceptedMethod(std::vector<Method> v, Method method);
 		bool isMatchingLocation(std::string location, std::string path_in, std::string *rest);
+		bool checkAcceptedMethod(std::vector<Method> v, Method method);
 		std::string checkHttpConfigFilePath(std::string path_in);
 		void resetRequest(Request *req);
-		static Response makeResponseMessage(
-			int statusCode,
-			std::string path="./www/index.html", std::string transfer_encoding="", std::string method="", std::string contentType="text/html; charset=UTF-8",
-			std::string referer="",
-			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="", std::string content_location="",
-			std::string location="./www/index.html",
-			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
-		);
-		static Response makeResponseBodyMessage(
-			int statusCode,
-			std::string body="", std::string transfer_encoding="", std::string method="", std::string contentType="text/html; charset=UTF-8",
-			std::string referer="",
-			int dateHour=0, int dateMinute=0, int dateSecond=0, std::string allow_method="", std::string content_location="",
-			std::string location="./www/index.html",
-			std::string contentLanguage="ko, en", std::string server="ftnix/1.0 (MacOS)"
-		);
-		void sendResponse(int clientfd);
-		Response parseErrorResponse(int clientfd);
-		Response checkValidRequestHeader(int clientfd);
 
+		/* HEAD */
+		Response methodHEAD(int clientfd, std::string method="HEAD");
+
+		/* GET */
 		// bool checkHttpConfigFilePath(std::string path, std::string method="");
 		// bool checkHttpConfigFilePathHead(std::string path);
+		std::string getMimeType(std::string extension);
+		std::string makeAutoindexPage(std::string root, std::string path);
+		Response methodGET(int clientfd, std::string method="GET");
 
-		/* SERVER METHOD UTIL */
-		static Response getDirectory(Request req, Response res);
-		static Response postAuth(Request req, Response res);
-		static std::map<std::string, std::string> parseQuery(std::string str);
-		static Response HttpConfigPost(Request req, Response res);
-
-		/* Cgi Utils */
-		//static std::string parseCgiPathInfo(Request req);
+		/* POST */
 		std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		char** makeCgiEnvp(Request req, Response res);
 		Response executeCgi(Request req, Response res, std::string method);
-
-		Response get(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response post(std::string path, Request req, Response res, fd_set *write_fds, Response (*func)(Request req, Response res, fd_set *write_fds));
-		Response put(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response del(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response options(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-		Response trace(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
-
-		/* METHOD */
-		std::string makeErrorPage(int status);
-
-		std::string getMimeType(std::string extension);
-		std::string makeAutoindexPage(std::string root, std::string path);
-		static Response getTest(Request req, Response res);
-
-		Response methodHEAD(int clientfd, std::string method="HEAD");
-		Response methodGET(int clientfd, std::string method="GET");
+		static std::map<std::string, std::string> parseQuery(std::string str);
+		static Response postAuth(Request req, Response res);
 		Response methodPOST(int clientfd, std::string method="POST");
+
+		/* PUT */
+		/* cgi part should be added */
 		Response methodPUT(int clientfd, std::string method="PUT");
+
+		/* DELETE */
 		Response methodDELETE(int clientfd, std::string method="DELETE");
 
-		Response options_405(std::string allow_method);
-		Response options_204(std::string allow_method);
+		/* OPTIONS */
 		std::string makeAllowMethod(std::vector<Method> v);
 		Response methodOPTIONS(int clientfd, std::string method="OPTIONS");
+
+		/* TRACE */
 		Response methodTRACE(int clientfd, std::string method="TRACE");
 
-		Response OptionsPathRoot();
+		/* Response Message */
+		static Response makeResponseMessage(
+			int status_code, std::string path="./www/index.html", std::string transfer_encoding="",
+			std::string method="", std::string content_type="text/html; charset=UTF-8",
+			std::string referer="", int date_hour=0, int date_minute=0, int date_second=0,
+			std::string allow_method="", std::string content_location="", std::string location="./www/index.html",
+			std::string content_language="ko, en", std::string server="ftnix/1.0 (MacOS)"
+		);
+		static Response makeResponseBodyMessage(
+			int status_code, std::string body="", std::string transfer_encoding="",
+			std::string method="", std::string content_type="text/html; charset=UTF-8",
+			std::string referer="", int date_hour=0, int date_minute=0, int date_second=0,
+			std::string allow_method="", std::string content_location="", std::string location="./www/index.html",
+			std::string content_language="ko, en", std::string server="ftnix/1.0 (MacOS)"
+		);
+		std::string makeErrorPage(int status);
+
+		/* Server Method Util */
+		Response parseErrorResponse(int clientfd);
+		Response checkValidRequestHeader(int clientfd);
+		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
+
+		/* Response */
+		void sendResponse(int clientfd);
 };
 
 #endif

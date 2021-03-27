@@ -295,7 +295,7 @@ Response::setHtmlAttribute(htmlTag tag, std::string value)
 			setDivTag(value);
 			break;
 		default:
-			perror("Undefined HTML Element");
+			std::cerr << "Undefined HTML Element" << std::endl;
 			break;
 	}
 	return (*this);
