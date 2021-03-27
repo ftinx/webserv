@@ -74,6 +74,11 @@ namespace ft
 	bool checkValidFileExtension(std::string file_name, std::string ext);
 	bool checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list);
 	std::string getErrorMessage(int status_code);
+
+	std::string encode(const std::string &input);
+	std::string decode(const std::string &input);
+
+
 }
 
 #endif
