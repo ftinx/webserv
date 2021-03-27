@@ -335,15 +335,15 @@ Server::getRequest()
 			** Request 부분 시작, false시 에러 받아줘야
 			*/
 			this->m_requests[this->sockfd] = Request();
-			this->m_requests[this->sockfd].getMessage(this->sockfd);
+			if (this->m_requests[this->sockfd].getMessage(this->sockfd) == false)
+			{
+				ft::fdClr(this->sockfd, &m_main_fds);
+				if (--this->fd_num <= 0)
+					break;
+			}
 			this->resetRequest(&this->m_requests[this->sockfd]);
-			std::cout << "\033[32m" << this->m_requests[this->sockfd].get_m_reset_path() << "\033[0m" << std::endl;
 
-			FD_SET(this->sockfd, &this->m_write_fds);
-			//FD_CLR(this->sockfd, &this->m_main_fds);
-			//FD_CLR(this->sockfd, &this->m_read_fds);
-			if (--this->fd_num <= 0)
-				break;
+			ft::fdSet(this->sockfd, &this->m_write_fds);
 		}
 	}
 	return ;
@@ -725,15 +725,14 @@ Server::executeCgi(Request req, Response res, std::string method)
 		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
 		dup2(cgi_stdout, STDOUT_FILENO);
 		dup2(cgi_stdin, STDIN_FILENO);
-		// 일반화 해줘야
 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
 		exit(ret);
 	}
 	else
 	{
-		char buff[1025];
 		close(cgi_stdout);
 		close(cgi_stdin);
+		char buff[1025];
 		read(parent_stdout, buff, 1024);
 		buff[1024] = '\0';
 		std::cout << "\n" << buff << std::endl;
@@ -1157,6 +1156,9 @@ Server::sendResponse(int clientfd)
 
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
 	if (send(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size(), 0) <= 0)
+	{
 		close(clientfd);
+		ft::fdClr(clientfd, &m_write_fds);
+	}
 	return ;
 }
