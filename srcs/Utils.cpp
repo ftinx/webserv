@@ -300,6 +300,18 @@ iNetNtoA(unsigned int addr)
 /*******************************  TIME  ***************************************/
 /*============================================================================*/
 
+void
+doubleFree(char **str)
+{
+	int i(0);
+
+	while(str[i] == 0)
+	{
+		free(str[i]);
+	}
+	free(str);
+}
+
 std::string
 getDateTimestamp(int hour, int minute, int second)
 {

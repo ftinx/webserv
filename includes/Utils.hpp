@@ -66,6 +66,7 @@ namespace ft
 	int compareTimestampToCurrent(std::string timestamp);
 
 	/* ETC */
+	void doubleFree(char** str);
 	bool isValidFilePath(std::string path);
 	bool isValidDirPath(std::string path);
 	std::string fileToString(std::string file_path);

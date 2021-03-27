@@ -836,22 +836,25 @@ Server::executeCgi(Request req, Response res, std::string method)
 		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
 		dup2(cgi_stdout, STDOUT_FILENO);
 		dup2(cgi_stdin, STDIN_FILENO);
-		// 일반화 해줘야
 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
 		exit(ret);
 	}
 	else
 	{
-		char buff[1025];
 		close(cgi_stdout);
 		close(cgi_stdin);
-		read(parent_stdout, buff, 1024);
-		buff[1024] = '\0';
-		std::cout << "\n" << buff << std::endl;
+		// ft::fdSet(parent_stdout, &m_write_fds);
+		waitpid(-1, NULL, 0);
+		ft::doubleFree(envp);
+		// char buff[1025];
+		// read(parent_stdout, buff, 1024);
+		// buff[1024] = '\0';
+		// std::cout << "\n" << buff << std::endl;
+
 		response
 			.setStatusCode(200)
 			.setCurrentDate()
-			.setBodyDocument(std::string(buff))
+			.setBodyDocument("")
 			.setContentLanguage("ko")
 			.setContentType("text/html; charset=UTF-8")
 			.setServer("hihih")
