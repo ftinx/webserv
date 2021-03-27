@@ -70,12 +70,16 @@ namespace ft
 	bool isValidFilePath(std::string path);
 	bool isValidDirPath(std::string path);
 	std::string fileToString(std::string file_path);
-	std::string publicFileToString(std::string file_path);
 	Method getMethodType(std::string str);
 	std::string getMethodString(Method method);
 	bool checkValidFileExtension(std::string file_name, std::string ext);
 	bool checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list);
 	std::string getErrorMessage(int status_code);
+
+	std::string encode(const std::string &input);
+	std::string decode(const std::string &input);
+
+
 }
 
 #endif

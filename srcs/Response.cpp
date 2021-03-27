@@ -12,7 +12,8 @@ Response::Response()
 :m_status_code(0), m_date(""), m_content_language(""), m_content_type(""),
 m_server(""), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_index_file(),
-m_root(""), m_cgi_extension(), m_cgi_server_name(""), m_cgi_client_addr(), m_cgi_port(0)
+m_root(""), m_cgi_extension(), m_cgi_server_name(""), m_cgi_client_addr(), m_cgi_port(0),
+m_cgi_path("")
 {
 }
 
@@ -42,7 +43,7 @@ Response::operator=(Response const &rhs)
 	this->m_response_message = rhs.m_response_message;
 	this->m_response_size = rhs.m_response_size;
 
-	/* Config */
+	/* config */
 	this->m_index_file = rhs.m_index_file;
 	this->m_root = rhs.m_root;
 
@@ -51,6 +52,7 @@ Response::operator=(Response const &rhs)
 	this->m_cgi_client_addr = rhs.m_cgi_client_addr;
 	this->m_cgi_server_name = rhs.m_cgi_server_name;
 	this->m_cgi_port = rhs.m_cgi_port;
+	this->m_cgi_path = rhs.m_cgi_path;
 	return (*this);
 }
 
@@ -176,16 +178,16 @@ Response::get_m_cgi_path() const
 /*============================================================================*/
 
 void
-Response::set_m_status_code(int statusCode)
+Response::set_m_status_code(int status_code)
 {
-	this->m_status_code = statusCode;
+	this->m_status_code = status_code;
 	return ;
 }
 
 void
-Response::set_m_status_description(std::string statusDescription)
+Response::set_m_status_description(std::string status_description)
 {
-	this->m_status_description = statusDescription;
+	this->m_status_description = status_description;
 	return ;
 }
 
@@ -247,9 +249,9 @@ Response::set_m_cgi_path(std::string cgi_path)
 /*============================================================================*/
 
 Response &
-Response::setStatusCode(int statusCode)
+Response::setStatusCode(int status_code)
 {
-	this->m_status_code = statusCode;
+	this->m_status_code = status_code;
 	return (*this);
 }
 
@@ -293,7 +295,7 @@ Response::setHtmlAttribute(htmlTag tag, std::string value)
 			setDivTag(value);
 			break;
 		default:
-			perror("Undefined HTML Element");
+			std::cerr << "Undefined HTML Element" << std::endl;
 			break;
 	}
 	return (*this);
@@ -308,11 +310,11 @@ Response::setBodyDocument(std::string body)
 }
 
 Response &
-Response::setPublicFileDocument(std::string publicPath)
+Response::setFileDocument(std::string public_path)
 {
 	std::string body;
 
-	if (publicPath == "")
+	if (public_path == "")
 	{
 		body = "";
 		this->m_html_document = body;
@@ -321,11 +323,11 @@ Response::setPublicFileDocument(std::string publicPath)
 	}
 	try
 	{
-		body = ft::publicFileToString(publicPath);
+		body = ft::fileToString(public_path);
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Err: setPublicFileDocument " << e.what() << '\n';
+		std::cerr << "Err: setFileDocument " << e.what() << '\n';
 		body = "";
 	}
 	this->m_html_document = body;
@@ -347,21 +349,23 @@ Response::setHtmlDocument()
 						+ this->m_body
 					+ std::string("</body>")
 				+ std::string("</html>");
+
 	this->m_html_document = body;
 	this->m_content_length = body.length();
 	return (*this);
 }
 
 std::string
-Response::httpResponseStartLine(std::string httpVersion, int statusCode)
+Response::httpResponseStartLine(std::string http_version, int status_code)
 {
 	std::string startLine;
 
-	startLine += httpVersion + " "
-			+ std::to_string(statusCode)
+	startLine += http_version + " "
+			+ std::to_string(status_code)
 			+ std::string(" ")
-			+ ft::getErrorMessage(statusCode)
+			+ ft::getErrorMessage(status_code)
 			+ std::string("\n");
+
 	return (startLine);
 }
 
@@ -382,6 +386,7 @@ Response::httpResponseHeader()
 			+ ": "
 			+ std::string(it->second)
 			+ setCRLF();
+
 	return (header);
 }
 
@@ -393,16 +398,16 @@ Response::setHttpResponseHeader(std::string key, std::string value)
 }
 
 Response &
-Response::setContentLanguage(std::string contentLanguage)
+Response::setContentLanguage(std::string content_language)
 {
-	this->m_content_language = contentLanguage;
+	this->m_content_language = content_language;
 	return (*this);
 }
 
 Response &
-Response::setContentType(std::string contentType)
+Response::setContentType(std::string content_type)
 {
-	this->m_content_type = contentType;
+	this->m_content_type = content_type;
 	return (*this);
 }
 
@@ -418,6 +423,7 @@ Response::makeHttpResponseMessage(std::string method)
 {
 	if (method == "HEAD")
 		this->m_html_document = "";
+
 	/* Concat HTTP Response  */
 	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
 		+ httpResponseHeader()

@@ -285,7 +285,7 @@ Request::getMessage(int fd)
 	char recvline[MAXLINE + 1];
 
 	m_message = "";
-	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
+	while ((ret = recv(fd, recvline, MAXLINE - 1, 0)) > 0)
 	{
 		recvline[ret] = '\0';
 		std::string str(recvline);
@@ -387,12 +387,17 @@ Request::parseHeader(std::string line)
 		this->m_error_code = 400;
 		return (false);
 	}
-	if (key_value[0] == "Host")
+	if (key_value[0] == "Host" || key_value[0] == "host")
 		this->m_uri.set_m_host(ft::trim(key_value[1], " "));
-	else if (key_value[0] == "Port")
+	else if (key_value[0] == "Port" || key_value[0] == "port")
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
-	else
-		this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " ")));
+
+	if (this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " "))).second == false
+	&& (key_value[0] == "Host" || key_value[0] == "host" ))
+	{
+		this->m_error_code = 400;
+		return (false);
+	}
 	return (true);
 }
 

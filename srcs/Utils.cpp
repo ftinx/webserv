@@ -369,24 +369,6 @@ isValidDirPath(std::string path)
 	return (false); // 폴더가 아님
 }
 
-// std::string
-// fileToString(std::string file_path)
-// {
-// 	int fd;
-// 	int bytes;
-// 	char buffer[BUFFER_SIZE];
-// 	std::string ret;
-
-// 	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
-// 		throw std::exception();
-// 	ft::memset(buffer, 0, BUFFER_SIZE);
-// 	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
-// 		ret += std::string(buffer);
-// 	if (bytes < 0)
-// 		throw std::exception();
-// 	return (ret);
-// }
-
 std::string
 fileToString(std::string file_path)
 {
@@ -404,24 +386,6 @@ fileToString(std::string file_path)
 			throw std::exception();
 		ret += std::string(buffer);
 	}
-	return (ret);
-}
-
-std::string
-publicFileToString(std::string file_path)
-{
-	int fd;
-	int bytes;
-	char buffer[BUFFER_SIZE];
-	std::string ret;
-
-	if ((fd = open((file_path).c_str(), O_RDONLY)) < 0)
-		throw std::exception();
-	ft::memset(buffer, 0, BUFFER_SIZE);
-	while ((bytes = read(fd, buffer, BUFFER_SIZE) > 0))
-		ret += std::string(buffer);
-	if (bytes < 0)
-		throw std::exception();
 	return (ret);
 }
 
@@ -491,6 +455,8 @@ checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list
 	if ((pos = file_name.find_last_of(".")) == std::string::npos)
 		return (false);
 	extension = file_name.substr(pos, std::string::npos);
+	if ((pos = extension.find_first_of("/")) != std::string::npos)
+		extension = extension.substr(0, pos);
 	for (it = ext_list.begin() ; it != ext_list.end() ; it++)
 	{
 		if (*it == extension)
@@ -590,6 +556,110 @@ getErrorMessage(int status_code)
 		default:
 			return (std::string("Undefined Status Code"));
 	}
+}
+
+const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static inline bool
+isValidCharacter(char c)
+{
+	return (std::isalnum(c) || (c == '+') || (c == '/'));
+}
+
+std::string
+encode(const std::string &input)
+{
+	const char *bytes_to_encode = input.data();
+	size_t in_len = input.size();
+
+	std::string ret;
+	int i = 0;
+	int j = 0;
+	unsigned char char_array_3[3];
+	unsigned char char_array_4[4];
+
+	while (in_len--)
+	{
+		char_array_3[i++] = *(bytes_to_encode++);
+		if (i == 3)
+		{
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+			char_array_4[3] = char_array_3[2] & 0x3f;
+
+			for (i = 0; (i < 4); i++)
+				ret += CHARACTERS[char_array_4[i]];
+			i = 0;
+		}
+	}
+
+	if (i)
+	{
+		for (j = i; j < 3; j++)
+			char_array_3[j] = '\0';
+
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+		char_array_4[3] = char_array_3[2] & 0x3f;
+
+		for (j = 0; (j < i + 1); j++)
+			ret += CHARACTERS[char_array_4[j]];
+
+		while ((i++ < 3))
+			ret += '=';
+	}
+
+	return (ret);
+}
+
+std::string
+decode(const std::string &input)
+{
+	int in_len = input.size();
+	int i = 0;
+	int j = 0;
+	int in_ = 0;
+	unsigned char char_array_4[4], char_array_3[3];
+	std::string ret;
+
+	while (in_len-- && (input[in_] != '=') && isValidCharacter(input[in_]))
+	{
+		char_array_4[i++] = input[in_];
+		in_++;
+		if (i == 4)
+		{
+			for (i = 0; i < 4; i++)
+				char_array_4[i] = CHARACTERS.find(char_array_4[i]);
+
+			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+			for (i = 0; (i < 3); i++)
+				ret += char_array_3[i];
+			i = 0;
+		}
+	}
+
+	if (i)
+	{
+		for (j = i; j < 4; j++)
+			char_array_4[j] = 0;
+
+		for (j = 0; j < 4; j++)
+			char_array_4[j] = CHARACTERS.find(char_array_4[j]);
+
+		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+		for (j = 0; (j < i - 1); j++)
+			ret += char_array_3[j];
+	}
+
+	return (ret);
 }
 
 }
