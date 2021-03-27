@@ -226,7 +226,7 @@ Server::setServerSocket()
 		std::cout << "bind error" << std::endl;
 		return (false);
 	}
-	if (listen(this->m_server_socket, 10) == -1)
+	if (listen(this->m_server_socket, 10000) == -1)
 	{
 		std::cout << "listen error" << std::endl;
 		return (false);
@@ -331,7 +331,6 @@ Server::getRequest()
 			this->m_requests[this->sockfd] = Request();
 			this->m_requests[this->sockfd].getMessage(this->sockfd);
 			this->resetRequest(&this->m_requests[this->sockfd]);
-			std::cout << "\033[32m" << this->m_requests[this->sockfd].get_m_reset_path() << "\033[0m" << std::endl;
 
 			FD_SET(this->sockfd, &this->m_write_fds);
 			//FD_CLR(this->sockfd, &this->m_main_fds);
