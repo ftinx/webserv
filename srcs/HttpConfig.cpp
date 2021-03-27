@@ -57,6 +57,12 @@ HttpConfig::get_m_version() const
 	return (this->m_version);
 }
 
+bool
+HttpConfig::get_m_debug() const
+{
+	return (this->m_debug);
+}
+
 std::string
 HttpConfig::get_m_include() const
 {
@@ -222,6 +228,13 @@ HttpConfig::parseConfigFile(std::string file_path)
 			this->m_name = line.back();
 		else if (line.front().compare("software_version") == 0)
 			this->m_version = line.back();
+		else if (line.front().compare("debug") == 0)
+		{
+			if (line.back().compare("on") == 0)
+				this->m_debug = true;
+			else
+				this->m_debug = false;
+		}
 		else if (line.front().compare("include") == 0)
 		{
 			this->m_include = line.back();
