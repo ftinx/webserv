@@ -21,7 +21,6 @@ class HttpConfig
 
 		std::string m_name;
 		std::string m_version;
-		bool m_debug;
 		std::string m_include;
 		std::string m_root;
 		std::vector<HttpConfigServer> m_server_block;
@@ -44,7 +43,6 @@ class HttpConfig
 		/* getter */
 		std::string get_m_name() const;
 		std::string get_m_version() const;
-		bool get_m_debug() const;
 		std::string get_m_include() const;
 		std::string get_m_root() const;
 		std::vector<HttpConfigServer> get_m_server_block() const;

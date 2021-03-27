@@ -341,12 +341,6 @@ Server::getRequest()
 				if (--this->fd_num <= 0)
 					break;
 			}
-<<<<<<< HEAD
-
-=======
-			std::cout << "\033[43;31m**** request header *****\033[0m" << std::endl;
-			this->m_requests[this->sockfd].printHeaders();
->>>>>>> 58f1269be60d50e1ecbc0ae1ce48e6add53ac303
 			this->resetRequest(&this->m_requests[this->sockfd]);
 
 			ft::fdSet(this->sockfd, &this->m_write_fds);
@@ -458,16 +452,35 @@ Server::resetRequest(Request *req)
 	}
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
+	writeLog("request", Response());
+}
 
-	// request msg print to debug.log file//
+void
+Server::writeLog(std::string type, Response response)
+{
+	static int cnt_request = 0;
+	static int cnt_response = 0;
 	std::string path = this->m_root + std::string("/debug.log");
 	FILE *file_ptr = fopen(path.c_str(), "a");
-	fprintf(file_ptr, "\n-------------------------------- REQUEST --------------------------------------\n");
-	fprintf(file_ptr, "%s", this->m_requests[this->sockfd].get_m_message().c_str());
-	fprintf(file_ptr, "\n-------------------------------------------------------------------------------\n");
-	fclose(file_ptr);
-	// request msg print to debug.log file//
 
+	if (type.compare("request") == 0)
+	{
+		fprintf(file_ptr, "\n-------------------------------- REQUEST MESSAGE [");
+		fprintf(file_ptr, "%d", ++cnt_request);
+		fprintf(file_ptr, "] -------------------------------------\n");
+		fprintf(file_ptr, "%s", this->m_requests[this->sockfd].get_m_message().c_str());
+		fprintf(file_ptr, "\n------------------------------------------------------------------------------------------\n");
+		fclose(file_ptr);
+	}
+	else if (type.compare("response") == 0)
+	{
+		fprintf(file_ptr, "\n################################ RESPONSE MESSAGE [");
+		fprintf(file_ptr, "%d", ++cnt_response);
+		fprintf(file_ptr, "] ####################################\n");
+		fprintf(file_ptr, "%s", response.get_m_reponse_message().c_str());
+		fprintf(file_ptr, "\n##########################################################################################\n");
+		fclose(file_ptr);
+	}
 }
 
 /*============================================================================*/
@@ -1175,14 +1188,6 @@ Server::sendResponse(int clientfd)
 		close(clientfd);
 		ft::fdClr(clientfd, &m_write_fds);
 	}
-	// request msg print to debug.log file//
-	std::string path = this->m_root + std::string("/debug.log");
-	FILE *file_ptr = fopen(path.c_str(), "a");
-	fprintf(file_ptr, "\n################################# RESPONSE ###################################\n");
-	fprintf(file_ptr, "%s", response.get_m_reponse_message().c_str());
-	fprintf(file_ptr, "\n##############################################################################\n");
-	fclose(file_ptr);
-	// request msg print to debug.log file//
-
+	writeLog("response", response);
 	return ;
 }
