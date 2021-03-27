@@ -47,7 +47,7 @@ class Response
 		std::string m_response_message;
 		int m_response_size;
 
-		/* Config */
+		/* config */
 		std::vector<std::string> m_index_file;
 		std::string m_root;
 
@@ -84,8 +84,8 @@ class Response
 		std::string get_m_cgi_path() const;
 
 		/* setter */
-		void set_m_status_code(int statusCode);
-		void set_m_status_description(std::string statusDescription);
+		void set_m_status_code(int status_code);
+		void set_m_status_description(std::string status_description);
 		void set_m_cgi_client_addr(in_addr_t cgi_client_addr);
 		void set_m_cgi_server_name(std::string cgi_server_name);
 		void set_m_cgi_port(int cgi_port);
@@ -99,13 +99,13 @@ class Response
 
 		/* HTTP Response Util */
 		Response& makeHttpResponseMessage(std::string method = "");
-		std::string httpResponseStartLine(std::string httpVersion, int statusCode);
+		std::string httpResponseStartLine(std::string http_version, int status_code);
 		std::string httpResponseHeader();
 		std::string setCRLF();
 		Response& setHttpResponseHeader(std::string key, std::string value);
-		Response& setStatusCode(int statusCode);
-		Response& setContentLanguage(std::string contentLanguage);
-		Response& setContentType(std::string contentType);
+		Response& setStatusCode(int status_code);
+		Response& setContentLanguage(std::string content_language);
+		Response& setContentType(std::string content_type);
 		Response& setServer(std::string server);
 
 		/* HTML Document Util */
@@ -114,7 +114,7 @@ class Response
 		void setTitleTag(std::string value);
 		void setPTag(std::string value);
 		void setDivTag(std::string value);
-		Response& setPublicFileDocument(std::string publicPath);
+		Response& setFileDocument(std::string public_path);
 		Response& setBodyDocument(std::string body);
 
 		/* util */
