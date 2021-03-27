@@ -443,6 +443,8 @@ checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list
 	if ((pos = file_name.find_last_of(".")) == std::string::npos)
 		return (false);
 	extension = file_name.substr(pos, std::string::npos);
+	if ((pos = extension.find_first_of("/")) != std::string::npos)
+		extension = extension.substr(0, pos);
 	for (it = ext_list.begin() ; it != ext_list.end() ; it++)
 	{
 		if (*it == extension)

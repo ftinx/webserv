@@ -627,27 +627,33 @@ Server::methodGET(int clientfd, std::string method)
 std::map<std::string, std::string>
 Server::makeCgiEnvpMap(Request req, Response res)
 {
+	(void) res;
 	std::map<std::string, std::string> map;
 	Uri uri = req.get_m_uri();
 
 	/*
 	** auth 관련 AUTH_TYPE REMOTE_USER REMOTE_IDENT
 	*/
-	map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
-	map["SERVER_NAME"] = res.get_m_cgi_server_name();
-	map["GATEWAY_INTERFACE"] = "Cgi/1.1";
-	map["SERVER_PROTOCOL"] = req.get_m_http_version();
-	map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
 	map["REQUEST_METHOD"] = req.getMethod();
+	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["PATH_INFO"] = req.get_m_path_info();
-	map["PATH_TRANSLATED"] = req.get_m_path_translated();
+
+	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
+	// map["SERVER_NAME"] = res.get_m_cgi_server_name();
+	// map["GATEWAY_INTERFACE"] = "Cgi/1.1";
+	// map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
+	// map["PATH_INFO"] = req.get_m_path_info();
+	// map["PATH_TRANSLATED"] = req.get_m_path_translated() + "/abc";
+
 	// map["REDIRECT_STATUS"] = "";
 	// map["SCRIPT_FILENAME"] = "";
-	map["SCRIPT_NAME"] = uri.get_m_path();
-	map["QUERY_STRING"] = uri.get_m_query_string();
-	map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
-	map["CONTENT_TYPE"] = req.getContentType();
-	map["CONTENT_LENGTH"] = req.getContentLength();
+	// map["SCRIPT_NAME"] = uri.get_m_path();
+
+	// map["SCRIPT_NAME"] = "/cgi-bin/cgi_tester";
+	// map["QUERY_STRING"] = uri.get_m_query_string();
+	// map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
+	// map["CONTENT_TYPE"] = req.getContentType();
+	// map["CONTENT_LENGTH"] = req.getContentLength();
 	return (map);
 }
 
@@ -697,6 +703,13 @@ Server::executeCgi(Request req, Response res, std::string method)
 	fcntl(parent_stdout, F_SETFL, O_NONBLOCK);
 	fcntl(parent_stdin, F_SETFL, O_NONBLOCK);
 
+	printf("\n=======================\n");
+	for (int i = 0; i<3; i++)
+	{
+		printf("%s\n", envp[i]);
+	}
+	printf("=======================\n");
+
 	if ((pid = fork()) < 0)
 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 	if (pid == 0)
@@ -718,20 +731,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 		read(parent_stdout, buff, 1024);
 		buff[1024] = '\0';
 		std::cout << "\n" << buff << std::endl;
-		response
-			.setStatusCode(200)
-			.setCurrentDate()
-			.setBodyDocument(std::string(buff))
-			.setContentLanguage("ko")
-			.setContentType("text/html; charset=UTF-8")
-			.setServer("hihih")
-			.setHttpResponseHeader("date", response.get_m_date())
-			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
-			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
-			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
-			.setHttpResponseHeader("server", response.get_m_server())
-			.makeHttpResponseMessage();
+		response = makeResponseBodyMessage(404);
 	}
 	return (response);
 }
@@ -785,11 +785,14 @@ Server::methodPOST(int clientfd, std::string method)
 	Response response;
 	Request request(m_requests[clientfd]);
 
+	std::cout << "::1::"<< std::endl;
 	if (request.checkCGI() == true)
 	{
+		std::cout << "::2::"<< std::endl;
 		std::cout << "##### START CGI PART #####" << std::endl;
 		executeCgi(request, response, method);
 	}
+	std::cout << "::3::"<< std::endl;
 	return (response);
 }
 
