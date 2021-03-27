@@ -878,7 +878,7 @@ Server::methodPUT(int clientfd, std::string method)
 	else
 	{
 		close(fd);
-		return (Server::makeResponseBodyMessage(status_code, req.get_m_uri().get_m_path(), method));
+		return (Server::makeResponseMessage(status_code, req.get_m_reset_path(), "", method));
 	}
 	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 }
