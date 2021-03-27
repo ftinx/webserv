@@ -375,12 +375,12 @@ fileToString(std::string file_path)
 	int fd;
 	int bytes;
 	char buffer[BUFFER_SIZE];
-	std::string ret;
+	std::string ret("");
 
 	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
 		throw std::exception();
 	ft::memset(reinterpret_cast<void *>(buffer), 0, BUFFER_SIZE);
-	while ((bytes = read(fd, reinterpret_cast<void *>(buffer), BUFFER_SIZE) > 0))
+	while ((bytes = read(fd, reinterpret_cast<void *>(buffer), BUFFER_SIZE - 1) > 0))
 	{
 		if (bytes < 0)
 			throw std::exception();
