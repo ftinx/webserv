@@ -306,8 +306,11 @@ Request::getMessage(int fd)
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
-	if (ret <= 0)
+	if (ret < 0)
+	{
 		close(fd);
+		return (false);
+	}
 	std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
 	std::cout << m_message << std::endl;
 	if (this->parseMessage(chunked) == false)

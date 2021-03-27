@@ -226,7 +226,7 @@ Server::setServerSocket()
 		std::cout << "bind error" << std::endl;
 		return (false);
 	}
-	if (listen(this->m_server_socket, 10000) == -1)
+	if (listen(this->m_server_socket, 1000) == -1)
 	{
 		std::cout << "listen error" << std::endl;
 		return (false);
@@ -266,6 +266,11 @@ Server::runServer()
 		{
 			case -1:
 				std::cerr << "select error" << std::endl;
+				std::cout << EBADF << std::endl;
+				std::cout << EINTR << std::endl;
+				std::cout << EINVAL << std::endl;
+				std::cout << ENOMEM << std::endl;
+				std::cout << errno << std::endl;
 				return ;
 			case 0:
 				std::cout << "---Timeout Reset---" << std::endl;
@@ -297,6 +302,7 @@ Server::getRequest()
 		{
 			sendResponse(sockfd);
 			FD_CLR(sockfd, &this->m_write_fds);
+			// FD_CLR(this->sockfd, &this->m_main_fds);
 		}
 	}
 	if (ft::fdIsSet(this->m_server_socket, &this->m_read_fds))
@@ -329,14 +335,15 @@ Server::getRequest()
 			** Request 부분 시작, false시 에러 받아줘야
 			*/
 			this->m_requests[this->sockfd] = Request();
-			this->m_requests[this->sockfd].getMessage(this->sockfd);
+			if (this->m_requests[this->sockfd].getMessage(this->sockfd) == false)
+			{
+				ft::fdClr(this->sockfd, &m_main_fds);
+				if (--this->fd_num <= 0)
+					break;
+			}
 			this->resetRequest(&this->m_requests[this->sockfd]);
 
-			FD_SET(this->sockfd, &this->m_write_fds);
-			//FD_CLR(this->sockfd, &this->m_main_fds);
-			//FD_CLR(this->sockfd, &this->m_read_fds);
-			if (--this->fd_num <= 0)
-				break;
+			ft::fdSet(this->sockfd, &this->m_write_fds);
 		}
 	}
 	return ;
@@ -1147,6 +1154,11 @@ Server::sendResponse(int clientfd)
 	std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
 	std::cout << response.get_m_reponse_message() << std::endl;
 
-	send(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size(), 0);
+	/* 아무것도 전송안할순없으니까 0도 포함..? */
+	if (send(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size(), 0) <= 0)
+	{
+		close(clientfd);
+		ft::fdClr(clientfd, &m_write_fds);
+	}
 	return ;
 }
