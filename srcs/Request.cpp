@@ -285,7 +285,7 @@ Request::getMessage(int fd)
 	char recvline[MAXLINE + 1];
 
 	m_message = "";
-	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
+	while ((ret = recv(fd, recvline, MAXLINE - 1, 0)) > 0)
 	{
 		recvline[ret] = '\0';
 		std::string str(recvline);
