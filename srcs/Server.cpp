@@ -1146,6 +1146,6 @@ Server::sendResponse(int clientfd)
 	std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
 	std::cout << response.get_m_reponse_message() << std::endl;
 
-	write(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size());
+	send(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size(), 0);
 	return ;
 }
