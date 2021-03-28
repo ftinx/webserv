@@ -470,7 +470,6 @@ Server::writeLog(std::string type, Response response)
 		fprintf(file_ptr, "] -------------------------------------\n");
 		fprintf(file_ptr, "%s", this->m_requests[this->sockfd].get_m_message().c_str());
 		fprintf(file_ptr, "\n------------------------------------------------------------------------------------------\n");
-		fclose(file_ptr);
 	}
 	else if (type.compare("response") == 0)
 	{
@@ -479,8 +478,8 @@ Server::writeLog(std::string type, Response response)
 		fprintf(file_ptr, "] ####################################\n");
 		fprintf(file_ptr, "%s", response.get_m_reponse_message().c_str());
 		fprintf(file_ptr, "\n##########################################################################################\n");
-		fclose(file_ptr);
 	}
+	fclose(file_ptr);
 }
 
 /*============================================================================*/
