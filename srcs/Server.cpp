@@ -294,7 +294,6 @@ Server::closeServer()
 void
 Server::getRequest()
 {
-
 	for (int i = 0; i <= this->maxfd; i++)
 	{
 		int sockfd = i;
@@ -325,7 +324,6 @@ Server::getRequest()
 		printf("Accept OK\n");
 		return ;
 	}
-
 	for (int i = 0; i <= this->maxfd; i++)
 	{
 		this->sockfd = i;
