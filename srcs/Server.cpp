@@ -790,6 +790,8 @@ Server::executeCgi(Request req, Response res, std::string method)
 		close(cgi_read);
 		close(cgi_write);
 		ft::fdSet(parent_write, this->m_write_fds);
+		m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
+		ft::doubleFree(envp);
 		// while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
 		// {
 		// 	buff[ret]= '\0';
