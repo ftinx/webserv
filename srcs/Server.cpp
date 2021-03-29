@@ -633,6 +633,7 @@ Server::methodGET(int clientfd, std::string method)
 	std::string type;
 	std::string extension;
 
+	std::cout << this->m_requests[clientfd].getAcceptLanguage() << std::endl;
 	if (ft::isValidDirPath(absolute_path)) // 폴더라면
 	{
 		if (absolute_path.find("/", absolute_path.length() - 1) == std::string::npos)
