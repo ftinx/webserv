@@ -28,9 +28,13 @@ class Request
 		int m_error_code;
 		std::string m_reset_path;
 		HttpConfigLocation m_location_block;
+
 		/* cgi envp */
 		std::string m_path_translated;
 		std::string m_path_info;
+
+		/* HTTP Header */
+		std::string m_content_type;
 
 	public:
 		Request();
@@ -52,11 +56,15 @@ class Request
 		HttpConfigLocation get_m_location_block() const;
 		std::string get_m_path_translated() const;
 		std::string get_m_path_info() const;
+		std::string get_m_content_type() const;
+
+		/* setter */
 		void set_m_http_version(std::string);
 		void set_m_cgi_version(std::string);
 		void set_m_check_cgi(bool);
 		void set_m_method(Method);
-		//setHeaders
+
+		// setHeaders
 		void set_m_body(std::string);
 		void set_m_error_code(int);
 		void set_m_reset_path(std::string);
@@ -65,6 +73,7 @@ class Request
 		std::string getMethod();
 		std::string getContentLength();
 		std::string getContentType();
+		std::string getAcceptLanguage();
 		bool isBreakCondition(bool*, int, int);
 		bool getMessage(int);
 		bool parseMessage(bool);

@@ -143,14 +143,14 @@ class Server
 			std::string method="", std::string content_type="text/html; charset=UTF-8",
 			std::string referer="", int date_hour=0, int date_minute=0, int date_second=0,
 			std::string allow_method="", std::string content_location="", std::string location="./www/index.html",
-			std::string content_language="ko, en", std::string server="ftnix/1.0 (MacOS)"
+			std::string content_language="ko", std::string server="ftnix/1.0 (MacOS)"
 		);
 		static Response makeResponseBodyMessage(
 			int status_code, std::string body="", std::string transfer_encoding="",
 			std::string method="", std::string content_type="text/html; charset=UTF-8",
 			std::string referer="", int date_hour=0, int date_minute=0, int date_second=0,
 			std::string allow_method="", std::string content_location="", std::string location="./www/index.html",
-			std::string content_language="ko, en", std::string server="ftnix/1.0 (MacOS)"
+			std::string content_language="ko", std::string server="ftnix/1.0 (MacOS)"
 		);
 		std::string makeErrorPage(int status);
 

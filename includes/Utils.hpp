@@ -36,6 +36,10 @@ namespace ft
 	bool isprint(int c);
 	int atoi(const char *str);
 	size_t strlen(const char *str);
+	void putchar_fd(const char c, int fd);
+	void putstr_fd(const char *s, int fd);
+	void putendl_fd(const char *s, int fd);
+	void putnbr_fd(int n, int fd);
 	char* strchr(const char *str, int c);
 	void* memset(void *str, int c, size_t n);
 
