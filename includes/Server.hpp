@@ -52,6 +52,13 @@ class Server
 		int m_client_socket;
 		int m_sockfd;
 
+		/* fd set */
+		int *m_maxfd;
+		fd_set *m_main_fds;
+		fd_set *m_read_fds;
+		fd_set *m_write_fds;
+		fd_set *m_copy_write_fds;
+
 		std::vector< std::pair<FdType, int> > m_fd_table;
 
 		/* Request, Response */
@@ -82,7 +89,8 @@ class Server
 			int content_length,
 			size_t location_size,
 			std::string root,
-			std::map<std::string, std::string> mime_types
+			std::map<std::string, std::string> mime_types,
+			int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds
 		);
 
 		/* Socket */

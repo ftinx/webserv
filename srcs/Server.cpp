@@ -64,12 +64,19 @@ Server& Server::operator=(Server const &rhs)
 	this->m_http_config_file_path_set = rhs.m_http_config_file_path_set;
 	this->m_get_location_auto_index = rhs.m_get_location_auto_index;
 
-	// /* Socket */
+	/* Socket */
+	this->m_maxfd = rhs.m_maxfd;
 	this->m_server_addr = rhs.m_server_addr;
 	this->m_client_addr = rhs.m_client_addr;
 	this->m_server_socket = rhs.m_server_socket;
 	this->m_client_socket = rhs.m_client_socket;
 	this->m_sockfd = rhs.m_sockfd;
+
+	/* fd_sets */
+	this->m_main_fds = rhs.m_main_fds;
+	this->m_read_fds = rhs.m_read_fds;
+	this->m_write_fds = rhs.m_write_fds;
+	this->m_copy_write_fds = rhs.m_copy_write_fds;
 
 	/* Request, Response */
 	this->m_requests = rhs.m_requests;
@@ -179,7 +186,8 @@ Server::noteHttpConfigLocation()
 
 void
 Server::init(HttpConfigServer server_block, std::string server_name, int port,
-int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
+int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types,
+int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
@@ -190,6 +198,11 @@ int content_length, size_t location_size, std::string root, std::map<std::string
 	this->m_location_size = location_size;
 	this->m_root = root;
 	this->m_mime_types = mime_types;
+	this->m_maxfd = maxfd;
+	this->m_main_fds = main_fds;
+	this->m_read_fds = read_fds;
+	this->m_write_fds = write_fds;
+	this->m_copy_write_fds = copy_write_fds;
 	return ;
 }
 
@@ -628,7 +641,6 @@ Server::methodGET(int clientfd, std::string method)
 	std::string type;
 	std::string extension;
 
-	std::cout << this->m_requests[clientfd].getAcceptLanguage() << std::endl;
 	if (ft::isValidDirPath(absolute_path)) // 폴더라면
 	{
 		if (absolute_path.find("/", absolute_path.length() - 1) == std::string::npos)
@@ -687,6 +699,7 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["REQUEST_METHOD"] = req.getMethod();
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["PATH_INFO"] = req.get_m_path_info();
+	map["PATH_TRANSLATED"] = req.get_m_path_translated();
 
 	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
 	// map["SERVER_NAME"] = res.get_m_cgi_server_name();
@@ -735,7 +748,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int pipe1[2];
 	int pipe2[2];
 	int ret;
-	char buff[MAXLINE];
+	//char buff[MAXLINE];
 	std::string body;
 
 	std::cout << "Execute Cgi >0<" << std::endl;
@@ -775,20 +788,14 @@ Server::executeCgi(Request req, Response res, std::string method)
 	{
 		close(cgi_read);
 		close(cgi_write);
-		while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
-		{
-			buff[ret]= '\0';
-			body +=  std::string(buff);
-		}
-		std::cout << body.substr(0, 100) << std::endl;
-		close(parent_read);
-		close(parent_write);
-		/* 	임시방편... */
-		// char buff[1025];
-		// read(parent_write, buff, 1024);
-		// buff[1024] = '\0';
-		// // std::cout << "\n" << buff << std::endl;
-		// response = makeResponseBodyMessage(404);
+		ft::fdSet(parent_write, this->m_write_fds);
+		// while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
+		// {
+		// 	buff[ret]= '\0';
+		// 	body +=  std::string(buff);
+		// }
+		// std::cout << body.substr(0, 100) << std::endl;
+ 		response = makeResponseBodyMessage(404);
 	}
 	return (response);
 }
