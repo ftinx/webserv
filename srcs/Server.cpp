@@ -78,6 +78,10 @@ Server& Server::operator=(Server const &rhs)
 	this->m_write_fds = rhs.m_write_fds;
 	this->m_copy_write_fds = rhs.m_copy_write_fds;
 
+	/* cgi fd */
+	this->m_cgi_parent_write = rhs.m_cgi_parent_write;
+	this->m_cgi_parent_read = rhs.m_cgi_parent_read;
+
 	/* Request, Response */
 	this->m_requests = rhs.m_requests;
 	this->m_responses = rhs.m_responses;
@@ -291,11 +295,11 @@ Server::readProcess()
 
 	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
 	{
-		if (fd_iter->first == CGI_PIPE)
-		{
-
-		}
-		else if(fd_iter->first == C_SOCKET)
+		// if (fd_iter->first == CGI_PIPE)
+		// {
+		// 	write(this->m_cgi_parent_write, (this->m_requests[this->m_sockfd].get_m_body()).c_str(), 50);
+		// }
+		if(fd_iter->first == C_SOCKET)
 		{
 			this->m_sockfd = fd_iter->second;
 			if (ft::fdIsSet(this->m_sockfd, this->m_read_fds))
@@ -322,17 +326,23 @@ Server::writeProcess()
 	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
 	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
 	{
-		if (fd_iter->first == CGI_PIPE)
-		{
-
-		}
-		else if(fd_iter->first == C_SOCKET)
+		// std::cout << fd_iter->first << std::endl;
+		// if (fd_iter->first == CGI_PIPE)
+		// {
+			// std::cout << fd_iter->first << std::endl;
+			// char buff[51];
+			// int ret;
+			// ret = read(this->m_cgi_parent_read, buff, 50);
+			// buff[ret] = '\0';
+			// std::cout << std::string(buff) << std::endl;
+		// }
+		if(fd_iter->first == C_SOCKET)
 		{
 			int sockfd = fd_iter->second;
 			if (ft::fdIsSet(sockfd, this->m_copy_write_fds))
 			{
-				sendResponse(sockfd);
-				FD_CLR(sockfd, this->m_write_fds);
+				if (sendResponse(sockfd) == true)
+					FD_CLR(sockfd, this->m_write_fds);
 				// FD_CLR(this->sockfd, main_fds);
 			}
 		}
@@ -777,6 +787,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 	if (pid == 0)
 	{
+		std::cout << "--1--" << std::endl;
 		close(parent_read);
 		close(parent_write);
 		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
@@ -787,10 +798,24 @@ Server::executeCgi(Request req, Response res, std::string method)
 	}
 	else
 	{
+		int status;
 		close(cgi_read);
 		close(cgi_write);
+		std::cout << "--3--" << std::endl;
+		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
+		// wait(&pid);
+		waitpid(pid, &status, 0);
+		if (WIFEXITED(status))
+			WEXITSTATUS(status);
+		m_cgi_parent_write = parent_write;
+		m_cgi_parent_read = parent_read;
 		ft::fdSet(parent_write, this->m_write_fds);
-		m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
+		ft::fdSet(parent_read, this->m_main_fds);
+		*this->m_maxfd += 2;
+		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
+		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_read));
+		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
+
 		ft::doubleFree(envp);
 		// while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
 		// {
@@ -798,7 +823,6 @@ Server::executeCgi(Request req, Response res, std::string method)
 		// 	body +=  std::string(buff);
 		// }
 		// std::cout << body.substr(0, 100) << std::endl;
- 		response = makeResponseBodyMessage(404);
 	}
 	return (response);
 }
@@ -857,7 +881,7 @@ Server::methodPOST(int clientfd, std::string method)
 	{
 		std::cout << "::2::"<< std::endl;
 		std::cout << "##### START CGI PART #####" << std::endl;
-		executeCgi(request, response, method);
+		response = executeCgi(request, response, method);
 	}
 	std::cout << "::3::"<< std::endl;
 	return (response);
@@ -1193,6 +1217,8 @@ Server::sendResponse(int clientfd)
 			break;
 		case POST:
 			response = this->methodPOST(clientfd);
+			if (response.get_m_status_code() == 0)
+				return (false);
 			break;
 		case PUT:
 			response = this->methodPUT(clientfd);

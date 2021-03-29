@@ -61,6 +61,10 @@ class Server
 
 		std::vector< std::pair<FdType, int> > m_fd_table;
 
+		/* cgi fd */
+		int m_cgi_parent_write;
+		int m_cgi_parent_read;
+
 		/* Request, Response */
 		std::vector<Request> m_requests;
 		std::vector<Response> m_responses;
