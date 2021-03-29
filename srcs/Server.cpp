@@ -64,17 +64,12 @@ Server& Server::operator=(Server const &rhs)
 	this->m_http_config_file_path_set = rhs.m_http_config_file_path_set;
 	this->m_get_location_auto_index = rhs.m_get_location_auto_index;
 
-	/* Socket */
+	// /* Socket */
 	this->m_server_addr = rhs.m_server_addr;
 	this->m_client_addr = rhs.m_client_addr;
 	this->m_server_socket = rhs.m_server_socket;
 	this->m_client_socket = rhs.m_client_socket;
-	this->fd_num = rhs.fd_num;
-	this->sockfd = rhs.sockfd;
-	this->readn = rhs.readn;
-	this->maxfd = rhs.maxfd;
-	this->m_main_fds = rhs.m_main_fds;
-	this->m_copy_fds = rhs.m_copy_fds;
+	this->m_sockfd = rhs.m_sockfd;
 
 	/* Request, Response */
 	this->m_requests = rhs.m_requests;
@@ -114,10 +109,16 @@ Server::get_m_post_location()
 	return (this->m_post_location);
 }
 
-fd_set
-Server::get_m_write_fds()
+int
+Server::get_m_server_socket() const
 {
-	return (this->m_write_fds);
+	return (this->m_server_socket);
+}
+
+int
+Server::get_m_client_socket() const
+{
+	return (this->m_client_socket);
 }
 
 /*============================================================================*/
@@ -235,53 +236,6 @@ Server::setServerSocket()
 }
 
 void
-Server::runServer()
-{
-	struct timeval timeout;
-	timeout.tv_sec = 4;
-	timeout.tv_usec = 2;
-
-	FD_ZERO(&this->m_main_fds);
-	FD_ZERO(&this->m_write_fds);
-	FD_SET(this->m_server_socket, &this->m_main_fds);
-
-	this->maxfd = 0;
-	this->maxfd = this->m_server_socket;
-
-	while (42)
-	{
-		printf("---Select Wait %d---\n", this->maxfd);
-		this->m_read_fds = this->m_main_fds;
-		this->m_copy_write_fds = this->m_write_fds;
-
-		this->fd_num = select(
-			this->maxfd + 1 ,
-			&this->m_read_fds,
-			&this->m_copy_write_fds,
-			reinterpret_cast<fd_set *>(0),
-			&timeout
-		);
-
-		switch (this->fd_num)
-		{
-			case -1:
-				std::cerr << "select error" << std::endl;
-				std::cout << EBADF << std::endl;
-				std::cout << EINTR << std::endl;
-				std::cout << EINVAL << std::endl;
-				std::cout << ENOMEM << std::endl;
-				std::cout << errno << std::endl;
-				return ;
-			case 0:
-				std::cout << "---Timeout Reset---" << std::endl;
-			default:
-				getRequest();
-		}
-	}
-	return ;
-}
-
-void
 Server::closeServer()
 {
 	return ;
@@ -292,58 +246,100 @@ Server::closeServer()
 /*============================================================================*/
 
 void
-Server::getRequest()
+Server::acceptSocket(fd_set *main_fds, int *max_fd)
 {
-	for (int i = 0; i <= this->maxfd; i++)
-	{
-		int sockfd = i;
-		if (ft::fdIsSet(sockfd, &this->m_copy_write_fds))
-		{
-			sendResponse(sockfd);
-			FD_CLR(sockfd, &this->m_write_fds);
-			// FD_CLR(this->sockfd, &this->m_main_fds);
-		}
-	}
-	if (ft::fdIsSet(this->m_server_socket, &this->m_read_fds))
-	{
-		socklen_t addrlen;
+	socklen_t addrlen;
 
-		addrlen = sizeof(this->m_client_addr);
-		if ((
-			this->m_client_socket = accept(
-				this->m_server_socket,
-				reinterpret_cast<struct sockaddr *>(&this->m_client_addr),
-				reinterpret_cast<socklen_t *>(&addrlen)
-			)
-		) == -1)
-			std::cerr << "accept error" << std::endl;
-
-		ft::fdSet(this->m_client_socket, &this->m_main_fds);
-		if (this->m_client_socket > this->maxfd)
-			this->maxfd = this->m_client_socket;
-		printf("Accept OK\n");
+	addrlen = sizeof(this->m_client_addr);
+	if ((
+		this->m_client_socket = accept(
+			this->m_server_socket,
+			reinterpret_cast<struct sockaddr *>(&this->m_client_addr),
+			reinterpret_cast<socklen_t *>(&addrlen)
+		)
+	) == -1)
+	{
+		std::cerr << "accept error" << std::endl;
 		return ;
 	}
-	for (int i = 0; i <= this->maxfd; i++)
-	{
-		this->sockfd = i;
-		if (ft::fdIsSet(this->sockfd, &this->m_read_fds))
-		{
-			/*
-			** Request 부분 시작, false시 에러 받아줘야
-			*/
-			this->m_requests[this->sockfd] = Request();
-			if (this->m_requests[this->sockfd].getMessage(this->sockfd) == false)
-			{
-				ft::fdClr(this->sockfd, &m_main_fds);
-				if (--this->fd_num <= 0)
-					break;
-			}
-			this->resetRequest(&this->m_requests[this->sockfd]);
+	m_fd_table.push_back(std::make_pair(C_SOCKET, this->m_client_socket));
 
-			ft::fdSet(this->sockfd, &this->m_write_fds);
+	ft::fdSet(this->m_client_socket, main_fds);
+	if (this->m_client_socket > *max_fd)
+		*max_fd = this->m_client_socket;
+	std::cerr << "Accept OK" << std::endl;
+	return ;
+}
+
+void
+Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
+{
+	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
+
+	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
+	{
+		if (fd_iter->first == CGI_PIPE)
+		{
+
+		}
+		else if(fd_iter->first == C_SOCKET)
+		{
+			this->m_sockfd = fd_iter->second;
+			if (ft::fdIsSet(this->m_sockfd, read_fds))
+			{
+				/*
+				** Request 부분 시작, false시 에러 받아줘야
+				*/
+				this->m_requests[this->m_sockfd] = Request();
+				if (this->m_requests[this->m_sockfd].getMessage(this->m_sockfd) == false)
+				{
+					ft::fdClr(this->m_sockfd, main_fds);
+					this->m_fd_table.erase(fd_iter);
+					if (this->m_fd_table.size() <= 0)
+						break;
+				}
+				this->resetRequest(&this->m_requests[this->m_sockfd]);
+				ft::fdSet(this->m_sockfd, write_fds);
+			}
 		}
 	}
+	return ;
+}
+
+void
+Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds, int *max_fd)
+{
+	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
+	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
+	{
+		if (fd_iter->first == CGI_PIPE)
+		{
+
+		}
+		else if(fd_iter->first == C_SOCKET)
+		{
+			int sockfd = fd_iter->second;
+			if (ft::fdIsSet(sockfd, copy_write_fds))
+			{
+				sendResponse(sockfd);
+				FD_CLR(sockfd, write_fds);
+				(*max_fd)--;
+				// FD_CLR(this->sockfd, main_fds);
+			}
+		}
+	}
+	return ;
+}
+
+void
+Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, fd_set *write_fds, int *max_fd)
+{
+	(void)copy_write_fds;
+
+	writeProcess(copy_write_fds, write_fds, max_fd);
+	if (ft::fdIsSet(this->m_server_socket, read_fds))
+		acceptSocket(main_fds, max_fd);
+	readProcess(main_fds, read_fds, write_fds);
 	return ;
 }
 
@@ -486,7 +482,7 @@ Server::writeLog(std::string type, Response response)
 		ft::putstr_fd("] [ ", fd);
 		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
 		ft::putendl_fd(" ] ----------", fd);
-		ft::putendl_fd(this->m_requests[this->sockfd].get_m_message().c_str(), fd);
+		ft::putendl_fd(this->m_requests[this->m_sockfd].get_m_message().c_str(), fd);
 		ft::putendl_fd("---------------------------------------------------------------------------",fd);
 	}
 	else if (type.compare("response") == 0)
