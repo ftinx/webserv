@@ -757,24 +757,25 @@ Server::executeCgi(Request req, Response res, std::string method)
 	char** envp = Server::makeCgiEnvp(req, res);
 	Response response(res);
 	int pipe1[2];
-	int pipe2[2];
+	// int pipe2[2];
 	int ret;
 	//char buff[MAXLINE];
 	std::string body;
 
 	std::cout << "Execute Cgi >0<" << std::endl;
-	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+	// if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
+	// 	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 
-	int cgi_read= pipe1[0];
-	int cgi_write = pipe2[1];
-	int parent_read = pipe2[0];
-	int parent_write = pipe1[1];
 
-	fcntl(cgi_read, F_SETFL, O_NONBLOCK);
-	fcntl(cgi_write, F_SETFL, O_NONBLOCK);
-	fcntl(parent_read, F_SETFL, O_NONBLOCK);
-	fcntl(parent_write, F_SETFL, O_NONBLOCK);
+	// int cgi_read = pipe1[0];
+	// int cgi_write = pipe2[1];
+	// int parent_read = pipe2[0];
+	// int parent_write = pipe1[1];
+
+	// fcntl(cgi_read, F_SETFL, O_NONBLOCK);
+	// fcntl(cgi_write, F_SETFL, O_NONBLOCK);
+	// fcntl(parent_read, F_SETFL, O_NONBLOCK);
+	// fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
 	printf("\n=========== cgi envp ============\n");
 	for (int i = 0; i<3; i++)
@@ -788,41 +789,73 @@ Server::executeCgi(Request req, Response res, std::string method)
 	if (pid == 0)
 	{
 		std::cout << "--1--" << std::endl;
-		close(parent_read);
-		close(parent_write);
-		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
-		dup2(cgi_write, STDOUT_FILENO);
-		dup2(cgi_read, STDIN_FILENO);
+		dup2(pipe1[0], STDIN_FILENO);
+		// 자식프로세스의 STDOUT은 이제 pipe1[1] 이 된다.
+		dup2(pipe1[1], STDOUT_FILENO);
 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
+		// close(parent_read);
+		// close(parent_write);
+		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
+		// dup2(cgi_write, STDOUT_FILENO);
+		// dup2(cgi_read, STDIN_FILENO);
+		// ret = execve(req.get_m_path_translated().c_str(), 0, envp);
 		exit(ret);
 	}
 	else
 	{
+		sleep(1);
+		printf("sleep1 end\n");
+		int fd;
+		char buff[51];
+
+		if ( 0 < (fd = open("/Users/holee/Desktop/webserv/hello", O_RDONLY)) )
+		{
+			printf("hi\n");
+			while ( 0 < (ret = read(fd, buff, 50)) )
+			{
+				buff[ret] = '\0';
+				write(pipe1[0], buff, 50);
+				printf("hello: %s\n", buff);
+			}
+			printf("%d\n", ret);
+		}
+		else{
+			printf("open err\n");
+		}
+		sleep(2);
+		printf("sleep2 end\n");
+		char buffer[51];
+		while ( 0 < (ret = read(pipe1[1], buffer, 50)) )
+		{
+			buffer[ret] = '\0';
+			printf("123123:: %s\n", buffer);
+		}
+
 		int status;
-		close(cgi_read);
-		close(cgi_write);
-		std::cout << "--3--" << std::endl;
-		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
-		// wait(&pid);
+		// close(cgi_read);
+		// close(cgi_write);
+		// std::cout << "--3--" << std::endl;
+		// std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
+		// // wait(&pid);
 		waitpid(pid, &status, 0);
 		if (WIFEXITED(status))
-			WEXITSTATUS(status);
-		m_cgi_parent_write = parent_write;
-		m_cgi_parent_read = parent_read;
-		ft::fdSet(parent_write, this->m_write_fds);
-		ft::fdSet(parent_read, this->m_main_fds);
-		*this->m_maxfd += 2;
-		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
-		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_read));
-		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
+			std::cout << "status code: " << WEXITSTATUS(status) << std::endl;
+		// m_cgi_parent_write = parent_write;
+		// m_cgi_parent_read = parent_read;
+		// ft::fdSet(parent_write, this->m_write_fds);
+		// ft::fdSet(parent_read, this->m_main_fds);
+		// *this->m_maxfd += 2;
+		// std::cout << "asdasdasd" << std::endl;
+		// // m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_read));
+		// // m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
 
-		ft::doubleFree(envp);
-		// while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
-		// {
-		// 	buff[ret]= '\0';
-		// 	body +=  std::string(buff);
-		// }
-		// std::cout << body.substr(0, 100) << std::endl;
+		// ft::doubleFree(envp);
+		// // while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
+		// // {
+		// // 	buff[ret]= '\0';
+		// // 	body +=  std::string(buff);
+		// // }
+		// // std::cout << body.substr(0, 100) << std::endl;
 	}
 	return (response);
 }
