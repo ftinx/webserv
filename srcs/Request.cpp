@@ -9,7 +9,8 @@
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
-m_reset_path(""), m_location_block(), m_path_translated(""), m_path_info("")
+m_reset_path(""), m_location_block(), m_path_translated(""), m_path_info(""),
+m_content_type("")
 {
 }
 
@@ -35,6 +36,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_location_block = rhs.get_m_location_block();
 	this->m_path_translated = rhs.get_m_path_translated();
 	this->m_path_info = rhs.get_m_path_info();
+	this->m_content_type = rhs.get_m_content_type();
 	return (*this);
 }
 
@@ -131,6 +133,12 @@ Request::get_m_path_info() const
 	return (this->m_path_info);
 }
 
+std::string
+Request::get_m_content_type() const
+{
+	return (this->m_content_type);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -221,6 +229,26 @@ Request::getContentType()
 	if (it == this->m_headers.end())
 		return ("text/html");
 	return (it->second);
+}
+
+std::string
+Request::getAcceptLanguage()
+{
+	if (this->m_content_type != "")
+		return (this->m_content_type);
+
+	std::map<std::string, std::string>::const_iterator it;
+	it = this->m_headers.find("Accept-Language");
+	if (it == this->m_headers.end())
+		return (this->m_content_type = "ko");
+
+	std::string::size_type n_en = (*it).second.find("en");
+	if (n_en == std::string::npos)
+		return (this->m_content_type = "ko");
+	std::string::size_type n_ko = (*it).second.find("ko");
+	if ((unsigned long)n_ko < (unsigned long)n_en)
+		return (this->m_content_type = "ko");
+	return (this->m_content_type = "en");
 }
 
 bool
