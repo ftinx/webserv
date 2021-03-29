@@ -456,28 +456,50 @@ Server::resetRequest(Request *req)
 void
 Server::writeLog(std::string type, Response response)
 {
-	static int cnt_request = 0;
-	static int cnt_response = 0;
-	std::string path = this->m_root + std::string("/debug.log");
-	FILE *file_ptr = fopen(path.c_str(), "a");
+	int fd;
+	static int start = 1;
+	static int cnt_request = 1;
+	static int cnt_response = 1;
+	std::string path;
 
+	path += this->m_root
+		+ std::string("/debug_")
+		+ this->m_server_name
+		+ std::string(".log");
+	if ((fd = open(path.c_str(), O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
+		throw std::exception();
+	if (start)
+	{
+		ft::putstr_fd("SERVER NAME : ", fd);
+		ft::putstr_fd(this->m_server_name.c_str(), fd);
+		ft::putstr_fd("(port : ", fd);
+		ft::putnbr_fd(this->m_port, fd);
+		ft::putendl_fd(")", fd);
+		ft::putstr_fd("SERVER START : ", fd);
+		ft::putendl_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
+		start--;
+	}
 	if (type.compare("request") == 0)
 	{
-		fprintf(file_ptr, "\n-------------------------------- REQUEST MESSAGE [");
-		fprintf(file_ptr, "%d", ++cnt_request);
-		fprintf(file_ptr, "] -------------------------------------\n");
-		fprintf(file_ptr, "%s", this->m_requests[this->sockfd].get_m_message().c_str());
-		fprintf(file_ptr, "\n------------------------------------------------------------------------------------------\n");
+		ft::putstr_fd("\n---------- REQUEST MESSAGE [", fd);
+		ft::putnbr_fd(cnt_request++, fd);
+		ft::putstr_fd("] [ ", fd);
+		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
+		ft::putendl_fd(" ] ----------", fd);
+		ft::putendl_fd(this->m_requests[this->sockfd].get_m_message().c_str(), fd);
+		ft::putendl_fd("---------------------------------------------------------------------------",fd);
 	}
 	else if (type.compare("response") == 0)
 	{
-		fprintf(file_ptr, "\n################################ RESPONSE MESSAGE [");
-		fprintf(file_ptr, "%d", ++cnt_response);
-		fprintf(file_ptr, "] ####################################\n");
-		fprintf(file_ptr, "%s", response.get_m_reponse_message().c_str());
-		fprintf(file_ptr, "\n##########################################################################################\n");
+		ft::putstr_fd("\n########## RESPONSE MESSAGE [", fd);
+		ft::putnbr_fd(cnt_response++, fd);
+		ft::putstr_fd("] [ ", fd);
+		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
+		ft::putendl_fd("] ##########", fd);
+		ft::putendl_fd(response.get_m_reponse_message().c_str(), fd);
+		ft::putendl_fd("###########################################################################",fd);
 	}
-	fclose(file_ptr);
+	close(fd);
 }
 
 /*============================================================================*/
