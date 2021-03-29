@@ -259,7 +259,7 @@ Server::closeServer()
 /*============================================================================*/
 
 void
-Server::acceptSocket(fd_set *main_fds, int *max_fd)
+Server::acceptSocket()
 {
 	socklen_t addrlen;
 
@@ -277,15 +277,15 @@ Server::acceptSocket(fd_set *main_fds, int *max_fd)
 	}
 	m_fd_table.push_back(std::make_pair(C_SOCKET, this->m_client_socket));
 
-	ft::fdSet(this->m_client_socket, main_fds);
-	if (this->m_client_socket > *max_fd)
-		*max_fd = this->m_client_socket;
+	ft::fdSet(this->m_client_socket, this->m_main_fds);
+	if (this->m_client_socket > *this->m_maxfd)
+		*(this->m_maxfd) = this->m_client_socket;
 	std::cerr << "Accept OK" << std::endl;
 	return ;
 }
 
 void
-Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
+Server::readProcess()
 {
 	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
 
@@ -298,18 +298,18 @@ Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
 		else if(fd_iter->first == C_SOCKET)
 		{
 			this->m_sockfd = fd_iter->second;
-			if (ft::fdIsSet(this->m_sockfd, read_fds))
+			if (ft::fdIsSet(this->m_sockfd, this->m_read_fds))
 			{
 				this->m_requests[this->m_sockfd] = Request();
 				if (this->m_requests[this->m_sockfd].getMessage(this->m_sockfd) == false)
 				{
-					ft::fdClr(this->m_sockfd, main_fds);
+					ft::fdClr(this->m_sockfd, this->m_main_fds);
 					this->m_fd_table.erase(fd_iter);
 					if (this->m_fd_table.size() <= 0)
 						break;
 				}
 				this->resetRequest(&this->m_requests[this->m_sockfd]);
-				ft::fdSet(this->m_sockfd, write_fds);
+				ft::fdSet(this->m_sockfd, this->m_write_fds);
 			}
 		}
 	}
@@ -317,7 +317,7 @@ Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
 }
 
 void
-Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds)
+Server::writeProcess()
 {
 	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
 	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
@@ -329,10 +329,10 @@ Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds)
 		else if(fd_iter->first == C_SOCKET)
 		{
 			int sockfd = fd_iter->second;
-			if (ft::fdIsSet(sockfd, copy_write_fds))
+			if (ft::fdIsSet(sockfd, this->m_copy_write_fds))
 			{
 				sendResponse(sockfd);
-				FD_CLR(sockfd, write_fds);
+				FD_CLR(sockfd, this->m_write_fds);
 				// FD_CLR(this->sockfd, main_fds);
 			}
 		}
@@ -341,14 +341,18 @@ Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds)
 }
 
 void
-Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, fd_set *write_fds, int *max_fd)
+Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, fd_set *write_fds, int *maxfd)
 {
-	(void)copy_write_fds;
+	this->m_main_fds = main_fds;
+	this->m_read_fds = read_fds;
+	this->m_copy_write_fds = copy_write_fds;
+	this->m_write_fds = write_fds;
+	this->m_maxfd = maxfd;
 
-	writeProcess(copy_write_fds, write_fds);
-	if (ft::fdIsSet(this->m_server_socket, read_fds))
-		acceptSocket(main_fds, max_fd);
-	readProcess(main_fds, read_fds, write_fds);
+	writeProcess();
+	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
+		acceptSocket();
+	readProcess();
 	return ;
 }
 

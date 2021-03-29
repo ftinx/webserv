@@ -99,10 +99,10 @@ class Server
 		void closeServer();
 
 		/* Request */
-		void acceptSocket(fd_set *main_fds, int *max_fd);
 		void getRequest(fd_set *, fd_set *, fd_set *, fd_set *, int *);
-		void readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds);
-		void writeProcess(fd_set *copy_write_fds, fd_set *write_fds);
+		void acceptSocket();
+		void readProcess();
+		void writeProcess();
 
 		/* Server Util */
 		std::vector<HttpConfigLocation> getMethodLocation(Method method);
