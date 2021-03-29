@@ -45,7 +45,8 @@ class ServerManager
 			int content_length,
 			size_t location_size,
 			std::string root,
-			std::map<std::string, std::string> mime_types
+			std::map<std::string, std::string> mime_types,
+			int maxfd, fd_set main_fds, fd_set read_fds, fd_set write_fds, fd_set copy_write_fds
 		);
 		void initServers();
 		void runServers();

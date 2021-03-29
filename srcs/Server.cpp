@@ -64,12 +64,23 @@ Server& Server::operator=(Server const &rhs)
 	this->m_http_config_file_path_set = rhs.m_http_config_file_path_set;
 	this->m_get_location_auto_index = rhs.m_get_location_auto_index;
 
-	// /* Socket */
+	/* Socket */
+	this->m_maxfd = rhs.m_maxfd;
 	this->m_server_addr = rhs.m_server_addr;
 	this->m_client_addr = rhs.m_client_addr;
 	this->m_server_socket = rhs.m_server_socket;
 	this->m_client_socket = rhs.m_client_socket;
 	this->m_sockfd = rhs.m_sockfd;
+
+	/* fd_sets */
+	this->m_main_fds = rhs.m_main_fds;
+	this->m_read_fds = rhs.m_read_fds;
+	this->m_write_fds = rhs.m_write_fds;
+	this->m_copy_write_fds = rhs.m_copy_write_fds;
+
+	/* cgi fd */
+	this->m_cgi_parent_write = rhs.m_cgi_parent_write;
+	this->m_cgi_parent_read = rhs.m_cgi_parent_read;
 
 	/* Request, Response */
 	this->m_requests = rhs.m_requests;
@@ -179,7 +190,8 @@ Server::noteHttpConfigLocation()
 
 void
 Server::init(HttpConfigServer server_block, std::string server_name, int port,
-int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
+int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types,
+int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
 	this->m_responses = std::vector<Response>(MAX_SOCK_NUM);
@@ -190,6 +202,11 @@ int content_length, size_t location_size, std::string root, std::map<std::string
 	this->m_location_size = location_size;
 	this->m_root = root;
 	this->m_mime_types = mime_types;
+	this->m_maxfd = maxfd;
+	this->m_main_fds = main_fds;
+	this->m_read_fds = read_fds;
+	this->m_write_fds = write_fds;
+	this->m_copy_write_fds = copy_write_fds;
 	return ;
 }
 
@@ -246,7 +263,7 @@ Server::closeServer()
 /*============================================================================*/
 
 void
-Server::acceptSocket(fd_set *main_fds, int *max_fd)
+Server::acceptSocket()
 {
 	socklen_t addrlen;
 
@@ -264,42 +281,39 @@ Server::acceptSocket(fd_set *main_fds, int *max_fd)
 	}
 	m_fd_table.push_back(std::make_pair(C_SOCKET, this->m_client_socket));
 
-	ft::fdSet(this->m_client_socket, main_fds);
-	if (this->m_client_socket > *max_fd)
-		*max_fd = this->m_client_socket;
+	ft::fdSet(this->m_client_socket, this->m_main_fds);
+	if (this->m_client_socket > *this->m_maxfd)
+		*(this->m_maxfd) = this->m_client_socket;
 	std::cerr << "Accept OK" << std::endl;
 	return ;
 }
 
 void
-Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
+Server::readProcess()
 {
 	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
 
 	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
 	{
-		if (fd_iter->first == CGI_PIPE)
-		{
-
-		}
-		else if(fd_iter->first == C_SOCKET)
+		// if (fd_iter->first == CGI_PIPE)
+		// {
+		// 	write(this->m_cgi_parent_write, (this->m_requests[this->m_sockfd].get_m_body()).c_str(), 50);
+		// }
+		if(fd_iter->first == C_SOCKET)
 		{
 			this->m_sockfd = fd_iter->second;
-			if (ft::fdIsSet(this->m_sockfd, read_fds))
+			if (ft::fdIsSet(this->m_sockfd, this->m_read_fds))
 			{
-				/*
-				** Request 부분 시작, false시 에러 받아줘야
-				*/
 				this->m_requests[this->m_sockfd] = Request();
 				if (this->m_requests[this->m_sockfd].getMessage(this->m_sockfd) == false)
 				{
-					ft::fdClr(this->m_sockfd, main_fds);
+					ft::fdClr(this->m_sockfd, this->m_main_fds);
 					this->m_fd_table.erase(fd_iter);
 					if (this->m_fd_table.size() <= 0)
 						break;
 				}
 				this->resetRequest(&this->m_requests[this->m_sockfd]);
-				ft::fdSet(this->m_sockfd, write_fds);
+				ft::fdSet(this->m_sockfd, this->m_write_fds);
 			}
 		}
 	}
@@ -307,22 +321,28 @@ Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
 }
 
 void
-Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds)
+Server::writeProcess()
 {
 	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
 	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
 	{
-		if (fd_iter->first == CGI_PIPE)
-		{
-
-		}
-		else if(fd_iter->first == C_SOCKET)
+		// std::cout << fd_iter->first << std::endl;
+		// if (fd_iter->first == CGI_PIPE)
+		// {
+			// std::cout << fd_iter->first << std::endl;
+			// char buff[51];
+			// int ret;
+			// ret = read(this->m_cgi_parent_read, buff, 50);
+			// buff[ret] = '\0';
+			// std::cout << std::string(buff) << std::endl;
+		// }
+		if(fd_iter->first == C_SOCKET)
 		{
 			int sockfd = fd_iter->second;
-			if (ft::fdIsSet(sockfd, copy_write_fds))
+			if (ft::fdIsSet(sockfd, this->m_copy_write_fds))
 			{
-				sendResponse(sockfd);
-				FD_CLR(sockfd, write_fds);
+				if (sendResponse(sockfd) == true)
+					FD_CLR(sockfd, this->m_write_fds);
 				// FD_CLR(this->sockfd, main_fds);
 			}
 		}
@@ -331,14 +351,18 @@ Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds)
 }
 
 void
-Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, fd_set *write_fds, int *max_fd)
+Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, fd_set *write_fds, int *maxfd)
 {
-	(void)copy_write_fds;
+	this->m_main_fds = main_fds;
+	this->m_read_fds = read_fds;
+	this->m_copy_write_fds = copy_write_fds;
+	this->m_write_fds = write_fds;
+	this->m_maxfd = maxfd;
 
-	writeProcess(copy_write_fds, write_fds);
-	if (ft::fdIsSet(this->m_server_socket, read_fds))
-		acceptSocket(main_fds, max_fd);
-	readProcess(main_fds, read_fds, write_fds);
+	writeProcess();
+	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
+		acceptSocket();
+	readProcess();
 	return ;
 }
 
@@ -688,6 +712,7 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["REQUEST_METHOD"] = req.getMethod();
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["PATH_INFO"] = req.get_m_path_info();
+	map["PATH_TRANSLATED"] = req.get_m_path_translated();
 
 	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
 	// map["SERVER_NAME"] = res.get_m_cgi_server_name();
@@ -736,7 +761,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int pipe1[2];
 	int pipe2[2];
 	int ret;
-	char buff[MAXLINE];
+	//char buff[MAXLINE];
 	std::string body;
 
 	std::cout << "Execute Cgi >0<" << std::endl;
@@ -764,6 +789,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 	if (pid == 0)
 	{
+		std::cout << "--1--" << std::endl;
 		close(parent_read);
 		close(parent_write);
 		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
@@ -776,22 +802,31 @@ Server::executeCgi(Request req, Response res, std::string method)
 	}
 	else
 	{
+		int status;
 		close(cgi_read);
 		close(cgi_write);
-		while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
-		{
-			buff[ret]= '\0';
-			body +=  std::string(buff);
-		}
-		std::cout << body.substr(0, 100) << std::endl;
-		close(parent_read);
-		close(parent_write);
-		/* 	임시방편... */
-		// char buff[1025];
-		// read(parent_write, buff, 1024);
-		// buff[1024] = '\0';
-		// // std::cout << "\n" << buff << std::endl;
-		// response = makeResponseBodyMessage(404);
+		std::cout << "--3--" << std::endl;
+		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
+		// wait(&pid);
+		waitpid(pid, &status, 0);
+		if (WIFEXITED(status))
+			WEXITSTATUS(status);
+		m_cgi_parent_write = parent_write;
+		m_cgi_parent_read = parent_read;
+		ft::fdSet(parent_write, this->m_write_fds);
+		ft::fdSet(parent_read, this->m_main_fds);
+		*this->m_maxfd += 2;
+		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
+		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_read));
+		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
+
+		ft::doubleFree(envp);
+		// while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
+		// {
+		// 	buff[ret]= '\0';
+		// 	body +=  std::string(buff);
+		// }
+		// std::cout << body.substr(0, 100) << std::endl;
 	}
 	return (response);
 }
@@ -850,7 +885,7 @@ Server::methodPOST(int clientfd, std::string method)
 	{
 		std::cout << "::2::"<< std::endl;
 		std::cout << "##### START CGI PART #####" << std::endl;
-		executeCgi(request, response, method);
+		response = executeCgi(request, response, method);
 	}
 	std::cout << "::3::"<< std::endl;
 	return (response);
@@ -1186,6 +1221,8 @@ Server::sendResponse(int clientfd)
 			break;
 		case POST:
 			response = this->methodPOST(clientfd);
+			if (response.get_m_status_code() == 0)
+				return (false);
 			break;
 		case PUT:
 			response = this->methodPUT(clientfd);

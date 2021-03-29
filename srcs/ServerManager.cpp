@@ -86,10 +86,18 @@ ServerManager::parseHttpConfig(std::string config_path)
 }
 
 Server
-ServerManager::generateServer(HttpConfigServer server_block, std::string server_name, int port, int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types)
+ServerManager::generateServer(
+	HttpConfigServer server_block,
+	std::string server_name, int port, int content_length, size_t location_size, std::string root,
+	std::map<std::string, std::string> mime_types,
+	int maxfd, fd_set main_fds, fd_set read_fds, fd_set write_fds, fd_set copy_write_fds
+	)
 {
 	Server server;
-	server.init(server_block, server_name, port, content_length,location_size, root, mime_types);
+	server.init(
+		server_block, server_name, port, content_length,location_size, root, mime_types,
+		&maxfd, &main_fds, &read_fds, &write_fds, &copy_write_fds
+		);
 	server.setServerAddr(port);
 	server.setServerSocket();
 	server.noteHttpConfigLocation();
@@ -108,7 +116,12 @@ ServerManager::initServers()
 				this->m_server_block[i].get_m_content_length(),
 				this->m_server_block[i].get_m_location_block().size(),
 				this->m_root,
-				this->m_mime_types
+				this->m_mime_types,
+				this->m_maxfd,
+				this->m_main_fds,
+				this->m_read_fds,
+				this->m_write_fds,
+				this->m_copy_write_fds
 			))
 		);
 	}
