@@ -239,16 +239,35 @@ Request::getAcceptLanguage()
 
 	std::map<std::string, std::string>::const_iterator it;
 	it = this->m_headers.find("Accept-Language");
+
+	// `Accept-Language Header` not exist
 	if (it == this->m_headers.end())
 		return (this->m_content_type = "ko");
-
-	std::string::size_type n_en = (*it).second.find("en");
-	if (n_en == std::string::npos)
-		return (this->m_content_type = "ko");
-	std::string::size_type n_ko = (*it).second.find("ko");
-	if ((unsigned long)n_ko < (unsigned long)n_en)
-		return (this->m_content_type = "ko");
-	return (this->m_content_type = "en");
+	// Quality not exist
+	if ((*it).second.find(";") == std::string::npos)
+		if ((*it).second.find("en") == std::string::npos)
+			return (this->m_content_type = "ko");
+	// Quality exist
+	std::vector<std::string> line;
+	std::string content_type = "";
+	float quality = 0;
+	line = ft::split((*it).second, ',');
+	for (std::vector<std::string>::const_iterator line_iter = line.begin() ; line_iter != line.end() ; ++line_iter)
+	{
+		if ((*line_iter).find(";") != std::string::npos)
+		{
+			std::vector<std::string> content_type_line;
+			content_type_line = ft::split(*line_iter, ';');
+			// Compare Quality
+			if (std::stof(content_type_line[1].substr(2)) > quality)
+			{
+				quality = std::stof(content_type_line[1].substr(2));
+				content_type = content_type_line[0];
+			}
+		}
+	}
+	std::cout << content_type << std::endl;
+	return (this->m_content_type = content_type);
 }
 
 bool

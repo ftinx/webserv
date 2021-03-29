@@ -4,8 +4,10 @@ GET / HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
 Cache-Control: max-age=0
+sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"
+sec-ch-ua-mobile: ?0
 Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
 Sec-Fetch-Site: none
 Sec-Fetch-Mode: navigate
@@ -20,7 +22,7 @@ HTTP/1.1 200 OK
 content-language: ko
 content-length: 2274
 content-type: text/html
-date: Sun, 28 Mar 2021 23:45:10 KST
+date: Mon, 29 Mar 2021 17:03:24 KST
 last-modified: 
 referer: 
 server: ftnix/1.0 (MacOS)
@@ -132,7 +134,9 @@ status: 200
 GET /style.css HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36
+sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
 Accept: text/css,*/*;q=0.1
 Sec-Fetch-Site: same-origin
 Sec-Fetch-Mode: no-cors
@@ -147,7 +151,7 @@ HTTP/1.1 200 OK
 content-language: ko
 content-length: 3186
 content-type: text/css
-date: Sun, 28 Mar 2021 23:45:10 KST
+date: Mon, 29 Mar 2021 17:03:24 KST
 last-modified: 
 referer: 
 server: ftnix/1.0 (MacOS)
@@ -351,8 +355,10 @@ body {
 GET /imgs/favicon.jpg HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36
-Accept: image/avif,image/webp,image/apng,image/*,*/*;q=0.8
+sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
 Sec-Fetch-Site: same-origin
 Sec-Fetch-Mode: no-cors
 Sec-Fetch-Dest: image
@@ -366,7 +372,7 @@ HTTP/1.1 200 OK
 content-language: ko
 content-length: 34
 content-type: text/html; charset=UTF-8
-date: Sun, 28 Mar 2021 23:45:10 KST
+date: Mon, 29 Mar 2021 17:03:24 KST
 referer: 
 server: ftnix/1.0 (MacOS)
 status: 200
@@ -378,7 +384,9 @@ data:image/png;base64,iVBORw0KGgo=
 GET /script.js HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36
+sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
 Accept: */*
 Sec-Fetch-Site: same-origin
 Sec-Fetch-Mode: no-cors
@@ -393,7 +401,7 @@ HTTP/1.1 200 OK
 content-language: ko
 content-length: 984
 content-type: application/javascript
-date: Sun, 28 Mar 2021 23:45:10 KST
+date: Mon, 29 Mar 2021 17:03:24 KST
 last-modified: 
 referer: 
 server: ftnix/1.0 (MacOS)
@@ -442,7 +450,9 @@ fetch('http://localhost:8080/imgs/favicon.jpg')
 GET /imgs/favicon.jpg HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36
+sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
 Accept: */*
 Sec-Fetch-Site: same-origin
 Sec-Fetch-Mode: cors
@@ -457,7 +467,38 @@ HTTP/1.1 200 OK
 content-language: ko
 content-length: 34
 content-type: text/html; charset=UTF-8
-date: Sun, 28 Mar 2021 23:45:10 KST
+date: Mon, 29 Mar 2021 17:03:24 KST
+referer: 
+server: ftnix/1.0 (MacOS)
+status: 200
+
+data:image/png;base64,iVBORw0KGgo=
+##########################################################################################
+
+-------------------------------- REQUEST MESSAGE [6] -------------------------------------
+GET /favicon.ico HTTP/1.1
+Host: localhost:8080
+Connection: keep-alive
+Pragma: no-cache
+Cache-Control: no-cache
+sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Dest: image
+Referer: http://localhost:8080/
+Accept-Encoding: gzip, deflate, br
+Accept-Language: ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7
+------------------------------------------------------------------------------------------
+
+################################ RESPONSE MESSAGE [6] ####################################
+HTTP/1.1 200 OK
+content-language: ko
+content-length: 34
+content-type: text/html; charset=UTF-8
+date: Mon, 29 Mar 2021 17:03:25 KST
 referer: 
 server: ftnix/1.0 (MacOS)
 status: 200
