@@ -300,9 +300,6 @@ Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
 			this->m_sockfd = fd_iter->second;
 			if (ft::fdIsSet(this->m_sockfd, read_fds))
 			{
-				/*
-				** Request 부분 시작, false시 에러 받아줘야
-				*/
 				this->m_requests[this->m_sockfd] = Request();
 				if (this->m_requests[this->m_sockfd].getMessage(this->m_sockfd) == false)
 				{
