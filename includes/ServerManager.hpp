@@ -22,6 +22,12 @@ class ServerManager
 		std::string m_mime_include;
 		std::string m_root;
 
+		/* Socket */
+		int m_maxfd;
+		fd_set m_main_fds, m_copy_fds;
+		fd_set m_read_fds, m_write_fds;
+		fd_set m_copy_write_fds;
+
 	private:
 		void storeParseValue();
 

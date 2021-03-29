@@ -28,6 +28,14 @@ enum Method
 	TRACE,
 };
 
+enum FdType
+{
+    S_SOCKET,
+    C_SOCKET,
+    CGI_PIPE,
+    CLOSED,
+};
+
 namespace ft
 {
 	/* LIBFT C */

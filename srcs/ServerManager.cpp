@@ -27,6 +27,12 @@ ServerManager& ServerManager::operator=(ServerManager const &rhs)
 	this->m_software_version = rhs.m_software_version;
 	this->m_mime_include = rhs.m_mime_include;
 	this->m_root = rhs.m_root;
+
+	/* Socket */
+	this->m_maxfd = rhs.m_maxfd;
+	this->m_main_fds = rhs.m_main_fds;
+	this->m_copy_fds = rhs.m_copy_fds;
+	this->m_copy_write_fds = rhs.m_copy_write_fds;
 	return (*this);
 };
 
@@ -112,8 +118,54 @@ ServerManager::initServers()
 void
 ServerManager::runServers()
 {
+	int fd_num = 0;
+
+	struct timeval timeout;
+	timeout.tv_sec = 4;
+	timeout.tv_usec = 2;
+
+	this->m_maxfd = 0;
+	FD_ZERO(&this->m_main_fds);
+	FD_ZERO(&this->m_write_fds);
+
 	for (size_t i = 0; i < this->m_server_size; i++) {
-		this->m_server[i]->runServer();
+		FD_SET(this->m_server[i]->get_m_server_socket(), &this->m_main_fds);
+		if (this->m_maxfd < this->m_server[i]->get_m_server_socket())
+			this->m_maxfd = this->m_server[i]->get_m_server_socket();
+	}
+
+	while (42)
+	{
+		printf("---Select Wait %d---\n", this->m_maxfd);
+		this->m_read_fds = this->m_main_fds;
+		this->m_copy_write_fds = this->m_write_fds;
+
+		fd_num = select(
+			this->m_maxfd + 1 ,
+			&this->m_read_fds,
+			&this->m_copy_write_fds,
+			reinterpret_cast<fd_set *>(0),
+			&timeout
+		);
+
+		switch (fd_num)
+		{
+			case -1:
+				std::cerr << "select error" << std::endl;
+				std::cout << EBADF << std::endl;
+				std::cout << EINTR << std::endl;
+				std::cout << EINVAL << std::endl;
+				std::cout << ENOMEM << std::endl;
+				std::cout << errno << std::endl;
+				return ;
+			case 0:
+				std::cout << "---Timeout Reset---" << std::endl;
+			default:
+				for (size_t i = 0; i < this->m_server_size; i++) {
+					this->m_server[i]->getRequest(&this->m_main_fds, &this->m_read_fds,
+					&this->m_copy_write_fds, &this->m_write_fds, &this->m_maxfd);
+				}
+		}
 	}
 	return ;
 }

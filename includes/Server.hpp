@@ -45,18 +45,14 @@ class Server
 		std::vector<std::string> m_http_config_file_path_set;
 		std::map<std::string, bool> m_get_location_auto_index;
 
-		/* Socket */
+		// /* Socket */
 		struct sockaddr_in m_server_addr;
 		struct sockaddr_in m_client_addr;
 		int m_server_socket;
 		int m_client_socket;
-		int fd_num;
-		int sockfd;
-		int readn;
-		int maxfd;
-		fd_set m_main_fds, m_copy_fds;
-		fd_set m_read_fds, m_write_fds;
-		fd_set m_copy_read_fds, m_copy_write_fds;
+		int m_sockfd;
+
+		std::vector< std::pair<FdType, int> > m_fd_table;
 
 		/* Request, Response */
 		std::vector<Request> m_requests;
@@ -72,7 +68,8 @@ class Server
 		std::string get_m_server_name();
 		int get_m_port();
 		std::vector<HttpConfigLocation> get_m_post_location();
-		fd_set get_m_write_fds();
+		int get_m_server_socket() const;
+		int get_m_client_socket() const;
 
 		/* Setter */
 
@@ -91,11 +88,13 @@ class Server
 		/* Socket */
 		void setServerAddr(int port);
 		bool setServerSocket();
-		void runServer();
 		void closeServer();
 
 		/* Request */
-		void getRequest();
+		void acceptSocket(fd_set *main_fds, int *max_fd);
+		void getRequest(fd_set *, fd_set *, fd_set *, fd_set *, int *);
+		void readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds);
+		void writeProcess(fd_set *copy_write_fds, fd_set *write_fds, int *max_fd);
 
 		/* Server Util */
 		std::vector<HttpConfigLocation> getMethodLocation(Method method);
