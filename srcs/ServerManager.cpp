@@ -112,7 +112,7 @@ ServerManager::initServers()
 void
 ServerManager::runServers()
 {
-	for (size_t i = 0; i < m_server_size; i++) {
+	for (size_t i = 0; i < this->m_server_size; i++) {
 		this->m_server[i]->runServer();
 	}
 	return ;
