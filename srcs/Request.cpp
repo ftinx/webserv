@@ -266,7 +266,7 @@ Request::getAcceptLanguage()
 			}
 		}
 	}
-	std::cout << content_type << std::endl;
+	// std::cout << content_type << std::endl;
 	return (this->m_content_type = content_type);
 }
 

@@ -307,7 +307,7 @@ Server::readProcess(fd_set *main_fds, fd_set *read_fds, fd_set *write_fds)
 }
 
 void
-Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds, int *max_fd)
+Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds)
 {
 	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
 	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
@@ -323,7 +323,6 @@ Server::writeProcess(fd_set *copy_write_fds, fd_set *write_fds, int *max_fd)
 			{
 				sendResponse(sockfd);
 				FD_CLR(sockfd, write_fds);
-				(*max_fd)--;
 				// FD_CLR(this->sockfd, main_fds);
 			}
 		}
@@ -336,7 +335,7 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 {
 	(void)copy_write_fds;
 
-	writeProcess(copy_write_fds, write_fds, max_fd);
+	writeProcess(copy_write_fds, write_fds);
 	if (ft::fdIsSet(this->m_server_socket, read_fds))
 		acceptSocket(main_fds, max_fd);
 	readProcess(main_fds, read_fds, write_fds);
@@ -1203,7 +1202,7 @@ Server::sendResponse(int clientfd)
 		}
 	}
 
-	std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
+	// std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
 	// std::cout << response.get_m_reponse_message() << std::endl;
 
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
