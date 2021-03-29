@@ -628,7 +628,8 @@ Server::methodGET(int clientfd, std::string method)
 	std::string type;
 	std::string extension;
 
-	std::cout << this->m_requests[clientfd].getAcceptLanguage() << std::endl;
+	// if (this->m_requests[clientfd].get_m_http_version().compare("HTTP/1.1"))
+	// 	return (Server::makeResponseBodyMessage(505, makeErrorPage(505), "", method));
 	if (ft::isValidDirPath(absolute_path)) // 폴더라면
 	{
 		if (absolute_path.find("/", absolute_path.length() - 1) == std::string::npos)
@@ -769,6 +770,8 @@ Server::executeCgi(Request req, Response res, std::string method)
 		dup2(cgi_write, STDOUT_FILENO);
 		dup2(cgi_read, STDIN_FILENO);
 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
+		close(cgi_read);
+		close(cgi_write);
 		exit(ret);
 	}
 	else
