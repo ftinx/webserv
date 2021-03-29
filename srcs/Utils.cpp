@@ -361,7 +361,7 @@ doubleFree(char **str)
 
 	while(str[i] == 0)
 	{
-		free(str[i]);
+		free(str[i++]);
 	}
 	free(str);
 }
