@@ -1,0 +1,4 @@
+Welcome in this little webserver tester.
+Passing the test here is the minimum before going to an evaluation.
+
+press enter to continue

@@ -717,52 +717,60 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int pipe1[2];
 	int pipe2[2];
 	int ret;
+	char buff[MAXLINE];
+	std::string body;
 
 	std::cout << "Execute Cgi >0<" << std::endl;
 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 
-	int parent_stdout = pipe1[1];
-	int parent_stdin = pipe2[0];
-	int cgi_stdout = pipe2[1];
-	int cgi_stdin = pipe1[0];
+	int cgi_read= pipe1[0];
+	int cgi_write = pipe2[1];
+	int parent_read = pipe2[0];
+	int parent_write = pipe1[1];
 
-	close(pipe1[0]);
-	close(pipe2[1]);
+	fcntl(cgi_read, F_SETFL, O_NONBLOCK);
+	fcntl(cgi_write, F_SETFL, O_NONBLOCK);
+	fcntl(parent_read, F_SETFL, O_NONBLOCK);
+	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-	fcntl(cgi_stdout, F_SETFL, O_NONBLOCK);
-	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
-	fcntl(parent_stdout, F_SETFL, O_NONBLOCK);
-	fcntl(parent_stdin, F_SETFL, O_NONBLOCK);
-
-	printf("\n=======================\n");
+	printf("\n=========== cgi envp ============\n");
 	for (int i = 0; i<3; i++)
 	{
 		printf("%s\n", envp[i]);
 	}
-	printf("=======================\n");
+	printf("===================================\n");
 
 	if ((pid = fork()) < 0)
 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 	if (pid == 0)
 	{
-		close(parent_stdout);
-		close(parent_stdin);
+		close(parent_read);
+		close(parent_write);
 		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
-		dup2(cgi_stdout, STDOUT_FILENO);
-		dup2(cgi_stdin, STDIN_FILENO);
+		dup2(cgi_write, STDOUT_FILENO);
+		dup2(cgi_read, STDIN_FILENO);
 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
 		exit(ret);
 	}
 	else
 	{
-		close(cgi_stdout);
-		close(cgi_stdin);
-		char buff[1025];
-		read(parent_stdout, buff, 1024);
-		buff[1024] = '\0';
-		std::cout << "\n" << buff << std::endl;
-		response = makeResponseBodyMessage(404);
+		close(cgi_read);
+		close(cgi_write);
+		while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
+		{
+			buff[ret]= '\0';
+			body +=  std::string(buff);
+		}
+		std::cout << body.substr(0, 100) << std::endl;
+		close(parent_read);
+		close(parent_write);
+		/* 	임시방편... */
+		// char buff[1025];
+		// read(parent_write, buff, 1024);
+		// buff[1024] = '\0';
+		// // std::cout << "\n" << buff << std::endl;
+		// response = makeResponseBodyMessage(404);
 	}
 	return (response);
 }
@@ -1135,7 +1143,7 @@ Server::post(std::string path, Request req, Response res, Response (*func)(Reque
 /***************************  Response  ***************************************/
 /*============================================================================*/
 
-void
+bool
 Server::sendResponse(int clientfd)
 {
 	Response response = Response();
@@ -1183,8 +1191,8 @@ Server::sendResponse(int clientfd)
 	if (send(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size(), 0) <= 0)
 	{
 		close(clientfd);
-		ft::fdClr(clientfd, &m_write_fds);
+		return (false);
 	}
 	writeLog("response", response);
-	return ;
+	return (true);
 }

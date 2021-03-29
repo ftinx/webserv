@@ -1,0 +1,15 @@
+
+-------------------------------- REQUEST MESSAGE [1] -------------------------------------
+POST /directory/youpi.bla HTTP/1.1
+cache-control: no-cache
+Postman-Token: 3b3c18d4-dcde-4c34-bf22-e3ca863cd28e
+Content-Type: text/plain
+User-Agent: PostmanRuntime/7.3.0
+Accept: */*
+Host: localhost:8080
+accept-encoding: gzip, deflate
+content-length: 8
+Connection: keep-alive
+
+aaaaaaaa
+------------------------------------------------------------------------------------------

@@ -20,7 +20,7 @@
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
-#define CGI_ENV_NUM 16
+#define MAXLINE 2048
 
 class Server
 {
@@ -160,7 +160,7 @@ class Server
 		Response post(std::string path, Request req, Response res, Response (*func)(Request req, Response res));
 
 		/* Response */
-		void sendResponse(int clientfd);
+		bool sendResponse(int clientfd);
 };
 
 #endif

@@ -489,6 +489,7 @@ Request::checkCGI()
 		else
 		{
 			this->m_path_translated = loc.get_m_cgi_path();
+			std::cout << "POUICPOUIC" << std::endl;
 			this->m_path_info = getRestPath();
 		}
 		return (true);
