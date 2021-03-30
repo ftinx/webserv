@@ -758,13 +758,21 @@ Server::executeCgi(Request req, Response res, std::string method)
 	char **new_argv;
 	char command[]  = "cgi_tester";
 
+	printf("\n=========== cgi envp ============\n");
+	for (int i = 0; i<3; i++)
+	{
+		printf("%s\n", envp[i]);
+	}
+	printf("===================================\n\n");
+
+
 	new_argv = (char **)malloc(sizeof(char *) * (2));
 	new_argv[0] = command;
+	new_argv[1] = NULL;
 
 	Response response(res);
 
 	int fds1[2], fds2[2];
-	// char str1[] = "Who are you?";
 	char str2[] = "parent to child";
 	char buf[30];
 	pid_t pid;
@@ -788,12 +796,8 @@ Server::executeCgi(Request req, Response res, std::string method)
 		close(parent_read);
 
 		dup2(cgi_stdin, STDIN_FILENO);
-		// close(cgi_stdin);
 		dup2(cgi_stdout, STDOUT_FILENO);
 
-		// read(cgi_stdin, buf, 30);
-		// printf("Child process output: %s\n", buf);
-		// execve(req.get_m_path_translated().c_str(), 0, envp);
 		ret = execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
 
 		read(cgi_stdin, buf, 30);
@@ -802,11 +806,15 @@ Server::executeCgi(Request req, Response res, std::string method)
 	}
 	else
 	{
+		int ret;
 		close(cgi_stdin);
 		close(cgi_stdout);
 		write(parent_write, str2, sizeof(str2));
-		read(parent_read, buf, 30);
-		printf("Parent process output: %s \n", buf);
+		while ( 0 < (ret = read(parent_read, buf, 29)))
+		{
+			buf[ret] = '\0';
+			printf("%s", buf);
+		}
 		sleep(3);
 	}
 
