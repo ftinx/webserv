@@ -23,7 +23,6 @@ char *bin2hex(const unsigned char *input, size_t len)
         result[(i*3)+1] = hexits[input[i] & 0x0F];
         result[(i*3)+2] = ' '; //for readability
     }
-
     return result;
 }
 
@@ -753,122 +752,258 @@ Server::makeCgiEnvp(Request req, Response res)
 Response
 Server::executeCgi(Request req, Response res, std::string method)
 {
-	pid_t pid;
+	(void) req;
+	(void) method;
 	char** envp = Server::makeCgiEnvp(req, res);
-	Response response(res);
-	int pipe1[2];
-	int pipe2[2];
-	int ret;
-	//char buff[MAXLINE];
-	std::string body;
-
-	std::cout << "Execute Cgi >0<" << std::endl;
-	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
-
-	int cgi_read= pipe1[0];
-	int cgi_write = pipe2[1];
-	int parent_read = pipe2[0];
-	int parent_write = pipe1[1];
-
-	fcntl(cgi_read, F_SETFL, O_NONBLOCK);
-	fcntl(cgi_write, F_SETFL, O_NONBLOCK);
-	fcntl(parent_read, F_SETFL, O_NONBLOCK);
-	fcntl(parent_write, F_SETFL, O_NONBLOCK);
+	char **new_argv;
+	char command[]  = "cgi_tester";
 
 	printf("\n=========== cgi envp ============\n");
 	for (int i = 0; i<3; i++)
 	{
 		printf("%s\n", envp[i]);
 	}
-	printf("===================================\n");
+	printf("===================================\n\n");
 
-	if ((pid = fork()) < 0)
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+
+	new_argv = (char **)malloc(sizeof(char *) * (2));
+	new_argv[0] = command;
+	new_argv[1] = NULL;
+
+	Response response(res);
+
+	int fds1[2], fds2[2];
+	char str2[] = "parent to child";
+	char buf[30];
+	pid_t pid;
+
+	pipe(fds1), pipe(fds2);
+
+	int parent_write = fds2[1];
+	int parent_read = fds1[0];
+	int cgi_stdin = fds2[0];
+	int cgi_stdout = fds1[1];
+
+	pid=fork();
+
+
+	std::cout << "Execute Cgi >0<" << std::endl;
+
 	if (pid == 0)
 	{
-		std::cout << "--1--" << std::endl;
-		close(parent_read);
+		int ret = 0 ;
 		close(parent_write);
-		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
-		dup2(cgi_write, STDOUT_FILENO);
-		dup2(cgi_read, STDIN_FILENO);
-		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
-		exit(ret);
+		close(parent_read);
+
+		dup2(cgi_stdin, STDIN_FILENO);
+		dup2(cgi_stdout, STDOUT_FILENO);
+
+		ret = execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
+
+		read(cgi_stdin, buf, 30);
+		if (errno == EFAULT)
+			write(cgi_stdout, buf, 30);
 	}
 	else
 	{
-		int status;
-		close(cgi_read);
-		close(cgi_write);
-		std::cout << "--3--" << std::endl;
-		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
-		// wait(&pid);
-		waitpid(pid, &status, 0);
-		if (WIFEXITED(status))
-			WEXITSTATUS(status);
-		m_cgi_parent_write = parent_write;
-		m_cgi_parent_read = parent_read;
-		ft::fdSet(parent_write, this->m_write_fds);
-		ft::fdSet(parent_read, this->m_main_fds);
-		*this->m_maxfd += 2;
-		std::cout << m_cgi_parent_read << " " << m_cgi_parent_write << std::endl;
-		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_read));
-		// m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
-
-		ft::doubleFree(envp);
-		// while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
-		// {
-		// 	buff[ret]= '\0';
-		// 	body +=  std::string(buff);
-		// }
-		// std::cout << body.substr(0, 100) << std::endl;
+		int ret;
+		close(cgi_stdin);
+		close(cgi_stdout);
+		write(parent_write, str2, sizeof(str2));
+		while ( 0 < (ret = read(parent_read, buf, 29)))
+		{
+			buf[ret] = '\0';
+			printf("%s", buf);
+		}
+		sleep(3);
 	}
+
+	response = makeResponseBodyMessage(404);
 	return (response);
 }
 
-std::map<std::string, std::string>
-Server::parseQuery(std::string str)
-{
-	std::map<std::string, std::string> m_query;
-	std::vector<std::string> pieces = ft::split(str, "&");
+// Response
+// Server::executeCgi(Request req, Response res, std::string method)
+// {
+// 	pid_t pid;
+// 	char** envp = Server::makeCgiEnvp(req, res);
+// 	Response response(res);
+// 	int pipe1[2];
+// 	int pipe2[2];
+// 	int ret;
+// 	//char buff[MAXLINE];
+// 	std::string body;
 
-	for (size_t i = 0; i < pieces.size(); i++)
-	{
-		std::vector<std::string> queries = ft::split(pieces[i], "=");
-		m_query.insert(make_pair(ft::trim(queries[0], " \n\t\v\f\r"), ft::trim(queries[1], " \n\t\v\f\r")));
-	}
-	return (m_query);
-}
+// 	std::cout << "Execute Cgi >0<" << std::endl;
+// 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
+// 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+// 	std::cout << "Complete Pipe >0<" << pipe2[0] << " " << pipe1[1] << " " << pipe1[0] << " " << pipe2[1] << std::endl;
 
-Response
-Server::postAuth(Request req, Response res)
-{
-	std::string path = req.get_m_uri().get_m_path();
+// 	int cgi_read = pipe2[0];
+// 	int cgi_write = pipe1[1];
+// 	int parent_read = pipe1[0];
+// 	int parent_write = pipe2[1];
 
-	if (path == "/auth")
-	{
-		std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
-		std::string username;
-		std::string password;
+// 	close(cgi_read);
+// 	close(cgi_write);
 
-		if(m_query.find("formType") != m_query.end()
-		&& m_query.find("formType")->second == "login")
-		{
-			username = m_query.find("username")->second;
-			password = m_query.find("password")->second;
+// 	fcntl(cgi_read, F_SETFL, O_NONBLOCK);
+// 	fcntl(cgi_write, F_SETFL, O_NONBLOCK);
+// 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
+// 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-			printf("::%s:: ::%s::", username.c_str(), password.c_str());
-			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
+// 	printf("\n=========== cgi envp ============\n");
+// 	for (int i = 0; i<3; i++)
+// 	{
+// 		printf("%s\n", envp[i]);
+// 	}
+// 	printf("===================================\n\n");
 
-			if (username == "42seoul" && password == "42seoul")
-				return (Server::makeResponseMessage(200, "./www/srcs/login.html", ""));
-			else
-				return (Server::makeResponseMessage(200, "./www/index.html", ""));
-		}
-	}
-	return (res);
-}
+// 	if ((pid = fork()) < 0)
+// 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+// 	if (pid == 0)
+// 	{
+// 		std::cout << "--start child process--" << std::endl;
+// 		/* close parent pipe */
+// 		close(parent_read);
+// 		close(parent_write);
+
+
+// 		dup2(cgi_read, STDIN_FILENO);			//dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
+// 		dup2(cgi_write, STDOUT_FILENO);
+
+// 		/* test setting */
+// 		char cgi_buff[51];
+
+// 		/* read cgi_read buff */
+// 		ret = read(cgi_read, cgi_buff, 50);
+// 		cgi_buff[ret] = '\0';
+// 		printf("read cgi_read cgi_buff: %s", cgi_buff);
+
+// 		/* execute */
+// 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
+
+// 		/* read cgi_write buff */
+// 		// ret = read(cgi_write, buff, 50);
+// 		// buff[ret] = '\0';
+// 		// printf("haha: %s", buff);
+// 		exit(ret);
+// 	}
+// 	else
+// 	{
+// 		std::cout << "--start parent process--" << std::endl;
+// 		/* test setting */
+// 		int fd;
+// 		int status;
+// 		char buff[51];
+
+// 		/* close child pipe */
+// 		close(cgi_read);
+// 		close(cgi_write);
+
+// 		/* file open */
+// 		if ( 0 < (fd = open("/Users/holee/Desktop/webserv/hello", O_RDONLY)) )
+// 		{
+// 			printf("start open\n");
+// 			while ( 0 < (ret = read(fd, buff, 50)) )
+// 			{
+// 				buff[ret] = '\0';
+// 				write(parent_write, buff, 50);
+// 				printf("parent pipe write: %s\n", buff);
+// 			}
+// 			printf("end open\n");
+// 		}
+// 		else{
+// 			printf("open err\n");
+// 		}
+
+// 		std::cout << "--wait child procecss--" << std::endl;
+// 		waitpid(pid, &status, 0);
+// 		// if (WIFEXITED(status))
+// 		// 	std::cout << "Exit Status: " << WEXITSTATUS(status) << std::endl;
+
+// 		std::cout << "--complete child procecss--" << std::endl;
+// 		/* read parent_read */
+// 		char buffer[51];
+// 		while ( 0 < (ret = read(parent_read, buffer, 50)) )
+// 		{
+// 			buffer[ret] = '\0';
+// 			printf("parent pipe read: %s\n", buffer);
+// 		}
+// 		printf("parent read buffer: %d\n", ret);
+// 		std::cout << errno << std::endl;
+// 		std::cout << EAGAIN << std::endl;
+// 		std::cout << EWOULDBLOCK << std::endl;
+// 		std::cout << EBADF << std::endl;
+// 		std::cout << EFAULT << std::endl;
+// 		std::cout << EINVAL << std::endl;
+// 		std::cout << EIO << std::endl;
+// 		std::cout << EISDIR << std::endl;
+
+// 		response = makeResponseBodyMessage(404);
+// 		// m_cgi_parent_write = parent_write;
+// 		// m_cgi_parent_read = parent_read;
+// 		// ft::fdSet(parent_write, this->m_write_fds);
+// 		// ft::fdSet(parent_read, this->m_main_fds);
+// 		// *this->m_maxfd += 2;
+// 		// std::cout << "asdasdasd" << std::endl;
+// 		// // m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_read));
+// 		// // m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
+
+// 		// ft::doubleFree(envp);
+// 		// // while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
+// 		// // {
+// 		// // 	buff[ret]= '\0';
+// 		// // 	body +=  std::string(buff);
+// 		// // }
+// 		// // std::cout << body.substr(0, 100) << std::endl;
+// 		sleep(3);
+// 	}
+// 	return (response);
+// }
+
+// std::map<std::string, std::string>
+// Server::parseQuery(std::string str)
+// {
+// 	std::map<std::string, std::string> m_query;
+// 	std::vector<std::string> pieces = ft::split(str, "&");
+
+// 	for (size_t i = 0; i < pieces.size(); i++)
+// 	{
+// 		std::vector<std::string> queries = ft::split(pieces[i], "=");
+// 		m_query.insert(make_pair(ft::trim(queries[0], " \n\t\v\f\r"), ft::trim(queries[1], " \n\t\v\f\r")));
+// 	}
+// 	return (m_query);
+// }
+
+// Response
+// Server::postAuth(Request req, Response res)
+// {
+// 	std::string path = req.get_m_uri().get_m_path();
+
+// 	if (path == "/auth")
+// 	{
+// 		std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
+// 		std::string username;
+// 		std::string password;
+
+// 		if(m_query.find("formType") != m_query.end()
+// 		&& m_query.find("formType")->second == "login")
+// 		{
+// 			username = m_query.find("username")->second;
+// 			password = m_query.find("password")->second;
+
+// 			printf("::%s:: ::%s::", username.c_str(), password.c_str());
+// 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
+
+// 			if (username == "42seoul" && password == "42seoul")
+// 				return (Server::makeResponseMessage(200, "./www/srcs/login.html", ""));
+// 			else
+// 				return (Server::makeResponseMessage(200, "./www/index.html", ""));
+// 		}
+// 	}
+// 	return (res);
+// }
 
 Response
 Server::methodPOST(int clientfd, std::string method)
@@ -1217,8 +1352,8 @@ Server::sendResponse(int clientfd)
 			break;
 		case POST:
 			response = this->methodPOST(clientfd);
-			if (response.get_m_status_code() == 0)
-				return (false);
+			// if (response.get_m_status_code() == 0)
+			// 	return (false);
 			break;
 		case PUT:
 			response = this->methodPUT(clientfd);
