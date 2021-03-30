@@ -783,6 +783,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 
 	if (pid == 0)
 	{
+		int ret = 0 ;
 		close(parent_write);
 		close(parent_read);
 
@@ -793,9 +794,11 @@ Server::executeCgi(Request req, Response res, std::string method)
 		// read(cgi_stdin, buf, 30);
 		// printf("Child process output: %s\n", buf);
 		// execve(req.get_m_path_translated().c_str(), 0, envp);
-		execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
+		ret = execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
+
 		read(cgi_stdin, buf, 30);
-		write(cgi_stdout, buf, 30);
+		if (errno == EFAULT)
+			write(cgi_stdout, buf, 30);
 	}
 	else
 	{
