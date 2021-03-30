@@ -35,6 +35,7 @@ class Request
 
 		/* HTTP Header */
 		std::string m_content_type;
+		std::string m_referer;
 
 	public:
 		Request();
@@ -57,6 +58,7 @@ class Request
 		std::string get_m_path_translated() const;
 		std::string get_m_path_info() const;
 		std::string get_m_content_type() const;
+		std::string get_m_referer() const;
 
 		/* setter */
 		void set_m_http_version(std::string);

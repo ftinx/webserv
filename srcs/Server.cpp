@@ -663,14 +663,14 @@ Server::methodGET(int clientfd, std::string method)
 			{
 				extension = (*index_it).substr((*index_it).find_last_of(".") + 1, std::string::npos);
 				type = getMimeType(extension);
-				return (Server::makeResponseMessage(200, absolute_path + *index_it, "", method, type)); // 200 응답과 반환
+				return (Server::makeResponseMessage(200, absolute_path + *index_it, "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer())); // 200 응답과 반환
 			}
 		}
 		std::map<std::string, bool>::const_iterator autoindex_it;
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it)
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true)
-				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", method));
+				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", this->m_requests[clientfd].getAcceptLanguage(), method, this->m_requests[clientfd].get_m_referer()));
 		}
 	}
 	else // 폴더가 아니라면
@@ -681,15 +681,16 @@ Server::methodGET(int clientfd, std::string method)
 			type = getMimeType(extension);
 			if (type.compare(0, 5, "image") == 0)
 			{
-				return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), method, type));
+				return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
 			}
-			return (Server::makeResponseMessage(200, absolute_path, "", method, type));
+			return (Server::makeResponseMessage(200, absolute_path, "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
 			// if (type == "image/jpeg")
 			// 	return Server::makeResponseBodyMessage(200, "iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAIAAAAP3aGbAAAJsklEQVR4nOzdvY8cZwHH8Wdfbs+Jz5zPCcZBjiWwiQMkcYFAAiFEoCA0FCQUVDQUiCZSFNHQIF46/gKEaAIFdEhRIiS6AEICOaJwiIXiS5zEjl8Sv5zvzfsyyCYKkbK7vpvbje/n+3zkwtrVzY7Xc999duaZmfaTx9cKQILm7V4BgI0SLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCG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", "image/jpeg", method, type);
-			return (Server::makeResponseMessage(200, absolute_path, "", method, type));
+			return (Server::makeResponseMessage(200, absolute_path, "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
 		}
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+	type = getMimeType("html");
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
 }
 
 /*============================================================================*/
@@ -1152,27 +1153,27 @@ Server::methodPUT(int clientfd, std::string method)
 	if (ft::isValidFilePath(path) == false)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
- 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+ 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
 		status_code = 201;
 	}
 	else
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
-			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		close(fd);
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
 	}
 	else
 	{
 		close(fd);
-		return (Server::makeResponseMessage(status_code, req.get_m_reset_path(), "", method));
+		return (Server::makeResponseMessage(status_code, req.get_m_reset_path(), "", this->m_requests[clientfd].getAcceptLanguage(), method, "", this->m_requests[clientfd].get_m_referer()));
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
 }
 
 /*============================================================================*/
@@ -1187,9 +1188,9 @@ Server::methodDELETE(int clientfd, std::string method)
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
-			return (Server::makeResponseMessage(200, "./www/index.html", "", method));
+			return (Server::makeResponseMessage(200, "./www/index.html", "", this->m_requests[clientfd].getAcceptLanguage(), method, this->m_requests[clientfd].get_m_referer()));
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
 }
 
 /*============================================================================*/
@@ -1220,9 +1221,9 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
 
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
-	return (Server::makeResponseBodyMessage(204, "",  "", method, "text/html; charset=UTF-8", "", 0, 0, 0, allow_method));
+	return (Server::makeResponseBodyMessage(204, "",  "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer(), 0, 0, 0, allow_method));
 }
 
 
@@ -1236,7 +1237,7 @@ Server::methodTRACE(int clientfd, std::string method)
 	Response response = Response();
 
 	return (
-		Server::makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), "", method, "message/http")
+		Server::makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), "", "", method, "message/http", this->m_requests[clientfd].get_m_referer())
 	);
 }
 
@@ -1247,10 +1248,11 @@ Server::methodTRACE(int clientfd, std::string method)
 Response
 Server::makeResponseMessage(
 	int status_code, std::string path, std::string transfer_encoding,
+	std::string content_language,
 	std::string method, std::string content_type,
 	std::string referer, int date_hour, int date_minute, int date_second,
 	std::string allow_method, std::string content_location, std::string location,
-	std::string content_language, std::string server
+	std::string server
 )
 {
 	(void) transfer_encoding;
@@ -1265,14 +1267,28 @@ Server::makeResponseMessage(
 	|| content_type != "image/png" || content_type != "image/x-icon")
 		response.setHttpResponseHeader("referer", referer);
 
-	if (method == "GET")
-		response.setHttpResponseHeader("last-modified", response.get_m_date());
+	if (method == "HEAD")
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
+	else if (method == "GET")
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("last-modified", response.get_m_date())
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
 	else if (method == "POST")
-		response.setHttpResponseHeader("content-location", content_location);
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("content-location", content_location)
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
 	else if (method == "PUT")
 		response.setHttpResponseHeader("content-location", content_location);
 	else if (method == "OPTIONS")
 		response.setHttpResponseHeader("allow", allow_method);
+	else if (method == "TRACE")
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
 
 	return (
 		response
@@ -1280,12 +1296,10 @@ Server::makeResponseMessage(
 			.setCurrentDate(date_hour, date_minute, date_second)
 			.setFileDocument(path)
 			.setContentLanguage(content_language)
-			.setContentType(content_type)
 			.setServer(server)
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
 			.makeHttpResponseMessage(method)
@@ -1295,10 +1309,11 @@ Server::makeResponseMessage(
 Response
 Server::makeResponseBodyMessage(
 	int status_code, std::string body, std::string transfer_encoding,
+	std::string content_language,
 	std::string method, std::string content_type,
 	std::string referer, int date_hour, int date_minute, int date_second,
 	std::string allow_method, std::string content_location, std::string location,
-	std::string content_language, std::string server
+	std::string server
 )
 {
 	(void) transfer_encoding;
@@ -1375,7 +1390,7 @@ Server::parseErrorResponse(int clientfd)
 {
 	int status_code(this->m_requests[clientfd].get_m_error_code());
 	return (
-		Server::makeResponseBodyMessage(status_code, makeErrorPage(status_code), "")
+		Server::makeResponseBodyMessage(status_code, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer())
 	);
 }
 
@@ -1384,9 +1399,9 @@ Server::checkValidRequestHeader(int clientfd)
 {
 	/* If request has no Host Header */
 	if (this->m_requests[clientfd].get_m_uri().get_m_host() == "")
-		return (Server::makeResponseBodyMessage(400, makeErrorPage(400), ""));
+		return (Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
 	return (
-		Server::makeResponseBodyMessage(400, makeErrorPage(400), "")
+		Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer())
 	);
 }
 
@@ -1413,7 +1428,7 @@ Server::sendResponse(int clientfd)
 		response = this->parseErrorResponse(clientfd);
 	else
 	{
-	/* make Response for Method */
+		/* make Response for Method */
 		switch(method)
 		{
 		case GET:
@@ -1440,7 +1455,7 @@ Server::sendResponse(int clientfd)
 			response = this->methodOPTIONS(clientfd);
 			break;
 		default:
-			response = Server::makeResponseBodyMessage(405, makeErrorPage(405), "");
+			response = Server::makeResponseBodyMessage(405, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer());
 			break;
 		}
 	}
