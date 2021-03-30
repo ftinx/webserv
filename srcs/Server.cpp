@@ -708,7 +708,8 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	*/
 	map["REQUEST_METHOD"] = req.getMethod();
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
-	map["PATH_INFO"] = req.get_m_path_info();
+	// map["PATH_INFO"] = req.get_m_path_info();
+	map["PATH_INFO"] = "/";
 	map["PATH_TRANSLATED"] = req.get_m_path_translated();
 
 	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
@@ -754,10 +755,37 @@ Server::executeCgi(Request req, Response res, std::string method)
 {
 	(void) req;
 	(void) method;
+	/* Response */
+	Response response(res);
+
+	/* Setting execve parameters */
 	char** envp = Server::makeCgiEnvp(req, res);
 	char **new_argv;
 	char command[]  = "cgi_tester";
+	new_argv = (char **)malloc(sizeof(char *) * (2));
+	new_argv[0] = command;
+	new_argv[1] = NULL;
 
+	/* fork, pipe */
+	int fds1[2], fds2[2];
+	char buf[1024];
+	char str2[] = "parent to child";
+	pid_t pid;
+
+	if (pipe(fds1) < 0 || pipe(fds2) < 0)
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+	int parent_write = fds2[1];
+	int parent_read = fds1[0];
+	int cgi_stdin = fds2[0];
+	int cgi_stdout = fds1[1];
+
+	/* set fd nonblock */
+	// fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
+	// fcntl(cgi_stdout, F_SETFL, O_NONBLOCK);
+	// fcntl(parent_read, F_SETFL, O_NONBLOCK);
+	// fcntl(parent_write, F_SETFL, O_NONBLOCK);
+
+	/* print envp */
 	printf("\n=========== cgi envp ============\n");
 	for (int i = 0; i<3; i++)
 	{
@@ -765,44 +793,16 @@ Server::executeCgi(Request req, Response res, std::string method)
 	}
 	printf("===================================\n\n");
 
-
-	new_argv = (char **)malloc(sizeof(char *) * (2));
-	new_argv[0] = command;
-	new_argv[1] = NULL;
-
-	Response response(res);
-
-	int fds1[2], fds2[2];
-	char str2[] = "parent to child";
-	char buf[30];
-	pid_t pid;
-
-	pipe(fds1), pipe(fds2);
-
-	int parent_write = fds2[1];
-	int parent_read = fds1[0];
-	int cgi_stdin = fds2[0];
-	int cgi_stdout = fds1[1];
-
 	pid=fork();
-
-
 	std::cout << "Execute Cgi >0<" << std::endl;
-
 	if (pid == 0)
 	{
-		int ret = 0 ;
 		close(parent_write);
 		close(parent_read);
-
 		dup2(cgi_stdin, STDIN_FILENO);
 		dup2(cgi_stdout, STDOUT_FILENO);
 
-		ret = execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
-
-		read(cgi_stdin, buf, 30);
-		if (errno == EFAULT)
-			write(cgi_stdout, buf, 30);
+		execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
 	}
 	else
 	{
