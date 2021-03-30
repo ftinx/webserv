@@ -757,25 +757,25 @@ Server::executeCgi(Request req, Response res, std::string method)
 	char** envp = Server::makeCgiEnvp(req, res);
 	Response response(res);
 	int pipe1[2];
-	// int pipe2[2];
+	int pipe2[2];
 	int ret;
 	//char buff[MAXLINE];
 	std::string body;
 
 	std::cout << "Execute Cgi >0<" << std::endl;
-	// if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-	// 	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
+	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
 
 
-	// int cgi_read = pipe1[0];
-	// int cgi_write = pipe2[1];
-	// int parent_read = pipe2[0];
-	// int parent_write = pipe1[1];
+	int cgi_read = pipe2[0];
+	int cgi_write = pipe1[1];
+	int parent_read = pipe1[0];
+	int parent_write = pipe2[1];
 
-	// fcntl(cgi_read, F_SETFL, O_NONBLOCK);
-	// fcntl(cgi_write, F_SETFL, O_NONBLOCK);
-	// fcntl(parent_read, F_SETFL, O_NONBLOCK);
-	// fcntl(parent_write, F_SETFL, O_NONBLOCK);
+	fcntl(cgi_read, F_SETFL, O_NONBLOCK);
+	fcntl(cgi_write, F_SETFL, O_NONBLOCK);
+	fcntl(parent_read, F_SETFL, O_NONBLOCK);
+	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
 	printf("\n=========== cgi envp ============\n");
 	for (int i = 0; i<3; i++)
@@ -789,12 +789,11 @@ Server::executeCgi(Request req, Response res, std::string method)
 	if (pid == 0)
 	{
 		std::cout << "--1--" << std::endl;
-		dup2(pipe1[0], STDIN_FILENO);
-		// 자식프로세스의 STDOUT은 이제 pipe1[1] 이 된다.
-		dup2(pipe1[1], STDOUT_FILENO);
+		dup2(cgi_read, STDIN_FILENO);
+		dup2(cgi_write, STDOUT_FILENO);
 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
-		// close(parent_read);
-		// close(parent_write);
+		close(parent_read);
+		close(parent_write);
 		// dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
 		// dup2(cgi_write, STDOUT_FILENO);
 		// dup2(cgi_read, STDIN_FILENO);
@@ -808,14 +807,14 @@ Server::executeCgi(Request req, Response res, std::string method)
 		int fd;
 		char buff[51];
 
-		if ( 0 < (fd = open("/Users/holee/Desktop/webserv/hello", O_RDONLY)) )
+		if ( 0 < (fd = open("/Users/tonybyeon/Desktop/webserv/hello", O_RDONLY)) )
 		{
-			printf("hi\n");
+			printf("start open\n");
 			while ( 0 < (ret = read(fd, buff, 50)) )
 			{
 				buff[ret] = '\0';
-				write(pipe1[0], buff, 50);
-				printf("hello: %s\n", buff);
+				write(parent_write, buff, 50);
+				printf("parent pipe write: %s\n", buff);
 			}
 			printf("%d\n", ret);
 		}
@@ -825,10 +824,10 @@ Server::executeCgi(Request req, Response res, std::string method)
 		sleep(2);
 		printf("sleep2 end\n");
 		char buffer[51];
-		while ( 0 < (ret = read(pipe1[1], buffer, 50)) )
+		while ( 0 < (ret = read(parent_read, buffer, 50)) )
 		{
 			buffer[ret] = '\0';
-			printf("123123:: %s\n", buffer);
+			printf("parent pipe read: %s\n", buffer);
 		}
 
 		int status;
@@ -839,7 +838,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 		// // wait(&pid);
 		waitpid(pid, &status, 0);
 		if (WIFEXITED(status))
-			std::cout << "status code: " << WEXITSTATUS(status) << std::endl;
+			std::cout << "Exit Status: " << WEXITSTATUS(status) << std::endl;
 		// m_cgi_parent_write = parent_write;
 		// m_cgi_parent_read = parent_read;
 		// ft::fdSet(parent_write, this->m_write_fds);
