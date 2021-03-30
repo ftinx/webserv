@@ -754,21 +754,27 @@ Server::executeCgi(Request req, Response res, std::string method)
 {
 	(void) req;
 	(void) method;
-	// char** envp = Server::makeCgiEnvp(req, res);
+	char** envp = Server::makeCgiEnvp(req, res);
+	char **new_argv;
+	char command[]  = "cgi_tester";
+
+	new_argv = (char **)malloc(sizeof(char *) * (2));
+	new_argv[0] = command;
+
 	Response response(res);
 
 	int fds1[2], fds2[2];
-	char str1[] = "Who are you?";
-	char str2[] = "Thank you for your message";
+	// char str1[] = "Who are you?";
+	char str2[] = "parent to child";
 	char buf[30];
 	pid_t pid;
+
+	pipe(fds1), pipe(fds2);
 
 	int parent_write = fds2[1];
 	int parent_read = fds1[0];
 	int cgi_stdin = fds2[0];
 	int cgi_stdout = fds1[1];
-
-	pipe(fds1), pipe(fds2);
 
 	pid=fork();
 
@@ -777,20 +783,27 @@ Server::executeCgi(Request req, Response res, std::string method)
 
 	if (pid == 0)
 	{
-		write(cgi_stdout, str1, sizeof(str1));
+		close(parent_write);
+		close(parent_read);
+
+		dup2(cgi_stdin, STDIN_FILENO);
+		// close(cgi_stdin);
+		dup2(cgi_stdout, STDOUT_FILENO);
+
+		// read(cgi_stdin, buf, 30);
+		// printf("Child process output: %s\n", buf);
+		// execve(req.get_m_path_translated().c_str(), 0, envp);
+		execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
 		read(cgi_stdin, buf, 30);
-		// write(fds1[1], str1, sizeof(str1));
-		// read(fds2[0], buf, 30);
-		printf("Child process output: %s\n", buf);
+		write(cgi_stdout, buf, 30);
 	}
 	else
 	{
-		read(parent_read, buf, 30);
-		// read(fds1[0], buf, 30);
-		printf("Parent process output: %s \n", buf);
+		close(cgi_stdin);
+		close(cgi_stdout);
 		write(parent_write, str2, sizeof(str2));
-		// write(fds2[1], str2, sizeof(str2));
-
+		read(parent_read, buf, 30);
+		printf("Parent process output: %s \n", buf);
 		sleep(3);
 	}
 
@@ -844,7 +857,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 // 		close(parent_read);
 // 		close(parent_write);
 
-// 		/* dup cgi pipe to stdin, stdout */
+
 // 		dup2(cgi_read, STDIN_FILENO);			//dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
 // 		dup2(cgi_write, STDOUT_FILENO);
 
