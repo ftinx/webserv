@@ -708,7 +708,8 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	*/
 	map["REQUEST_METHOD"] = req.getMethod();
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
-	map["PATH_INFO"] = req.get_m_path_info();
+	// map["PATH_INFO"] = req.get_m_path_info();
+	map["PATH_INFO"] = "/";
 	map["PATH_TRANSLATED"] = req.get_m_path_translated();
 
 	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
@@ -799,10 +800,6 @@ Server::executeCgi(Request req, Response res, std::string method)
 		dup2(cgi_stdout, STDOUT_FILENO);
 
 		ret = execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
-
-		read(cgi_stdin, buf, 30);
-		if (errno == EFAULT)
-			write(cgi_stdout, buf, 30);
 	}
 	else
 	{
