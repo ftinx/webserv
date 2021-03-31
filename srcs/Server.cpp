@@ -311,7 +311,7 @@ Server::readProcess()
 					if (this->m_fd_table.size() <= 0)
 						break;
 				}
-				this->resetRequest(&this->m_requests[this->m_sockfd]);
+				resetRequest(&this->m_requests[this->m_sockfd]);
 				ft::fdSet(this->m_sockfd, this->m_write_fds);
 			}
 		}
@@ -468,6 +468,8 @@ Server::resetRequest(Request *req)
 	}
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
+	int pos = block.get_m_limit_body_size();
+	req->set_m_body(req->get_m_body().substr(0, pos));
 	writeLog("request", Response());
 }
 
