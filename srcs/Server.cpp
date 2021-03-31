@@ -527,6 +527,54 @@ Server::writeLog(std::string type, Response response)
 	close(fd);
 }
 
+bool
+Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, std::string auth_file_path)
+{
+	// client가 보낸 auth 값 유효성 체크, id/pwd로 나눠놓기
+	std::string auth_value_decode = ft::decode(auth_value);
+	if (auth_value_decode.find(":") == std::string::npos)
+		return (false);
+	std::vector<std::string> idpwd_client = ft::split(auth_value_decode, ':');
+	std::string id_client = idpwd_client.front();
+	idpwd_client.erase(idpwd_client.begin());
+	std::string pwd_client = idpwd_client.front();
+
+	// client가 보낸 아이디가 config파일의 auth_basic과 일치하지 않으면 에러
+	bool is_auth_basic_match = false;
+	std::vector<std::string>::const_iterator auth_basic_it;
+	for (auth_basic_it = auth_basic.begin() ; auth_basic_it != auth_basic.end() ; ++auth_basic_it)
+	{
+		if ((*auth_basic_it).compare(id_client) == 0)
+		{
+			is_auth_basic_match = true;
+			break ;
+		}
+	}
+	if (is_auth_basic_match == false)
+		return (false);
+
+	// 인증파일 존재하지 않으면 에러
+	if (ft::isValidFilePath(auth_file_path) == false)
+		return (false);
+
+	// .htpasswd 파일 순회하며 client id, pwd와 비교, 일치하면 인증성공
+	std::vector<std::string> idpwds = ft::split(ft::fileToString(auth_file_path), '\n');
+	std::vector<std::string>::const_iterator idpwds_it;
+	for (idpwds_it = idpwds.begin() ; idpwds_it != idpwds.end() ; ++idpwds_it)
+	{
+		std::string decode = ft::decode(*idpwds_it);
+		if (decode.find(":") == std::string::npos)
+			return (false);
+		std::vector<std::string> idpwd_server = ft::split(decode, ':');
+		std::string id_server = idpwd_server.front();
+		idpwd_server.erase(idpwd_server.begin());
+		std::string pwd_server = idpwd_server.front();
+		if ((id_server.compare(id_client) == 0) && (pwd_server.compare(pwd_client) == 0))
+			return (true);
+	}
+	return (false);
+}
+
 /*============================================================================*/
 /*********************************  HEAD  *************************************/
 /*============================================================================*/
@@ -563,7 +611,9 @@ Server::makeAutoindexPage(std::string root, std::string path)
 
 	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
 	{
-		if (std::string(entry->d_name).compare(".") == 0)
+		if (std::string(entry->d_name).compare("..") == 0)
+		 	entry_dir.push_back(std::string(entry->d_name));
+		if (std::string(entry->d_name).substr(0, 1) == ".")
 			continue ;
 		if (ft::isValidDirPath(path + std::string(entry->d_name)))
 			entry_dir.push_back(std::string(entry->d_name));
@@ -652,22 +702,22 @@ Server::makeAutoindexPage(std::string root, std::string path)
 Response
 Server::methodGET(int clientfd, std::string method)
 {
-	// Response res;
 	Request &req(this->m_requests[clientfd]);
-	std::string absolute_path(req.get_m_reset_path());
 	HttpConfigLocation location_block(req.get_m_location_block());
-	std::string type;
+	std::string absolute_path(req.get_m_reset_path());
+	std::string final_path;
 	std::string extension;
 
-	// std::map<std::string, std::string> headers = req.get_m_headers();
-	// std::map<std::string, std::string>::const_iterator header_it = headers.find("Authorization");
-	// if (header_it != req.get_m_headers().end())
-	// {
-	// 	std::vector<std::string> tmp = ft::split((*header_it).second, ' ');
-	// 	std::vector<std::string> idpwd = ft::split(ft::decode(tmp.back()), ':');
-	// 	std::string id = idpwd.front();
-	// 	std::string pwd = idpwd.back();
-	// }
+	if (location_block.get_m_auth_basic().empty() == false) // 인증이 필요한 블럭일 때
+	{
+		std::map<std::string, std::string> headers = req.get_m_headers();
+		std::map<std::string, std::string>::const_iterator header_it = headers.find("Authorization");
+		if (header_it == headers.end()) // 인증 헤더가 없으면 401 에러
+			return (Server::makeResponseBodyMessage(401, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.get_m_referer()));
+		std::vector<std::string> auth_value = ft::split((*header_it).second, ' ');
+		if (checkAuth(auth_value.back(), location_block.get_m_auth_basic(), location_block.get_m_root() + std::string("/") + location_block.get_m_auth_basic_user_file()) == false) // 인증 실패 시 403 에러
+			return (Server::makeResponseBodyMessage(403, makeErrorPage(403), "", req.getAcceptLanguage(), method, getMimeType("html"), req.get_m_referer()));
+	}
 	if (ft::isValidDirPath(absolute_path)) // 폴더라면
 	{
 		if (absolute_path.find("/", absolute_path.length() - 1) == std::string::npos)
@@ -679,8 +729,11 @@ Server::methodGET(int clientfd, std::string method)
 			if (ft::isValidFilePath(absolute_path + *index_it)) // 만약 유효한 파일이면
 			{
 				extension = (*index_it).substr((*index_it).find_last_of(".") + 1, std::string::npos);
-				type = getMimeType(extension);
-				return (Server::makeResponseMessage(200, absolute_path + *index_it, "", req.getAcceptLanguage(), method, type, req.get_m_referer())); // 200 응답과 반환
+				if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0))
+					final_path = absolute_path + std::string("en/") + *index_it;
+				else
+					final_path = absolute_path + *index_it;
+				return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.get_m_referer())); // 200 응답과 반환
 			}
 		}
 		std::map<std::string, bool>::const_iterator autoindex_it;
@@ -695,19 +748,21 @@ Server::methodGET(int clientfd, std::string method)
 		if (ft::isValidFilePath(absolute_path))
 		{
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
-			type = getMimeType(extension);
-			if (type.compare(0, 5, "image") == 0)
+			// if (type.compare(0, 5, "image") == 0) //
+			// 	return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.get_m_referer()));
+			if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0))
 			{
-				return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.get_m_referer()));
+				int pos_last_slash = absolute_path.find_last_of("/");
+				final_path += absolute_path.substr(0, pos_last_slash + 1)
+							+ std::string("en/")
+							+ absolute_path.substr(pos_last_slash + 1, std::string::npos);
 			}
-			return (Server::makeResponseMessage(200, absolute_path, "", req.getAcceptLanguage(), method, type, req.get_m_referer()));
-			// if (type == "image/jpeg")
-			// 	return Server::makeResponseBodyMessage(200, "iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAIAAAAP3aGbAAAJsklEQVR4nOzdvY8cZwHH8Wdfbs+Jz5zPCcZBjiWwiQMkcYFAAiFEoCA0FCQUVDQUiCZSFNHQIF46/gKEaAIFdEhRIiS6AEICOaJwiIXiS5zEjl8Sv5zvzfsyyCYKkbK7vpvbje/n+3zkwtrVzY7Xc999duaZmfaTx9cKQILm7V4BgI0SLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEKN9u1eAKfrSPc12s/HBx/tV+evF/lRfene7fG6hNfSpl68Ozq9XQ596YE/jwK7t+CH6+spgcfnddf7yva1hb+rt9893+ivD/leP7W3Oz0xmjauqDEoZVNWgKr2qrPTLtV51rVeudG888iEQrDvZdw6N3E7//na/P80t7Mhc89sHh29df3yzd/788Fx+5aPth+a3Y7D+cqG/uNz739+fuH+b/tacW6tOLg0++Pi3Pt6+Z3a6ia1KWepWi8vVc2d759amuGFt07ceCNIo5SMzjWN7G8f2dlb75dS1wcmlwT/e6a9Oehy/HT/NgFx3tcpn52+Mr3/8mdlDd0+4MIIFTMVcuzx1dOb7n5yZnVxmBAuYoofmmz97eHb3hHY+CRYwXZ1m+cHhmblJNEuwgKm7/+7m00c7W1+OYLGNrA+q6uYx8np/xtvKknvvW/pgW65hVcparYkqE/9XjLK303jswFZHWaY1sI0882rvmVd7tX/86Qc7B+8aPuHo+bP9P71Vf8nv99SL67V/9oE9zR8emRn61OXr1U9OXN/CetXxq1e6L10dMnXrllqNsqtV9rQbC53GvZ3G4bnGIwutWw5/HruvdXKp/94U3BoEC9i0flWWe2W5V711c5roCxdL67XeN+9rP7q/1Ro7R/Wr+1uLi/U/OXwlBCagX5Vnz/R+/Uq3N3b89OCeWxRtPMECJubfS4Ofn7g+plmzrfK1/cNPMt0IwQIm6XK3ev7MuC99j+4fekr+hggWMGF/e3vcOYR3t8vh3TXLI1jAhK32y7NjB1kLdadkCRYweX8+N+76RbvbNb8TChYwFaujx1i1rycoWMBUXOmNnJLaqXucULCAqVjqjnxqV93DhIIFTMWYJq3WvT63YAFTMeYaWONnw48hWMBULHRG5mX03q1bECxg8u6ZbYwZYa0LFrB9fPfQuCvBLC7XLJZgARN2dE/zyNzo74NVeXO15k4s18PaoR6Zb0711s+HR2+v3NmapXz9Y+PmWR2/VH/TE6wd6nufGH7dS9iiH326c2DXyCkNg1L+cLr+BfwEC5iMT801v3GgNaZWpZQXL/Vrz2kQLGACPr+v+fjBmV0bOOHm+KW6BwhvEiygpr0zjS/e2/zCvtZCZ0On2vSr8nKte168R7Bg53riYHtlM2fJNBql02zMNMpMszHbLO3NHFl5Y2Xw29d6dc/JeZdgwc61b7axb9w5fxOz0iu/PDn6ZOgNc+wZmK7uoPzu9ARqZYQFTNflbvnFS+vdLe25+j/B2qF+euL6YGt7E8Z7eL75+P22rh2tX5V/Xe4/d6Y/qVoJ1s51pVttcffneFe3MtmGfGdXq98sdi+sT3gzECxgAvpVWemVM2uDU9cGJ64M3qh7tuB4ggVsWnXzmlbdG5GqTi0PXrjQf33lwxhTCxbsXL8/3f3P0iZCU5WyPqhWemVye6U2R7Bg57rSLRevJ+1tNA8LiCFYQAzBAmIIFhBDsIAYggXEECwghmABMQQLiCFYQAzBAmIIFhBDsIAYggXEECwghmABMQQLiCFYQAzBAmIIFhBDsIAYggXEECwghmDdycbccK6a8s3ouqPvtDmY2kv3Ry+6O71X3Yz+6Pd9eis4Zsnb413ZhMaTx9du9zoAbIgRFhBDsIAYggXEECwghmABMQQLiCFYQAzBAmIIFhBDsIAYggXEECwghmABMQQLiCFYQAzBAmIIFhBDsIAYggXEECwghmABMQQLiCFYQAzBAmIIFhBDsIAYggXEECwghmABMQQLiPHfAAAA//9neNZV2grkYgAAAABJRU5ErkJggg==", "image/jpeg", method, type);
-			return (Server::makeResponseMessage(200, absolute_path, "", req.getAcceptLanguage(), method, type, req.get_m_referer()));
+			else
+				final_path = absolute_path;
+			return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.get_m_referer()));
 		}
 	}
-	type = getMimeType("html");
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, type, req.get_m_referer()));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.get_m_referer()));
 }
 
 /*============================================================================*/
@@ -1298,6 +1353,8 @@ Server::makeResponseBodyMessage(
 
 	if (status_code == 301 || status_code == 503)
 		response.setHttpResponseHeader("retry-after", "10");
+	if (status_code == 401)
+		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
 

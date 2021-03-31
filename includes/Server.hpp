@@ -120,6 +120,7 @@ class Server
 		bool checkAcceptedMethod(std::vector<Method> v, Method method);
 		std::string checkHttpConfigFilePath(std::string path_in);
 		void resetRequest(Request *req);
+		bool checkAuth(std::string auth_value, std::vector<std::string> auth_basic, std::string auth_file_path);
 
 		void writeLog(std::string type, Response response);
 
