@@ -174,6 +174,12 @@ Request::set_m_method(Method method)
 }
 
 void
+Request::set_m_body(std::string body)
+{
+	this->m_body = body;
+}
+
+void
 Request::set_m_error_code(int error_code)
 {
 	this->m_error_code = error_code;
@@ -419,6 +425,11 @@ Request::parseRequestLine(std::string request_line)
 	this->m_uri.set_m_uri(pieces[1]);
 	this->m_http_version = pieces[2];
 
+	if (this->m_uri.get_m_uri().size() > 8000)
+	{
+		this->m_error_code = 414;
+		return (false);
+	}
 	if (checkMethod() == false)
 	{
 		this->m_error_code = 501;

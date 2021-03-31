@@ -468,7 +468,8 @@ Server::resetRequest(Request *req)
 	}
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
-	req->set_m_body(req->get_m_body.substr(0, block.get_m_limit_body_size()));
+	int pos = block.get_m_limit_body_size();
+	req->set_m_body(req->get_m_body().substr(0, pos));
 	writeLog("request", Response());
 }
 
