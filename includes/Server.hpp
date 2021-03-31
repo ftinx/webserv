@@ -75,6 +75,12 @@ class Server
 		Server(Server const &other);
 		Server& operator=(Server const &rhs);
 
+		class CgiException : public std::exception
+		{
+			public:
+				virtual const char* what() const throw();
+		};
+
 		/* Getter */
 		std::string get_m_server_name();
 		int get_m_port();
@@ -130,6 +136,7 @@ class Server
 		/* POST */
 		std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		char** makeCgiEnvp(Request req, Response res);
+		char** makeCgiArgv(Request req);
 		Response executeCgi(Request req, Response res, std::string method);
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response postAuth(Request req, Response res);

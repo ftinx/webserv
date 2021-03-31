@@ -97,6 +97,11 @@ Server::~Server(){};
 /*******************************  Overload  ***********************************/
 /*============================================================================*/
 
+const char* Server::CgiException::what() const throw()
+{
+	return ("Error occured in CGI");
+}
+
 /*============================================================================*/
 /********************************  Getter  ************************************/
 /*============================================================================*/
@@ -749,9 +754,11 @@ Server::makeCgiEnvp(Request req, Response res)
 {
 	std::map<std::string, std::string> env_map = makeCgiEnvpMap(req, res);
 	std::map<std::string, std::string>::const_iterator i = env_map.begin();
-	char **env = new char*[env_map.size() + 1];
+	char **env = (char **)malloc(sizeof(char *) * (env_map.size() + 1));
 	int j;
 
+	if (env == NULL)
+		return (NULL);
 	j = 0;
 	while(i != env_map.end())
 	{
@@ -763,17 +770,31 @@ Server::makeCgiEnvp(Request req, Response res)
 	return (env);
 }
 
+char**
+Server::makeCgiArgv(Request req)
+{
+	char **argv = (char **)malloc(sizeof(char *) * 2);
+	std::string path(req.get_m_path_translated());
+	size_t pos = path.find_first_of("/");
+
+	if (argv == NULL)
+		return (NULL);
+	if (pos == std::string::npos)
+		pos = 0;
+	else
+		pos++;
+	argv[0] = (char *)&path.c_str()[pos];
+	argv[1] = 0;
+	return (argv);
+}
+
 Response
 Server::executeCgi(Request req, Response res, std::string method)
 {
 	(void) method;
 	/* Setting execve parameters */
 	char** envp = Server::makeCgiEnvp(req, res);
-	char **new_argv;
-	char command[]  = "cgi_tester";
-	new_argv = (char **)malloc(sizeof(char *) * (2));
-	new_argv[0] = command;
-	new_argv[1] = NULL;
+	char** argv = Server::makeCgiArgv(req);
 
 	Response response(res);
 
@@ -782,7 +803,15 @@ Server::executeCgi(Request req, Response res, std::string method)
 	pid_t pid;
 	int ret;
 
-	pipe(fds1), pipe(fds2);
+	if (envp == NULL)
+		throw (Server::CgiException());
+	else if (argv == NULL)
+	{
+		ft::doubleFree(envp);
+		throw(Server::CgiException());
+	}
+	else if (pipe(fds1) < 0 || pipe(fds2) < 0)
+		throw Server::CgiException();
 
 	int parent_write = fds2[1];
 	int parent_read = fds1[0];
@@ -796,13 +825,17 @@ Server::executeCgi(Request req, Response res, std::string method)
 	{
 		close(parent_write);
 		close(parent_read);
-
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
-			throw std::exception();
-		execve(req.get_m_path_translated().c_str(), new_argv, envp);
+			throw Server::CgiException();
+		if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
+			throw Server::CgiException();
+
+		/* read from parent process */
 		char buff[31];
 		read(cgi_stdin, buff, 30);
 		buff[30] = '\0';
+
+		/* write to parent process */
 		write(cgi_stdout, buff, 30);
 		std::cout << "end execve" << std::endl;
 		exit(1);
@@ -814,11 +847,13 @@ Server::executeCgi(Request req, Response res, std::string method)
 		close(cgi_stdout);
 		close(cgi_stdin);
 
+		/* write to cgi process */
 		/* should change size() to content-length */
 		std::cout << req.get_m_body() << std::endl;
 		write(parent_write, req.get_m_body().c_str(), req.get_m_body().size());
 		close(parent_write);
 
+		/* read from cgi process */
 		waitpid(pid, &status, 0);
 		memset(buf, 0, 1024);
 		if (status == 0)
@@ -830,87 +865,10 @@ Server::executeCgi(Request req, Response res, std::string method)
 			}
 		}
 	}
-
 	response = makeResponseBodyMessage(404);
 	return (response);
 }
 
-// Response
-// Server::executeCgi(Request req, Response res, std::string method)
-// {
-// 	(void) req;
-// 	(void) method;
-// 	/* Response */
-// 	Response response(res);
-
-// 	/* Setting execve parameters */
-// 	char** envp = Server::makeCgiEnvp(req, res);
-// 	char **new_argv;
-// 	char command[]  = "cgi_tester";
-// 	new_argv = (char **)malloc(sizeof(char *) * (2));
-// 	new_argv[0] = command;
-// 	new_argv[1] = NULL;
-
-// 	/* fork, pipe */
-// 	int fds1[2], fds2[2];
-// 	char buf[1024];
-// 	char str2[] = "abcdefghijk";
-// 	pid_t pid;
-// 	int ret;
-
-// 	if (pipe(fds1) < 0 || pipe(fds2) < 0)
-// 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
-// 	int parent_write = fds2[1];
-// 	int parent_read = fds1[0];
-// 	int cgi_stdin = fds2[0];
-// 	int cgi_stdout = fds1[1];
-
-// 	/* set fd nonblock */
-// 	// fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
-// 	// fcntl(cgi_stdout, F_SETFL, O_NONBLOCK);
-// 	// fcntl(parent_read, F_SETFL, O_NONBLOCK);
-// 	// fcntl(parent_write, F_SETFL, O_NONBLOCK);
-
-// 	/* print envp */
-// 	printf("\n=========== cgi envp ============\n");
-// 	for (int i = 0; i<3; i++)
-// 	{
-// 		printf("%s\n", envp[i]);
-// 	}
-// 	printf("===================================\n\n");
-
-// 	pid=fork();
-// 	std::cout << "Execute Cgi >0<" << std::endl;
-// 	if (pid == 0)
-// 	{
-// 		write(cgi_stdout, str2, sizeof(str2));
-// 		read(cgi_stdin, buf, 1024);
-// 		printf(" child: %s\n", buf);
-// 		// close(parent_write);
-// 		// close(parent_read);
-// 		// dup2(cgi_stdin, STDIN_FILENO);
-// 		// dup2(cgi_stdout, STDOUT_FILENO);
-// 		// ret = execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
-// 		// exit(ret);
-// 	}
-// 	else
-// 	{
-// 		// close(cgi_stdin);
-// 		// close(cgi_stdout);
-// 		read(parent_read, buf, 1024);
-// 		pritnf(" parent: %s\n", buf);
-// 		write(parent_write, str2, sizeof(str2));
-// 		// while ( 0 < (ret = read(parent_read, buf, 1025)))
-// 		// {
-// 		// 	buf[ret] = '\0';
-// 		// 	printf("%s", buf);
-// 		// }
-// 		std::cout << "End Cgi >0<" << std::endl;
-// 	}
-
-// 	response = makeResponseBodyMessage(404);
-// 	return (response);
-// }
 
 // Response
 // Server::executeCgi(Request req, Response res, std::string method)
