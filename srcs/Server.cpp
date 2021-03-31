@@ -967,14 +967,16 @@ Server::methodPOST(int clientfd, std::string method)
 	Response response;
 	Request request(m_requests[clientfd]);
 
-	std::cout << "::1::"<< std::endl;
 	if (request.checkCGI() == true)
 	{
-		std::cout << "::2::"<< std::endl;
-		std::cout << "##### START CGI PART #####" << std::endl;
-		response = executeCgi(request, response, method);
-	}
-	std::cout << "::3::"<< std::endl;
+		try
+		{
+			response = executeCgi(request, response, method);
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << std::endl;
+		}
 	return (response);
 }
 
