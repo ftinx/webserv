@@ -277,7 +277,7 @@ Request::getAcceptLanguage()
 }
 
 bool
-Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
+Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::string *buff)
 {
 	static int content_length = -1;
 	size_t pos;
@@ -290,6 +290,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) != std::string::npos)
 	{
 		this->m_message = this->m_message.substr(0, pos + 5);
+		*buff = this->m_message.substr(pos + 5, std::string::npos);
 		std::cout << "CASE 1" << std::endl;
 		return (true);
 	}
@@ -314,6 +315,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 	if (content_length >= 0 && content_length <= body_bytes)
 	{
 		this->m_message = this->m_message.substr(0, header_bytes + content_length);
+		*buff = this->m_message.substr(header_bytes + content_length, std::string::npos);
 		std::cout << "CASE 2" << std::endl;
 		return (true);
 	}
@@ -321,6 +323,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 	{
 		std::cout << m_message << std::endl;
 		this->m_message = this->m_message.substr(0, pos);
+		*buff = this->m_message.substr(pos, std::string::npos);
 		std::cout << "CASE 3" << std::endl;
 		return (true);
 	}
@@ -330,6 +333,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 bool
 Request::getMessage(int fd)
 {
+	static std::string buff("");
 	bool found_break_line = false;
 	bool chunked = false;
 	int ret;
@@ -337,7 +341,7 @@ Request::getMessage(int fd)
 	int body_bytes = 0;
 	char recvline[MAXLINE + 1];
 
-	m_message = "";
+	this->m_message = buff;
 	while ((ret = recv(fd, recvline, MAXLINE - 1, 0)) > 0)
 	{
 		recvline[ret] = '\0';
@@ -355,7 +359,7 @@ Request::getMessage(int fd)
 			else
 				body_bytes += ret;
 		}
-		if (isBreakCondition(&chunked, body_bytes, header_bytes))
+		if (isBreakCondition(&chunked, body_bytes, header_bytes, &buff))
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
