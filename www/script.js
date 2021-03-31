@@ -34,3 +34,56 @@ fetch('http://localhost:8080/imgs/favicon.jpg')
 
 // convert to Base64
 // var b64Response = btoa(rawResponse);
+
+function status(response) {
+	document.getElementById("get_content_type_ko").innerText += response.status + " " + response.statusText + "\r\n";
+	return Promise.resolve(response)
+}
+
+function headers(res) {
+	let res_headers = "";
+	res.headers.forEach((value, key) => {
+		res_headers += key + ": " + value + "\r\n";
+	});
+	res_headers += "\r\n\r\n"
+	document.getElementById("get_content_type_ko").innerText += res_headers;
+	return res.text()
+}
+
+function body(data) {
+	document.getElementById("get_content_type_ko").innerText += data;
+}
+
+fetch('http://localhost:8080/',{
+	method: 'GET',
+	headers: {
+		'Content-Language': 'en',
+	},
+})
+.then(status)
+.then(headers)
+.then(body)
+
+function status(response) {
+	document.getElementById("get_content_type_en").innerText += response.status + " " + response.statusText + "\r\n";
+	return Promise.resolve(response)
+}
+
+function headers(res) {
+	let res_headers = "";
+	res.headers.forEach((value, key) => {
+		res_headers += key + ": " + value + "\r\n";
+	});
+	res_headers += "\r\n\r\n"
+	document.getElementById("get_content_type_en").innerText += res_headers;
+	return res.text()
+}
+
+function body(data) {
+	document.getElementById("get_content_type_en").innerText += data;
+}
+
+fetch('http://localhost:8080/')
+.then(status)
+.then(headers)
+.then(body)
