@@ -57,7 +57,7 @@ function body(data) {
 fetch('http://localhost:8080/',{
 	method: 'GET',
 	headers: {
-		'Content-Language': 'en',
+		'Accept-Language': 'en',
 	},
 })
 .then(status)
