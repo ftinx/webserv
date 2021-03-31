@@ -35,55 +35,67 @@ fetch('http://localhost:8080/imgs/favicon.jpg')
 // convert to Base64
 // var b64Response = btoa(rawResponse);
 
-function status(response) {
-	document.getElementById("get_content_type_ko").innerText += response.status + " " + response.statusText + "\r\n";
-	return Promise.resolve(response)
+function removeText(element_id) {
+	document.getElementById(element_id).innerText = "";
 }
 
-function headers(res) {
-	let res_headers = "";
-	res.headers.forEach((value, key) => {
-		res_headers += key + ": " + value + "\r\n";
-	});
-	res_headers += "\r\n\r\n"
-	document.getElementById("get_content_type_ko").innerText += res_headers;
-	return res.text()
+/* get_response로 안묶어주고 다 따로 밖에서 쓰면 하나의 요청만 보내짐 왜 그런지 나중에 알아보기 (트렌스젠더스때 ㅎㅎ 지금은 패스) */
+function getResponse(element_id, method, path, headers) {
+	fetch('http://localhost:8080' + path, {
+		method: method,
+		headers: headers,
+	})
+	.then(status)
+	.then(getHeaders)
+	.then(getBody)
+
+	function status(response) {
+		document.getElementById(element_id).innerText += response.status + " " + response.statusText + "\r\n";
+		return Promise.resolve(response)
+	}
+
+	function getHeaders(res) {
+		let res_headers = "";
+		res.headers.forEach((value, key) => {
+			res_headers += key + ": " + value + "\r\n";
+		});
+		res_headers += "\r\n\r\n"
+		document.getElementById(element_id).innerText += res_headers;
+		return res.text()
+	}
+
+	function getBody(data) {
+		document.getElementById(element_id).innerText += data;
+	}
 }
 
-function body(data) {
-	document.getElementById("get_content_type_ko").innerText += data;
+function postResponse(element_id, method, path, headers, body) {
+	fetch('http://localhost:8080' + path, {
+		method: method,
+		headers: headers,
+		body, body,
+	})
+	.then(status)
+	.then(getHeaders)
+	.then(getBody)
+
+	function status(response) {
+		document.getElementById(element_id).innerText += response.status + " " + response.statusText + "\r\n";
+		return Promise.resolve(response)
+	}
+
+	function getHeaders(res) {
+		let res_headers = "";
+		res.headers.forEach((value, key) => {
+			res_headers += key + ": " + value + "\r\n";
+		});
+		res_headers += "\r\n\r\n"
+		document.getElementById(element_id).innerText += res_headers;
+		return res.text()
+	}
+
+	function getBody(data) {
+		document.getElementById(element_id).innerText += data;
+	}
 }
 
-fetch('http://localhost:8080/',{
-	method: 'GET',
-	headers: {
-		'Accept-Language': 'en',
-	},
-})
-.then(status)
-.then(headers)
-.then(body)
-
-function status(response) {
-	document.getElementById("get_content_type_en").innerText += response.status + " " + response.statusText + "\r\n";
-	return Promise.resolve(response)
-}
-
-function headers(res) {
-	let res_headers = "";
-	res.headers.forEach((value, key) => {
-		res_headers += key + ": " + value + "\r\n";
-	});
-	res_headers += "\r\n\r\n"
-	document.getElementById("get_content_type_en").innerText += res_headers;
-	return res.text()
-}
-
-function body(data) {
-	document.getElementById("get_content_type_en").innerText += data;
-}
-
-fetch('http://localhost:8080/')
-.then(status)
-.then(headers)
-.then(body)
