@@ -76,7 +76,7 @@ class Request
 		std::string getContentLength();
 		std::string getContentType();
 		std::string getAcceptLanguage();
-		bool isBreakCondition(bool*, int, int);
+		bool isBreakCondition(bool*, int, int, std::string *);
 		bool getMessage(int);
 		bool parseMessage(bool);
 		bool parseRequestLine(std::string);
