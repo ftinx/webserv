@@ -12,7 +12,7 @@ HttpConfigLocation::HttpConfigLocation():
 	m_cgi(),
 	m_cgi_path(""),
 	m_autoindex(false),
-	m_auth_basic(""),
+	m_auth_basic(),
 	m_auth_basic_user_file(""),
 	m_limit_body_size(1048567)
 {
@@ -91,7 +91,7 @@ HttpConfigLocation::get_m_autoindex() const
 	return (this->m_autoindex);
 }
 
-std::string
+std::vector<std::string>
 HttpConfigLocation::get_m_auth_basic() const
 {
 	return (this->m_auth_basic);
@@ -229,7 +229,12 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 		}
 		else if (line.front().compare("auth_basic") == 0)
 		{
-			this->m_auth_basic = line.back();
+			for (size_t i = 1 ; i < line.size() ; i++)
+			{
+				if (line[i].empty())
+					continue ;
+				this->m_auth_basic.push_back(line[i]);
+			}
 		}
 		else if (line.front().compare("auth_basic_user_file") == 0)
 		{

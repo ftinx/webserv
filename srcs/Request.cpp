@@ -273,8 +273,11 @@ Request::getAcceptLanguage()
 		return (this->m_content_type = "ko");
 	// Quality not exist
 	if ((*it).second.find(";") == std::string::npos)
+	{
 		if ((*it).second.find("en") == std::string::npos)
 			return (this->m_content_type = "ko");
+		return (this->m_content_type = "en");
+	}
 	// Quality exist
 	std::vector<std::string> line;
 	std::string content_type = "";
