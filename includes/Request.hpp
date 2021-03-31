@@ -32,6 +32,7 @@ class Request
 		/* cgi envp */
 		std::string m_path_translated;
 		std::string m_path_info;
+		std::string m_script_name;
 
 		/* HTTP Header */
 		std::string m_content_type;
@@ -57,6 +58,7 @@ class Request
 		HttpConfigLocation get_m_location_block() const;
 		std::string get_m_path_translated() const;
 		std::string get_m_path_info() const;
+		std::string get_m_script_name() const;
 		std::string get_m_content_type() const;
 		std::string get_m_referer() const;
 
@@ -87,6 +89,7 @@ class Request
 		bool parseBody(std::string, int, int, bool);
 		void checkChunked(std::string);
 		std::string getRestPath();
+		std::string getScriptName(std::string path);
 		bool checkCGI();
 		void printHeaders() const;
 };

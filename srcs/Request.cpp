@@ -9,7 +9,8 @@
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
-m_reset_path(""), m_location_block(), m_path_translated(""), m_path_info(""),
+m_reset_path(""), m_location_block(),
+m_path_translated(""), m_path_info(""), m_script_name(""),
 m_content_type(""), m_referer("")
 {
 }
@@ -36,6 +37,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_location_block = rhs.get_m_location_block();
 	this->m_path_translated = rhs.get_m_path_translated();
 	this->m_path_info = rhs.get_m_path_info();
+	this->m_script_name = rhs.get_m_script_name();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
 	return (*this);
@@ -132,6 +134,12 @@ std::string
 Request::get_m_path_info() const
 {
 	return (this->m_path_info);
+}
+
+std::string
+Request::get_m_script_name() const
+{
+	return (this->m_script_name);
 }
 
 std::string
@@ -566,7 +574,19 @@ Request::getRestPath()
 			return (m_reset_path.substr(pos + (*it).size(), std::string::npos));
 		}
 	}
-	return ("");
+	return ("/");
+}
+
+std::string
+Request::getScriptName(std::string path)
+{
+	size_t pos = path.find_last_of("");
+
+	if (pos == std::string::npos)
+	{
+		return (path);
+	}
+	return (path.substr(pos + 1, std::string::npos));
 }
 
 bool
@@ -574,22 +594,21 @@ Request::checkCGI()
 {
 	std::string path(m_reset_path);
 	HttpConfigLocation loc(m_location_block);
-	size_t pos;
 
 	if (ft::checkValidFileExtension(path, loc.get_m_cgi()))
 	{
+		/* valid cgi file */
 		if (ft::isValidFilePath(path))
 		{
 			this->m_path_translated = path;
-			path = path.substr(0, m_location_block.get_m_root().size());
-			if ((pos = path.find_first_of("/")) != std::string::npos)
-				path = path.substr(pos + 1, std::string::npos);
-			this->m_path_info = path;
+			this->m_path_info = "/";
+			this->m_script_name = getScriptName(path);
 		}
+		/* invalid cgi file, using default cgi */
 		else
 		{
 			this->m_path_translated = loc.get_m_cgi_path();
-			std::cout << "POUICPOUIC" << std::endl;
+			this->m_script_name = getScriptName(m_path_translated);
 			this->m_path_info = getRestPath();
 		}
 		return (true);
