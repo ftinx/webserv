@@ -97,6 +97,11 @@ Server::~Server(){};
 /*******************************  Overload  ***********************************/
 /*============================================================================*/
 
+const char* Server::CgiException::what() const throw()
+{
+	return ("Error occured in CGI");
+}
+
 /*============================================================================*/
 /********************************  Getter  ************************************/
 /*============================================================================*/
@@ -776,22 +781,18 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	*/
 	map["REQUEST_METHOD"] = req.getMethod();
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
-	// map["PATH_INFO"] = req.get_m_path_info();
-	map["PATH_INFO"] = "/";
+	map["PATH_INFO"] = req.get_m_path_info();
 	map["PATH_TRANSLATED"] = req.get_m_path_translated();
+
+	// map["SCRIPT_NAME"] = req.get_m_script_name();
 
 	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
 	// map["SERVER_NAME"] = res.get_m_cgi_server_name();
 	// map["GATEWAY_INTERFACE"] = "Cgi/1.1";
 	// map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
-	// map["PATH_INFO"] = req.get_m_path_info();
-	// map["PATH_TRANSLATED"] = req.get_m_path_translated() + "/abc";
 
 	// map["REDIRECT_STATUS"] = "";
 	// map["SCRIPT_FILENAME"] = "";
-	// map["SCRIPT_NAME"] = uri.get_m_path();
-
-	// map["SCRIPT_NAME"] = "/cgi-bin/cgi_tester";
 	// map["QUERY_STRING"] = uri.get_m_query_string();
 	// map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
 	// map["CONTENT_TYPE"] = req.getContentType();
@@ -804,18 +805,33 @@ Server::makeCgiEnvp(Request req, Response res)
 {
 	std::map<std::string, std::string> env_map = makeCgiEnvpMap(req, res);
 	std::map<std::string, std::string>::const_iterator i = env_map.begin();
-	char **env = new char*[env_map.size() + 1];
+	char **env = (char **)malloc(sizeof(char *) * (env_map.size() + 1));
 	int j;
 
+	if (env == NULL)
+		return (NULL);
 	j = 0;
 	while(i != env_map.end())
 	{
 		env[j] = ft::strdup(i->first + "=" + i->second);
+		std::cout << env[j] << std::endl;
 		i++;
 		j++;
 	}
 	env[j] = NULL;
 	return (env);
+}
+
+char**
+Server::makeCgiArgv(Request req)
+{
+	char **argv = (char **)malloc(sizeof(char *) * 2);
+
+	if (argv == NULL)
+		return (NULL);
+	argv[0] = (char *)req.get_m_script_name().c_str();
+	argv[1] = 0;
+	return (argv);
 }
 
 Response
@@ -824,11 +840,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 	(void) method;
 	/* Setting execve parameters */
 	char** envp = Server::makeCgiEnvp(req, res);
-	char **new_argv;
-	char command[]  = "cgi_tester";
-	new_argv = (char **)malloc(sizeof(char *) * (2));
-	new_argv[0] = command;
-	new_argv[1] = NULL;
+	char** argv = Server::makeCgiArgv(req);
 
 	Response response(res);
 
@@ -837,7 +849,15 @@ Server::executeCgi(Request req, Response res, std::string method)
 	pid_t pid;
 	int ret;
 
-	pipe(fds1), pipe(fds2);
+	if (envp == NULL)
+		throw (Server::CgiException());
+	else if (argv == NULL)
+	{
+		ft::doubleFree(envp);
+		throw(Server::CgiException());
+	}
+	else if (pipe(fds1) < 0 || pipe(fds2) < 0)
+		throw Server::CgiException();
 
 	int parent_write = fds2[1];
 	int parent_read = fds1[0];
@@ -851,13 +871,17 @@ Server::executeCgi(Request req, Response res, std::string method)
 	{
 		close(parent_write);
 		close(parent_read);
-
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
-			throw std::exception();
-		execve(req.get_m_path_translated().c_str(), new_argv, envp);
+			throw Server::CgiException();
+		if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
+			throw Server::CgiException();
+
+		/* read from parent process */
 		char buff[31];
 		read(cgi_stdin, buff, 30);
 		buff[30] = '\0';
+
+		/* write to parent process */
 		write(cgi_stdout, buff, 30);
 		std::cout << "end execve" << std::endl;
 		exit(1);
@@ -869,11 +893,16 @@ Server::executeCgi(Request req, Response res, std::string method)
 		close(cgi_stdout);
 		close(cgi_stdin);
 
+		ft::doubleFree(argv);
+		ft::doubleFree(envp);
+
+		/* write to cgi process */
 		/* should change size() to content-length */
 		std::cout << req.get_m_body() << std::endl;
 		write(parent_write, req.get_m_body().c_str(), req.get_m_body().size());
 		close(parent_write);
 
+		/* read from cgi process */
 		waitpid(pid, &status, 0);
 		memset(buf, 0, 1024);
 		if (status == 0)
@@ -885,227 +914,9 @@ Server::executeCgi(Request req, Response res, std::string method)
 			}
 		}
 	}
-
 	response = makeResponseBodyMessage(404);
 	return (response);
 }
-
-// Response
-// Server::executeCgi(Request req, Response res, std::string method)
-// {
-// 	(void) req;
-// 	(void) method;
-// 	/* Response */
-// 	Response response(res);
-
-// 	/* Setting execve parameters */
-// 	char** envp = Server::makeCgiEnvp(req, res);
-// 	char **new_argv;
-// 	char command[]  = "cgi_tester";
-// 	new_argv = (char **)malloc(sizeof(char *) * (2));
-// 	new_argv[0] = command;
-// 	new_argv[1] = NULL;
-
-// 	/* fork, pipe */
-// 	int fds1[2], fds2[2];
-// 	char buf[1024];
-// 	char str2[] = "abcdefghijk";
-// 	pid_t pid;
-// 	int ret;
-
-// 	if (pipe(fds1) < 0 || pipe(fds2) < 0)
-// 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
-// 	int parent_write = fds2[1];
-// 	int parent_read = fds1[0];
-// 	int cgi_stdin = fds2[0];
-// 	int cgi_stdout = fds1[1];
-
-// 	/* set fd nonblock */
-// 	// fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
-// 	// fcntl(cgi_stdout, F_SETFL, O_NONBLOCK);
-// 	// fcntl(parent_read, F_SETFL, O_NONBLOCK);
-// 	// fcntl(parent_write, F_SETFL, O_NONBLOCK);
-
-// 	/* print envp */
-// 	printf("\n=========== cgi envp ============\n");
-// 	for (int i = 0; i<3; i++)
-// 	{
-// 		printf("%s\n", envp[i]);
-// 	}
-// 	printf("===================================\n\n");
-
-// 	pid=fork();
-// 	std::cout << "Execute Cgi >0<" << std::endl;
-// 	if (pid == 0)
-// 	{
-// 		write(cgi_stdout, str2, sizeof(str2));
-// 		read(cgi_stdin, buf, 1024);
-// 		printf(" child: %s\n", buf);
-// 		// close(parent_write);
-// 		// close(parent_read);
-// 		// dup2(cgi_stdin, STDIN_FILENO);
-// 		// dup2(cgi_stdout, STDOUT_FILENO);
-// 		// ret = execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
-// 		// exit(ret);
-// 	}
-// 	else
-// 	{
-// 		// close(cgi_stdin);
-// 		// close(cgi_stdout);
-// 		read(parent_read, buf, 1024);
-// 		pritnf(" parent: %s\n", buf);
-// 		write(parent_write, str2, sizeof(str2));
-// 		// while ( 0 < (ret = read(parent_read, buf, 1025)))
-// 		// {
-// 		// 	buf[ret] = '\0';
-// 		// 	printf("%s", buf);
-// 		// }
-// 		std::cout << "End Cgi >0<" << std::endl;
-// 	}
-
-// 	response = makeResponseBodyMessage(404);
-// 	return (response);
-// }
-
-// Response
-// Server::executeCgi(Request req, Response res, std::string method)
-// {
-// 	pid_t pid;
-// 	char** envp = Server::makeCgiEnvp(req, res);
-// 	Response response(res);
-// 	int pipe1[2];
-// 	int pipe2[2];
-// 	int ret;
-// 	//char buff[MAXLINE];
-// 	std::string body;
-
-// 	std::cout << "Execute Cgi >0<" << std::endl;
-// 	if (pipe(pipe1) < 0 || pipe(pipe2) < 0)
-// 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
-// 	std::cout << "Complete Pipe >0<" << pipe2[0] << " " << pipe1[1] << " " << pipe1[0] << " " << pipe2[1] << std::endl;
-
-// 	int cgi_read = pipe2[0];
-// 	int cgi_write = pipe1[1];
-// 	int parent_read = pipe1[0];
-// 	int parent_write = pipe2[1];
-
-// 	close(cgi_read);
-// 	close(cgi_write);
-
-// 	fcntl(cgi_read, F_SETFL, O_NONBLOCK);
-// 	fcntl(cgi_write, F_SETFL, O_NONBLOCK);
-// 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
-// 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
-
-// 	printf("\n=========== cgi envp ============\n");
-// 	for (int i = 0; i<3; i++)
-// 	{
-// 		printf("%s\n", envp[i]);
-// 	}
-// 	printf("===================================\n\n");
-
-// 	if ((pid = fork()) < 0)
-// 		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", method));
-// 	if (pid == 0)
-// 	{
-// 		std::cout << "--start child process--" << std::endl;
-// 		/* close parent pipe */
-// 		close(parent_read);
-// 		close(parent_write);
-
-
-// 		dup2(cgi_read, STDIN_FILENO);			//dup2 실패에 대한 에러처리를 어떤 방식으로 해줘야 할지?
-// 		dup2(cgi_write, STDOUT_FILENO);
-
-// 		/* test setting */
-// 		char cgi_buff[51];
-
-// 		/* read cgi_read buff */
-// 		ret = read(cgi_read, cgi_buff, 50);
-// 		cgi_buff[ret] = '\0';
-// 		printf("read cgi_read cgi_buff: %s", cgi_buff);
-
-// 		/* execute */
-// 		ret = execve(req.get_m_path_translated().c_str(), 0, envp);
-
-// 		/* read cgi_write buff */
-// 		// ret = read(cgi_write, buff, 50);
-// 		// buff[ret] = '\0';
-// 		// printf("haha: %s", buff);
-// 		exit(ret);
-// 	}
-// 	else
-// 	{
-// 		std::cout << "--start parent process--" << std::endl;
-// 		/* test setting */
-// 		int fd;
-// 		int status;
-// 		char buff[51];
-
-// 		/* close child pipe */
-// 		close(cgi_read);
-// 		close(cgi_write);
-
-// 		/* file open */
-// 		if ( 0 < (fd = open("/Users/holee/Desktop/webserv/hello", O_RDONLY)) )
-// 		{
-// 			printf("start open\n");
-// 			while ( 0 < (ret = read(fd, buff, 50)) )
-// 			{
-// 				buff[ret] = '\0';
-// 				write(parent_write, buff, 50);
-// 				printf("parent pipe write: %s\n", buff);
-// 			}
-// 			printf("end open\n");
-// 		}
-// 		else{
-// 			printf("open err\n");
-// 		}
-
-// 		std::cout << "--wait child procecss--" << std::endl;
-// 		waitpid(pid, &status, 0);
-// 		// if (WIFEXITED(status))
-// 		// 	std::cout << "Exit Status: " << WEXITSTATUS(status) << std::endl;
-
-// 		std::cout << "--complete child procecss--" << std::endl;
-// 		/* read parent_read */
-// 		char buffer[51];
-// 		while ( 0 < (ret = read(parent_read, buffer, 50)) )
-// 		{
-// 			buffer[ret] = '\0';
-// 			printf("parent pipe read: %s\n", buffer);
-// 		}
-// 		printf("parent read buffer: %d\n", ret);
-// 		std::cout << errno << std::endl;
-// 		std::cout << EAGAIN << std::endl;
-// 		std::cout << EWOULDBLOCK << std::endl;
-// 		std::cout << EBADF << std::endl;
-// 		std::cout << EFAULT << std::endl;
-// 		std::cout << EINVAL << std::endl;
-// 		std::cout << EIO << std::endl;
-// 		std::cout << EISDIR << std::endl;
-
-// 		response = makeResponseBodyMessage(404);
-// 		// m_cgi_parent_write = parent_write;
-// 		// m_cgi_parent_read = parent_read;
-// 		// ft::fdSet(parent_write, this->m_write_fds);
-// 		// ft::fdSet(parent_read, this->m_main_fds);
-// 		// *this->m_maxfd += 2;
-// 		// std::cout << "asdasdasd" << std::endl;
-// 		// // m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_read));
-// 		// // m_fd_table.push_back(std::make_pair(CGI_PIPE, parent_write));
-
-// 		// ft::doubleFree(envp);
-// 		// // while ((ret = recv(parent_read, buff, MAXLINE - 1, 0)) > 0)
-// 		// // {
-// 		// // 	buff[ret]= '\0';
-// 		// // 	body +=  std::string(buff);
-// 		// // }
-// 		// // std::cout << body.substr(0, 100) << std::endl;
-// 		sleep(3);
-// 	}
-// 	return (response);
-// }
 
 // std::map<std::string, std::string>
 // Server::parseQuery(std::string str)
@@ -1156,14 +967,17 @@ Server::methodPOST(int clientfd, std::string method)
 	Response response;
 	Request request(m_requests[clientfd]);
 
-	std::cout << "::1::"<< std::endl;
 	if (request.checkCGI() == true)
 	{
-		std::cout << "::2::"<< std::endl;
-		std::cout << "##### START CGI PART #####" << std::endl;
-		response = executeCgi(request, response, method);
+		try
+		{
+			response = executeCgi(request, response, method);
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << std::endl;
+		}
 	}
-	std::cout << "::3::"<< std::endl;
 	return (response);
 }
 
