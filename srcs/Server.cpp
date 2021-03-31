@@ -713,10 +713,10 @@ Server::methodGET(int clientfd, std::string method)
 		std::map<std::string, std::string> headers = req.get_m_headers();
 		std::map<std::string, std::string>::const_iterator header_it = headers.find("Authorization");
 		if (header_it == headers.end()) // 인증 헤더가 없으면 401 에러
-			return (Server::makeResponseBodyMessage(401, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.get_m_referer()));
+			return (Server::makeResponseBodyMessage(401, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		std::vector<std::string> auth_value = ft::split((*header_it).second, ' ');
 		if (checkAuth(auth_value.back(), location_block.get_m_auth_basic(), location_block.get_m_root() + std::string("/") + location_block.get_m_auth_basic_user_file()) == false) // 인증 실패 시 403 에러
-			return (Server::makeResponseBodyMessage(403, makeErrorPage(403), "", req.getAcceptLanguage(), method, getMimeType("html"), req.get_m_referer()));
+			return (Server::makeResponseBodyMessage(403, makeErrorPage(403), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	if (ft::isValidDirPath(absolute_path)) // 폴더라면
 	{
@@ -733,14 +733,14 @@ Server::methodGET(int clientfd, std::string method)
 					final_path = absolute_path + std::string("en/") + *index_it;
 				else
 					final_path = absolute_path + *index_it;
-				return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.get_m_referer())); // 200 응답과 반환
+				return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer())); // 200 응답과 반환
 			}
 		}
 		std::map<std::string, bool>::const_iterator autoindex_it;
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it)
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true)
-				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, req.get_m_referer()));
+				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, req.getReferer()));
 		}
 	}
 	else // 폴더가 아니라면
@@ -749,7 +749,7 @@ Server::methodGET(int clientfd, std::string method)
 		{
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
 			// if (type.compare(0, 5, "image") == 0) //
-			// 	return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.get_m_referer()));
+			// 	return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.getReferer()));
 			if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0))
 			{
 				int pos_last_slash = absolute_path.find_last_of("/");
@@ -759,10 +759,10 @@ Server::methodGET(int clientfd, std::string method)
 			}
 			else
 				final_path = absolute_path;
-			return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.get_m_referer()));
+			return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer()));
 		}
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.get_m_referer()));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
 
 /*============================================================================*/
@@ -1039,27 +1039,27 @@ Server::methodPUT(int clientfd, std::string method)
 	if (ft::isValidFilePath(path) == false)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
- 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
+ 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 201;
 	}
 	else
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
-			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
+			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		close(fd);
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	else
 	{
 		close(fd);
-		return (Server::makeResponseMessage(status_code, req.get_m_reset_path(), "", this->m_requests[clientfd].getAcceptLanguage(), method, "", this->m_requests[clientfd].get_m_referer()));
+		return (Server::makeResponseMessage(status_code, req.get_m_reset_path(), "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
 
 /*============================================================================*/
@@ -1074,9 +1074,9 @@ Server::methodDELETE(int clientfd, std::string method)
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
-			return (Server::makeResponseMessage(200, "./www/index.html", "", this->m_requests[clientfd].getAcceptLanguage(), method, this->m_requests[clientfd].get_m_referer()));
+			return (Server::makeResponseMessage(200, "./www/index.html", "", this->m_requests[clientfd].getAcceptLanguage(), method, this->m_requests[clientfd].getReferer()));
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
 }
 
 /*============================================================================*/
@@ -1107,9 +1107,9 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
 
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
+		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
-	return (Server::makeResponseBodyMessage(204, "",  "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].get_m_referer(), 0, 0, 0, allow_method));
+	return (Server::makeResponseBodyMessage(204, "",  "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
 }
 
 
@@ -1123,7 +1123,7 @@ Server::methodTRACE(int clientfd, std::string method)
 	Response response = Response();
 
 	return (
-		Server::makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), "", "", method, "message/http", this->m_requests[clientfd].get_m_referer())
+		Server::makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), "", "", method, "message/http", this->m_requests[clientfd].getReferer())
 	);
 }
 
@@ -1151,8 +1151,9 @@ Server::makeResponseMessage(
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
 
-	if (content_type != "image/gif" || content_type != "image/jpeg"
-	|| content_type != "image/png" || content_type != "image/x-icon")
+	if (referer != ""
+	&& (content_type != "image/gif" || content_type != "image/jpeg"
+	|| content_type != "image/png" || content_type != "image/x-icon"))
 		response.setHttpResponseHeader("referer", referer);
 
 	if (method == "HEAD")
@@ -1162,7 +1163,7 @@ Server::makeResponseMessage(
 	else if (method == "GET")
 		response
 			.setContentType(content_type)
-			.setHttpResponseHeader("last-modified", response.get_m_date())
+			.setHttpResponseHeader("last-modified", ft::getDateTimestamp(0, 0, 0))
 			.setHttpResponseHeader("content-type", response.get_m_content_type());
 	else if (method == "POST")
 		response
@@ -1181,10 +1182,10 @@ Server::makeResponseMessage(
 	return (
 		response
 			.setStatusCode(status_code)
-			.setCurrentDate(date_hour, date_minute, date_second)
 			.setFileDocument(path)
 			.setContentLanguage(content_language)
 			.setServer(server)
+			.setCurrentDate(date_hour, date_minute, date_second)
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
@@ -1214,31 +1215,44 @@ Server::makeResponseBodyMessage(
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
 
-	if (content_type != "image/gif" || content_type != "image/jpeg"
-	|| content_type != "image/png" || content_type != "image/x-icon")
+	if (referer != ""
+	&& (content_type != "image/gif" || content_type != "image/jpeg"
+	|| content_type != "image/png" || content_type != "image/x-icon"))
 		response.setHttpResponseHeader("referer", referer);
 
-	if (method == "GET")
-		response.setHttpResponseHeader("last-modified", response.get_m_date());
+	if (method == "HEAD")
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
+	else if (method == "GET")
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("last-modified", ft::getDateTimestamp(0, 0, 0))
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
 	else if (method == "POST")
-		response.setHttpResponseHeader("content-location", content_location);
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("content-location", content_location)
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
 	else if (method == "PUT")
 		response.setHttpResponseHeader("content-location", content_location);
 	else if (method == "OPTIONS")
 		response.setHttpResponseHeader("allow", allow_method);
+	else if (method == "TRACE")
+		response
+			.setContentType(content_type)
+			.setHttpResponseHeader("content-type", response.get_m_content_type());
 
 	return (
 		response
 			.setStatusCode(status_code)
-			.setCurrentDate(date_hour, date_minute, date_second)
 			.setContentLanguage(content_language)
-			.setContentType(content_type)
 			.setServer(server)
 			.setBodyDocument(body)
+			.setCurrentDate(date_hour, date_minute, date_second)
 			.setHttpResponseHeader("date", response.get_m_date())
 			.setHttpResponseHeader("content-length", std::to_string(response.get_m_content_length()))
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
-			.setHttpResponseHeader("content-type", response.get_m_content_type())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
 			.makeHttpResponseMessage(method)
@@ -1280,7 +1294,7 @@ Server::parseErrorResponse(int clientfd)
 {
 	int status_code(this->m_requests[clientfd].get_m_error_code());
 	return (
-		Server::makeResponseBodyMessage(status_code, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer())
+		Server::makeResponseBodyMessage(status_code, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
 	);
 }
 
@@ -1289,9 +1303,9 @@ Server::checkValidRequestHeader(int clientfd)
 {
 	/* If request has no Host Header */
 	if (this->m_requests[clientfd].get_m_uri().get_m_host() == "")
-		return (Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer()));
+		return (Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer()));
 	return (
-		Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer())
+		Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
 	);
 }
 
@@ -1345,7 +1359,7 @@ Server::sendResponse(int clientfd)
 			response = this->methodOPTIONS(clientfd);
 			break;
 		default:
-			response = Server::makeResponseBodyMessage(405, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].get_m_referer());
+			response = Server::makeResponseBodyMessage(405, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer());
 			break;
 		}
 	}
