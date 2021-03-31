@@ -114,6 +114,7 @@ class Server
 		bool checkAcceptedMethod(std::vector<Method> v, Method method);
 		std::string checkHttpConfigFilePath(std::string path_in);
 		void resetRequest(Request *req);
+
 		void writeLog(std::string type, Response response);
 
 		/* HEAD */

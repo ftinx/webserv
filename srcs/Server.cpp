@@ -476,8 +476,8 @@ Server::writeLog(std::string type, Response response)
 {
 	int fd;
 	static int start = 1;
-	static int cnt_request = 1;
-	static int cnt_response = 1;
+	static int cnt_request = 0;
+	static int cnt_response = 0;
 	std::string path;
 
 	path += this->m_root
@@ -500,7 +500,7 @@ Server::writeLog(std::string type, Response response)
 	if (type.compare("request") == 0)
 	{
 		ft::putstr_fd("\n---------- REQUEST MESSAGE [", fd);
-		ft::putnbr_fd(cnt_request++, fd);
+		ft::putnbr_fd(++cnt_request, fd);
 		ft::putstr_fd("] [ ", fd);
 		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
 		ft::putendl_fd(" ] ----------", fd);
@@ -510,7 +510,7 @@ Server::writeLog(std::string type, Response response)
 	else if (type.compare("response") == 0)
 	{
 		ft::putstr_fd("\n########## RESPONSE MESSAGE [", fd);
-		ft::putnbr_fd(cnt_response++, fd);
+		ft::putnbr_fd(++cnt_response, fd);
 		ft::putstr_fd("] [ ", fd);
 		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
 		ft::putendl_fd("] ##########", fd);
@@ -645,12 +645,22 @@ Server::makeAutoindexPage(std::string root, std::string path)
 Response
 Server::methodGET(int clientfd, std::string method)
 {
-	Response response;
-	std::string absolute_path(this->m_requests[clientfd].get_m_reset_path());
-	HttpConfigLocation location_block(this->m_requests[clientfd].get_m_location_block());
+	// Response res;
+	Request &req(this->m_requests[clientfd]);
+	std::string absolute_path(req.get_m_reset_path());
+	HttpConfigLocation location_block(req.get_m_location_block());
 	std::string type;
 	std::string extension;
 
+	// std::map<std::string, std::string> headers = req.get_m_headers();
+	// std::map<std::string, std::string>::const_iterator header_it = headers.find("Authorization");
+	// if (header_it != req.get_m_headers().end())
+	// {
+	// 	std::vector<std::string> tmp = ft::split((*header_it).second, ' ');
+	// 	std::vector<std::string> idpwd = ft::split(ft::decode(tmp.back()), ':');
+	// 	std::string id = idpwd.front();
+	// 	std::string pwd = idpwd.back();
+	// }
 	if (ft::isValidDirPath(absolute_path)) // 폴더라면
 	{
 		if (absolute_path.find("/", absolute_path.length() - 1) == std::string::npos)
@@ -663,14 +673,14 @@ Server::methodGET(int clientfd, std::string method)
 			{
 				extension = (*index_it).substr((*index_it).find_last_of(".") + 1, std::string::npos);
 				type = getMimeType(extension);
-				return (Server::makeResponseMessage(200, absolute_path + *index_it, "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer())); // 200 응답과 반환
+				return (Server::makeResponseMessage(200, absolute_path + *index_it, "", req.getAcceptLanguage(), method, type, req.get_m_referer())); // 200 응답과 반환
 			}
 		}
 		std::map<std::string, bool>::const_iterator autoindex_it;
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it)
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true)
-				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", this->m_requests[clientfd].getAcceptLanguage(), method, this->m_requests[clientfd].get_m_referer()));
+				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, req.get_m_referer()));
 		}
 	}
 	else // 폴더가 아니라면
@@ -681,16 +691,16 @@ Server::methodGET(int clientfd, std::string method)
 			type = getMimeType(extension);
 			if (type.compare(0, 5, "image") == 0)
 			{
-				return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
+				return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.get_m_referer()));
 			}
-			return (Server::makeResponseMessage(200, absolute_path, "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
+			return (Server::makeResponseMessage(200, absolute_path, "", req.getAcceptLanguage(), method, type, req.get_m_referer()));
 			// if (type == "image/jpeg")
 			// 	return Server::makeResponseBodyMessage(200, "iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAIAAAAP3aGbAAAJsklEQVR4nOzdvY8cZwHH8Wdfbs+Jz5zPCcZBjiWwiQMkcYFAAiFEoCA0FCQUVDQUiCZSFNHQIF46/gKEaAIFdEhRIiS6AEICOaJwiIXiS5zEjl8Sv5zvzfsyyCYKkbK7vpvbje/n+3zkwtrVzY7Xc999duaZmfaTx9cKQILm7V4BgI0SLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCGYAExBAuIIVhADMECYggWEEOwgBiCBcQQLCCG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", "image/jpeg", method, type);
-			return (Server::makeResponseMessage(200, absolute_path, "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
+			return (Server::makeResponseMessage(200, absolute_path, "", req.getAcceptLanguage(), method, type, req.get_m_referer()));
 		}
 	}
 	type = getMimeType("html");
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, type, this->m_requests[clientfd].get_m_referer()));
+	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, type, req.get_m_referer()));
 }
 
 /*============================================================================*/
@@ -1260,6 +1270,8 @@ Server::makeResponseMessage(
 
 	if (status_code == 301 || status_code == 503)
 		response.setHttpResponseHeader("retry-after", "10");
+	if (status_code == 401)
+		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
 
