@@ -10,7 +10,7 @@ Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
 m_reset_path(""), m_location_block(), m_path_translated(""), m_path_info(""),
-m_content_type("")
+m_content_type(""), m_referer("")
 {
 }
 
@@ -37,6 +37,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_path_translated = rhs.get_m_path_translated();
 	this->m_path_info = rhs.get_m_path_info();
 	this->m_content_type = rhs.get_m_content_type();
+	this->m_referer = rhs.get_m_referer();
 	return (*this);
 }
 
@@ -241,6 +242,21 @@ Request::getContentType()
 	if (it == this->m_headers.end())
 		return ("text/html");
 	return (it->second);
+}
+
+std::string
+Request::getReferer()
+{
+	/* m_referer exist */
+	if (this->m_referer != "")
+		return (this->m_referer);
+	std::map<std::string, std::string>::const_iterator it;
+	it = this->m_headers.find("Referer");
+	/* `Referer` header not exist */
+	if (it == this->m_headers.end())
+		return ("");
+	std::cout << it->second << std::endl;
+	return (this->m_referer = it->second);
 }
 
 std::string
