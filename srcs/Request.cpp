@@ -435,14 +435,22 @@ Request::parseRequestLine(std::string request_line)
 bool
 Request::parseHeader(std::string line)
 {
-	std::vector<std::string> key_value = ft::split(line, ':');
+	std::vector<std::string> key_value;
 
+	size_t pos = line.find_first_of(":");
+
+	if (pos == std::string::npos)
+	{
+		this->m_error_code = 400;
+		return (false);
+	}
+	key_value.push_back(line.substr(0, pos));
+	key_value.push_back(line.substr(pos + 1, std::string::npos));
 	if (key_value.size() < 2)
 	{
 		this->m_error_code = 400;
 		return (false);
 	}
-
 	int key_len = key_value[0].length();
 	if (key_len == 0 || key_value[0][key_len - 1] == ' ')
 	{
