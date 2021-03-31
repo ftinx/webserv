@@ -977,6 +977,7 @@ Server::methodPOST(int clientfd, std::string method)
 		{
 			std::cerr << e.what() << std::endl;
 		}
+	}
 	return (response);
 }
 
