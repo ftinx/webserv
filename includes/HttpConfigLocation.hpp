@@ -16,6 +16,7 @@ class HttpConfigLocation
 		bool m_autoindex;
 		std::string m_auth_basic;
 		std::string m_auth_basic_user_file;
+		int m_limit_body_size;
 
 	public:
 		HttpConfigLocation();
@@ -33,6 +34,7 @@ class HttpConfigLocation
 		bool get_m_autoindex() const;
 		std::string get_m_auth_basic() const;
 		std::string get_m_auth_basic_user_file() const;
+		int get_m_limit_body_size() const;
 
 		/* setter */
 		void set_m_root(std::string root);

@@ -13,7 +13,8 @@ HttpConfigLocation::HttpConfigLocation():
 	m_cgi_path(""),
 	m_autoindex(false),
 	m_auth_basic(""),
-	m_auth_basic_user_file("")
+	m_auth_basic_user_file(""),
+	m_limit_body_size(1048567)
 {
 }
 
@@ -33,6 +34,8 @@ HttpConfigLocation::operator=(HttpConfigLocation const &rhs)
 	m_cgi_path = rhs.m_cgi_path;
 	m_autoindex = rhs.m_autoindex;
 	m_auth_basic = rhs.m_auth_basic;
+	m_auth_basic_user_file = rhs.m_auth_basic_user_file;
+	m_limit_body_size = rhs.m_limit_body_size;
 	return (*this);
 }
 
@@ -98,6 +101,12 @@ std::string
 HttpConfigLocation::get_m_auth_basic_user_file() const
 {
 	return (this->m_auth_basic_user_file);
+}
+
+int
+HttpConfigLocation::get_m_limit_body_size() const
+{
+	return (this->m_limit_body_size);
 }
 
 /*============================================================================*/
@@ -225,6 +234,12 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 		else if (line.front().compare("auth_basic_user_file") == 0)
 		{
 			this->m_auth_basic_user_file = line.back();
+		}
+		else if (line.front().compare("limit_body_size") == 0)
+		{
+			this->m_limit_body_size = ft::stoi(line.back());
+			if (this->m_limit_body_size == 0)
+				this->m_limit_body_size = INT_MAX;
 		}
 		else if (line.front().compare("}") == 0)
 		{
