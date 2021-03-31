@@ -10,7 +10,7 @@ Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
 m_reset_path(""), m_location_block(), m_path_translated(""), m_path_info(""),
-m_content_type("")
+m_content_type(""), m_referer("")
 {
 }
 
@@ -37,6 +37,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_path_translated = rhs.get_m_path_translated();
 	this->m_path_info = rhs.get_m_path_info();
 	this->m_content_type = rhs.get_m_content_type();
+	this->m_referer = rhs.get_m_referer();
 	return (*this);
 }
 
@@ -174,6 +175,12 @@ Request::set_m_method(Method method)
 }
 
 void
+Request::set_m_body(std::string body)
+{
+	this->m_body = body;
+}
+
+void
 Request::set_m_error_code(int error_code)
 {
 	this->m_error_code = error_code;
@@ -238,6 +245,21 @@ Request::getContentType()
 }
 
 std::string
+Request::getReferer()
+{
+	/* m_referer exist */
+	if (this->m_referer != "")
+		return (this->m_referer);
+	std::map<std::string, std::string>::const_iterator it;
+	it = this->m_headers.find("Referer");
+	/* `Referer` header not exist */
+	if (it == this->m_headers.end())
+		return ("");
+	std::cout << it->second << std::endl;
+	return (this->m_referer = it->second);
+}
+
+std::string
 Request::getAcceptLanguage()
 {
 	if (this->m_content_type != "")
@@ -280,7 +302,7 @@ Request::getAcceptLanguage()
 }
 
 bool
-Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
+Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::string *buff)
 {
 	static int content_length = -1;
 	size_t pos;
@@ -293,6 +315,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) != std::string::npos)
 	{
 		this->m_message = this->m_message.substr(0, pos + 5);
+		*buff = this->m_message.substr(pos + 5, std::string::npos);
 		std::cout << "CASE 1" << std::endl;
 		return (true);
 	}
@@ -317,6 +340,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 	if (content_length >= 0 && content_length <= body_bytes)
 	{
 		this->m_message = this->m_message.substr(0, header_bytes + content_length);
+		*buff = this->m_message.substr(header_bytes + content_length, std::string::npos);
 		std::cout << "CASE 2" << std::endl;
 		return (true);
 	}
@@ -324,6 +348,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 	{
 		std::cout << m_message << std::endl;
 		this->m_message = this->m_message.substr(0, pos);
+		*buff = this->m_message.substr(pos, std::string::npos);
 		std::cout << "CASE 3" << std::endl;
 		return (true);
 	}
@@ -333,6 +358,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes)
 bool
 Request::getMessage(int fd)
 {
+	static std::string buff("");
 	bool found_break_line = false;
 	bool chunked = false;
 	int ret;
@@ -340,7 +366,7 @@ Request::getMessage(int fd)
 	int body_bytes = 0;
 	char recvline[MAXLINE + 1];
 
-	m_message = "";
+	this->m_message = buff;
 	while ((ret = recv(fd, recvline, MAXLINE - 1, 0)) > 0)
 	{
 		recvline[ret] = '\0';
@@ -358,7 +384,7 @@ Request::getMessage(int fd)
 			else
 				body_bytes += ret;
 		}
-		if (isBreakCondition(&chunked, body_bytes, header_bytes))
+		if (isBreakCondition(&chunked, body_bytes, header_bytes, &buff))
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
@@ -418,6 +444,16 @@ Request::parseRequestLine(std::string request_line)
 	this->m_uri.set_m_uri(pieces[1]);
 	this->m_http_version = pieces[2];
 
+	if (this->m_uri.get_m_uri().size() > 8000)
+	{
+		this->m_error_code = 414;
+		return (false);
+	}
+	if (this->m_http_version != "HTTP/1.1")
+	{
+		this->m_error_code = 505;
+		return (false);
+	}
 	if (checkMethod() == false)
 	{
 		this->m_error_code = 501;
@@ -434,14 +470,22 @@ Request::parseRequestLine(std::string request_line)
 bool
 Request::parseHeader(std::string line)
 {
-	std::vector<std::string> key_value = ft::split(line, ':');
+	std::vector<std::string> key_value;
 
+	size_t pos = line.find_first_of(":");
+
+	if (pos == std::string::npos)
+	{
+		this->m_error_code = 400;
+		return (false);
+	}
+	key_value.push_back(line.substr(0, pos));
+	key_value.push_back(line.substr(pos + 1, std::string::npos));
 	if (key_value.size() < 2)
 	{
 		this->m_error_code = 400;
 		return (false);
 	}
-
 	int key_len = key_value[0].length();
 	if (key_len == 0 || key_value[0][key_len - 1] == ' ')
 	{

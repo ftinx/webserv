@@ -94,6 +94,58 @@
 			CGI 요청 보내기
 		</a>
 	</div>
+
+	<!-- __GET__ Accept-Language: ko -->
+	<div class="indexContainer">
+		<h1> Check List </h1>
+	</div>
+
+	<div class="bt2Container" onclick="getResponse('get_accept_language_ko', 'GET', '/', {'Accept-Language': 'ko'});">
+		<button>
+			GET 요청 보내기
+		</button>
+	</div>
+	<div class="bt2Container" onclick="removeText('get_accept_language_ko')">
+		<button>
+			Remove
+		</button>
+	</div>
+	<div class="indexContainer">
+		<h1> __GET__ Accept-Language: ko </h1>
+		<p id="get_accept_language_ko"></p>
+	</div>
+
+	<!-- __GET__ Accept-Language: en -->
+	<div class="bt2Container" onclick="getResponse('get_accept_language_en', 'GET', '/', {'Accept-Language': 'en'});">
+		<button>
+			GET 요청 보내기
+		</button>
+	</div>
+	<div class="bt2Container" onclick="removeText('get_accept_language_en')">
+		<button>
+			Remove
+		</button>
+	</div>
+	<div class="indexContainer">
+		<h1> __GET__ Accept-Language: en </h1>
+		<p id="get_accept_language_en"></p>
+	</div>
+
+	<!-- __POST__ Content-Type: en -->
+	<div class="bt2Container" onclick="postResponse('post_directory_youpiBanane_aa_bla', 'POST', '/directory/youpi.bla', {'Accept-Language': 'en',}, 'aaaaa');">
+		<button>
+			POST 요청 보내기
+		</button>
+	</div>
+	<div class="bt2Container" onclick="removeText('post_directory_youpiBanane_aa_bla')">
+		<button>
+			Remove
+		</button>
+	</div>
+	<div class="indexContainer">
+		<h1> __POST__ /directory/youpi.bla </h1>
+		<p id="post_directory_youpiBanane_aa_bla"></p>
+	</div>
 	<script type="text/javascript" src="script.js"></script>
 </body>
 </html>
