@@ -11,7 +11,9 @@ HttpConfigLocation::HttpConfigLocation():
 	m_index(),
 	m_cgi(),
 	m_cgi_path(""),
-	m_autoindex(false)
+	m_autoindex(false),
+	m_auth_basic(""),
+	m_auth_basic_user_file("")
 {
 }
 
@@ -30,6 +32,7 @@ HttpConfigLocation::operator=(HttpConfigLocation const &rhs)
 	m_cgi = rhs.m_cgi;
 	m_cgi_path = rhs.m_cgi_path;
 	m_autoindex = rhs.m_autoindex;
+	m_auth_basic = rhs.m_auth_basic;
 	return (*this);
 }
 
@@ -83,6 +86,18 @@ bool
 HttpConfigLocation::get_m_autoindex() const
 {
 	return (this->m_autoindex);
+}
+
+std::string
+HttpConfigLocation::get_m_auth_basic() const
+{
+	return (this->m_auth_basic);
+}
+
+std::string
+HttpConfigLocation::get_m_auth_basic_user_file() const
+{
+	return (this->m_auth_basic_user_file);
 }
 
 /*============================================================================*/
@@ -202,6 +217,14 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 				this->m_autoindex = true;
 			else
 				this->m_autoindex = false;
+		}
+		else if (line.front().compare("auth_basic") == 0)
+		{
+			this->m_auth_basic = line.back();
+		}
+		else if (line.front().compare("auth_basic_user_file") == 0)
+		{
+			this->m_auth_basic_user_file = line.back();
 		}
 		else if (line.front().compare("}") == 0)
 		{

@@ -14,6 +14,8 @@ class HttpConfigLocation
 		std::vector<std::string> m_cgi;
 		std::string m_cgi_path;
 		bool m_autoindex;
+		std::string m_auth_basic;
+		std::string m_auth_basic_user_file;
 
 	public:
 		HttpConfigLocation();
@@ -29,6 +31,8 @@ class HttpConfigLocation
 		std::vector<std::string> get_m_cgi() const;
 		std::string get_m_cgi_path() const;
 		bool get_m_autoindex() const;
+		std::string get_m_auth_basic() const;
+		std::string get_m_auth_basic_user_file() const;
 
 		/* setter */
 		void set_m_root(std::string root);
