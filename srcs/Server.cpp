@@ -520,6 +520,54 @@ Server::writeLog(std::string type, Response response)
 	close(fd);
 }
 
+bool
+Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, std::string auth_file_path)
+{
+	// client가 보낸 auth 값 유효성 체크, id/pwd로 나눠놓기
+	std::string auth_value_decode = ft::decode(auth_value);
+	if (auth_value_decode.find(":") == std::string::npos)
+		return (false);
+	std::vector<std::string> idpwd_client = ft::split(auth_value_decode, ':');
+	std::string id_client = idpwd_client.front();
+	idpwd_client.erase(idpwd_client.begin());
+	std::string pwd_client = idpwd_client.front();
+
+	// client가 보낸 아이디가 config파일의 auth_basic과 일치하지 않으면 에러
+	bool is_auth_basic_match = false;
+	std::vector<std::string>::const_iterator auth_basic_it;
+	for (auth_basic_it = auth_basic.begin() ; auth_basic_it != auth_basic.end() ; ++auth_basic_it)
+	{
+		if ((*auth_basic_it).compare(id_client) == 0)
+		{
+			is_auth_basic_match = true;
+			break ;
+		}
+	}
+	if (is_auth_basic_match == false)
+		return (false);
+
+	// 인증파일 존재하지 않으면 에러
+	if (ft::isValidFilePath(auth_file_path) == false)
+		return (false);
+
+	// .htpasswd 파일 순회하며 client id, pwd와 비교, 일치하면 인증성공
+	std::vector<std::string> idpwds = ft::split(ft::fileToString(auth_file_path), '\n');
+	std::vector<std::string>::const_iterator idpwds_it;
+	for (idpwds_it = idpwds.begin() ; idpwds_it != idpwds.end() ; ++idpwds_it)
+	{
+		std::string decode = ft::decode(*idpwds_it);
+		if (decode.find(":") == std::string::npos)
+			return (false);
+		std::vector<std::string> idpwd_server = ft::split(decode, ':');
+		std::string id_server = idpwd_server.front();
+		idpwd_server.erase(idpwd_server.begin());
+		std::string pwd_server = idpwd_server.front();
+		if ((id_server.compare(id_client) == 0) && (pwd_server.compare(pwd_client) == 0))
+			return (true);
+	}
+	return (false);
+}
+
 /*============================================================================*/
 /*********************************  HEAD  *************************************/
 /*============================================================================*/
@@ -643,54 +691,6 @@ Server::makeAutoindexPage(std::string root, std::string path)
 // 	}
 // 	return (true);
 // }
-
-bool
-checkAuth(std::string auth_value, std::vector<std::string> auth_basic, std::string auth_file_path)
-{
-	// client가 보낸 auth 값 유효성 체크, id/pwd로 나눠놓기
-	std::string auth_value_decode = ft::decode(auth_value);
-	if (auth_value_decode.find(":") == std::string::npos)
-		return (false);
-	std::vector<std::string> idpwd_client = ft::split(auth_value_decode, ':');
-	std::string id_client = idpwd_client.front();
-	idpwd_client.erase(idpwd_client.begin());
-	std::string pwd_client = idpwd_client.front();
-
-	// client가 보낸 아이디가 config파일의 auth_basic과 일치하지 않으면 에러
-	bool is_auth_basic_match = false;
-	std::vector<std::string>::const_iterator auth_basic_it;
-	for (auth_basic_it = auth_basic.begin() ; auth_basic_it != auth_basic.end() ; ++auth_basic_it)
-	{
-		if ((*auth_basic_it).compare(id_client) == 0)
-		{
-			is_auth_basic_match = true;
-			break ;
-		}
-	}
-	if (is_auth_basic_match == false)
-		return (false);
-
-	// 인증파일 존재하지 않으면 에러
-	if (ft::isValidFilePath(auth_file_path) == false)
-		return (false);
-
-	// .htpasswd 파일 순회하며 client id, pwd와 비교, 일치하면 인증성공
-	std::vector<std::string> idpwds = ft::split(ft::fileToString(auth_file_path), '\n');
-	std::vector<std::string>::const_iterator idpwds_it;
-	for (idpwds_it = idpwds.begin() ; idpwds_it != idpwds.end() ; ++idpwds_it)
-	{
-		std::string decode = ft::decode(*idpwds_it);
-		if (decode.find(":") == std::string::npos)
-			return (false);
-		std::vector<std::string> idpwd_server = ft::split(decode, ':');
-		std::string id_server = idpwd_server.front();
-		idpwd_server.erase(idpwd_server.begin());
-		std::string pwd_server = idpwd_server.front();
-		if ((id_server.compare(id_client) == 0) && (pwd_server.compare(pwd_client) == 0))
-			return (true);
-	}
-	return (false);
-}
 
 Response
 Server::methodGET(int clientfd, std::string method)
