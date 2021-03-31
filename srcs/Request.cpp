@@ -430,6 +430,11 @@ Request::parseRequestLine(std::string request_line)
 		this->m_error_code = 414;
 		return (false);
 	}
+	if (this->m_http_version != "HTTP/1.1")
+	{
+		this->m_error_code = 505;
+		return (false);
+	}
 	if (checkMethod() == false)
 	{
 		this->m_error_code = 501;
