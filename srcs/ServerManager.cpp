@@ -149,7 +149,7 @@ ServerManager::runServers()
 
 	while (42)
 	{
-		//printf("---Select Wait %d---\n", this->m_maxfd);
+		// printf("---Select Wait %d---\n", this->m_maxfd);
 		this->m_read_fds = this->m_main_fds;
 		this->m_copy_write_fds = this->m_write_fds;
 

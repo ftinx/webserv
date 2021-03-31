@@ -107,7 +107,7 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 			this->m_default_error_page = line.back();
 		}
 		else if (line.front().compare("content_length") == 0)
-			this->m_content_length = stoi(line.back());
+			this->m_content_length = ft::stoi(line.back());
 		else if (line.front().compare("location") == 0)
 		{
 			location_block_exist = true;
