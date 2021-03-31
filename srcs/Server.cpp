@@ -766,7 +766,6 @@ Server::makeCgiEnvp(Request req, Response res)
 Response
 Server::executeCgi(Request req, Response res, std::string method)
 {
-	(void) req;
 	(void) method;
 	/* Setting execve parameters */
 	char** envp = Server::makeCgiEnvp(req, res);
@@ -779,8 +778,6 @@ Server::executeCgi(Request req, Response res, std::string method)
 	Response response(res);
 
 	int fds1[2], fds2[2];
-	// char str1[] = "Who are you?";
-	// char str2[] = "Thank you for your message";
 	char buf[1025];
 	pid_t pid;
 	int ret;
@@ -792,38 +789,46 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int cgi_stdin = fds2[0];
 	int cgi_stdout = fds1[1];
 
-	write(parent_write, "payload", 7);
-
-	pid=fork();
 	std::cout << "Execute Cgi >0<" << std::endl;
+	pid=fork();
 
 	if (pid == 0)
 	{
 		close(parent_write);
 		close(parent_read);
-		dup2(cgi_stdin, STDIN_FILENO);
-		dup2(cgi_stdout, STDOUT_FILENO);
 
-		// read(cgi_stdin, buf, 1024);
-		// write(cgi_stdout, "cgi", 3);
-		// printf("Child process output: %s\n", buf);
-		execve("/Users/holee/Desktop/webserv/cgi-bin/cgi_tester", new_argv, envp);
+		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
+			throw std::exception();
+		execve(req.get_m_path_translated().c_str(), new_argv, envp);
+		char buff[31];
+		read(cgi_stdin, buff, 30);
+		buff[30] = '\0';
+		write(cgi_stdout, buff, 30);
+		std::cout << "end execve" << std::endl;
+		exit(1);
 	}
 	else
 	{
+		int status;
+
 		close(cgi_stdout);
 		close(cgi_stdin);
+
+		/* should change size() to content-length */
+		std::cout << req.get_m_body() << std::endl;
+		write(parent_write, req.get_m_body().c_str(), req.get_m_body().size());
+		close(parent_write);
+
+		waitpid(pid, &status, 0);
 		memset(buf, 0, 1024);
-		write(parent_write, buf, 0);
-		// read(parent_read, buf, 30);
-		// printf("Parent process output: %s \n", buf);
-		memset(buf, 0, 1024);
-		while ( 0 < (ret = read(parent_read, buf, 1024)))
+		if (status == 0)
 		{
-			buf[ret] = '\0';
-			printf("%s\n", buf);
+			while ( 0 < (ret = read(parent_read, buf, 1024)))
+			{
+				buf[ret] = '\0';
+				printf("%s\n", buf);
+			}
 		}
-		sleep(3);
 	}
 
 	response = makeResponseBodyMessage(404);
