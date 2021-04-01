@@ -94,7 +94,6 @@ ServerManager::generateServer(
 	)
 {
 	Server server;
-	std::cout << server_name << std::endl;
 	server.init(
 		server_block, server_name, port, content_length,location_size, root, mime_types,
 		&maxfd, &main_fds, &read_fds, &write_fds, &copy_write_fds
