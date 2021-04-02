@@ -34,12 +34,14 @@ char *bin2hex(const unsigned char *input, size_t len)
 /******************************  Constructor  *********************************/
 /*============================================================================*/
 
-Server::Server(){};
+Server::Server()
+: m_fd_table()
+{}
 
 Server::Server(Server const &other)
 {
 	*this = other;
-};
+}
 
 Server& Server::operator=(Server const &rhs)
 {
@@ -76,16 +78,13 @@ Server& Server::operator=(Server const &rhs)
 	this->m_read_fds = rhs.m_read_fds;
 	this->m_write_fds = rhs.m_write_fds;
 	this->m_copy_write_fds = rhs.m_copy_write_fds;
-
-	/* cgi fd */
-	this->m_cgi_parent_write = rhs.m_cgi_parent_write;
-	this->m_cgi_parent_read = rhs.m_cgi_parent_read;
+	this->m_fd_table = rhs.m_fd_table;
 
 	/* Request, Response */
 	this->m_requests = rhs.m_requests;
 	this->m_responses = rhs.m_responses;
 	return (*this);
-};
+}
 
 /*============================================================================*/
 /******************************  Destructor  **********************************/
@@ -283,7 +282,7 @@ Server::acceptSocket()
 		std::cerr << "accept error" << std::endl;
 		return ;
 	}
-	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
+	m_fd_table.push_back(*ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
 
 	ft::fdSet(this->m_client_socket, this->m_main_fds);
 	if (this->m_client_socket > *this->m_maxfd)
@@ -343,9 +342,9 @@ Server::handleRequest(int clientfd)
 void
 Server::readProcess()
 {
-	std::vector<FDT>::const_iterator fd_iter;
+	std::vector<FDT>::const_iterator fd_iter = m_fd_table.begin();
 
-	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
+	while( fd_iter != m_fd_table.end())
 	{
 		int sockfd = fd_iter->sockfd;
 		if (ft::fdIsSet(sockfd, this->m_read_fds))
@@ -368,7 +367,7 @@ Server::readProcess()
 						printf("%s\n", buff);
 					}
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
-					this->m_fd_table.erase(fd_iter);
+					fd_iter = this->m_fd_table.erase(fd_iter);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 				}
 			}
@@ -384,6 +383,7 @@ Server::readProcess()
 				}
 				resetRequest(&this->m_requests[sockfd]);
 				handleRequest(sockfd);
+				fd_iter++;
 			}
 		}
 	}
@@ -412,6 +412,7 @@ Server::writeProcess()
 				{
 					pos += ret;
 				}
+				close(sockfd);
 				ft::fdClr(sockfd, this->m_write_fds);
 				this->m_fd_table.erase(fd_iter);
 			}
@@ -978,9 +979,8 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		close(cgi_stdin);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
-
-		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
-		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
+		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_write, clientfd));
+		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		ft::fdSet(parent_write, m_write_fds);
 		ft::fdSet(parent_read, m_main_fds);
 

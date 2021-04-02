@@ -620,10 +620,14 @@ isValidCharacter(char c)
 	return (std::isalnum(c) || (c == '+') || (c == '/'));
 }
 
-FDT
+FDT*
 makeFDT(enum FdType type, int sockfd, int clientfd)
 {
-	FDT fdt = {type, sockfd, clientfd};
+	FDT *fdt = new FDT;
+
+	fdt->type = type;
+	fdt->sockfd = sockfd;
+	fdt->clientfd = clientfd;
 
 	return (fdt);
 }
