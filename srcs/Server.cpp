@@ -793,6 +793,8 @@ Server::methodGET(int clientfd, std::string method)
 	{
 		if (ft::isValidFilePath(absolute_path))
 		{
+			if (absolute_path.find("/.", absolute_path.find_last_of("/") - 1, 2) != std::string::npos)
+				return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
 			// if (type.compare(0, 5, "image") == 0) //
 			// 	return (Server::makeResponseBodyMessage(200, this->m_server_name, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.getReferer()));
