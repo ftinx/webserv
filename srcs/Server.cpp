@@ -384,6 +384,7 @@ Server::readProcess()
 						body += std::string(buff);
 					}
 					this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
+					std::cout << "PARENT READ FD: " << fd_iter->sockfd << std::endl;
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					this->m_fd_table.erase(fd_iter);
@@ -393,15 +394,17 @@ Server::readProcess()
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
-				std::cout << "::1::"<<std::endl;
+				std::cout << "::1:: " << sockfd << " ::" <<std::endl;
 				this->m_requests[sockfd] = Request();
 				if (this->m_requests[sockfd].getMessage(sockfd) == false)
 				{
-					ft::fdClr(sockfd, this->m_main_fds);
-					this->m_fd_table.erase(fd_iter);
-					*m_maxfd = findMaxFd();
-					if (this->m_fd_table.size() <= 0)
-						return (false);
+					// std::cout << "XXXXXXX" << std::endl;
+					// ft::fdClr(sockfd, this->m_main_fds);
+					// this->m_fd_table.erase(fd_iter);
+					// *m_maxfd = findMaxFd();
+					// if (this->m_fd_table.size() <= 0)
+					// 	return (false);
+					return (false);
 				}
 				resetRequest(&this->m_requests[sockfd]);
 				handleRequest(sockfd);
@@ -443,8 +446,6 @@ Server::writeProcess()
 				if (sendResponse(sockfd) == true)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
-					// this->m_fd_table.erase(fd_iter);
-					// *m_maxfd = findMaxFd();
 					return (true);
 				}
 			}
@@ -616,7 +617,7 @@ Server::writeLog(std::string type, Response response)
 		ft::putstr_fd("] [ ", fd);
 		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
 		ft::putendl_fd(" ] ----------", fd);
-		//ft::putendl_fd(this->m_requests[this->m_sockfd].get_m_message().c_str(), fd);
+		// ft::putendl_fd(this->m_requests[this->m_sockfd].get_m_message().c_str(), fd);
 		ft::putendl_fd("---------------------------------------------------------------------------",fd);
 	}
 	else if (type.compare("response") == 0)
