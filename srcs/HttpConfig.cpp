@@ -299,6 +299,12 @@ HttpConfig::printConfigFileInfo()
 				std::cout << "on" << std::endl;
 			else
 				std::cout << "off" << std::endl;
+			std::cout << "auth basic : ";
+			for (size_t k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_auth_basic().size() ; k++)
+				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_auth_basic()[k] << " ";
+			std::cout << std::endl
+				<< "auth basic user file : " << this->m_server_block[i].get_m_location_block()[j].get_m_auth_basic_user_file() << std::endl;
+
 		}
 		std::cout << dash << std::endl
 			<< std::endl;
