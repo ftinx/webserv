@@ -339,7 +339,7 @@ Server::handleRequest(int clientfd)
 }
 
 
-void
+bool
 Server::readProcess()
 {
 	std::vector<FDT>::const_iterator fd_iter;
@@ -371,7 +371,7 @@ Server::readProcess()
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					this->m_fd_table.erase(fd_iter);
-					return;
+					return (true);
 				}
 			}
 			else if(fd_iter->type == C_SOCKET)
@@ -382,18 +382,18 @@ Server::readProcess()
 				{
 					ft::fdClr(this->m_sockfd, this->m_main_fds);
 					if (this->m_fd_table.size() <= 0)
-						break;
+						return (false);
 				}
 				resetRequest(&this->m_requests[sockfd]);
 				handleRequest(sockfd);
-				return;
+				return (true);
 			}
 		}
 	}
-	return ;
+	return (false);
 }
 
-void
+bool
 Server::writeProcess()
 {
 	std::vector<FDT>::const_iterator fd_iter;
@@ -418,7 +418,7 @@ Server::writeProcess()
 				ft::fdClr(sockfd, this->m_write_fds);
 				this->m_fd_table.erase(fd_iter);
 				*m_maxfd -= 1;
-				return;
+				return (true);
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -430,11 +430,11 @@ Server::writeProcess()
 					*m_maxfd -= 1;
 					//this->m_fd_table.erase(fd_iter);
 				}
-				return;
+				return (true);
 			}
 		}
 	}
-	return ;
+	return (false);
 }
 
 void
@@ -447,7 +447,8 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 	this->m_write_fds = write_fds;
 	this->m_maxfd = maxfd;
 
-	writeProcess();
+	if (writeProcess() == true)
+		return;
 	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
 	{
 		acceptSocket();
