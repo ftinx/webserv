@@ -111,6 +111,7 @@ class Server
 		/* Request */
 		void getRequest(fd_set *, fd_set *, fd_set *, fd_set *, int *);
 		void acceptSocket();
+		void handleRequest(int);
 		void readProcess();
 		void writeProcess();
 

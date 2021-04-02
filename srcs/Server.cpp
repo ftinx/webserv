@@ -293,6 +293,51 @@ Server::acceptSocket()
 }
 
 void
+Server::handleRequest(int clientfd)
+{
+	Method method = this->m_requests[clientfd].get_m_method();
+
+	this->m_responses[clientfd] = Response();
+	if (this->m_requests[clientfd].get_m_error_code())
+		this->m_responses[clientfd] = this->parseErrorResponse(clientfd);
+	else
+	{
+		/* make Response for Method */
+		switch(method)
+		{
+		case GET:
+			this->m_responses[clientfd] = this->methodGET(clientfd);
+			break;
+		case HEAD:
+			this->m_responses[clientfd] = this->methodHEAD(clientfd);
+			break;
+		case POST:
+			this->m_responses[clientfd] = this->methodPOST(clientfd);
+			// if (response.get_m_status_code() == 0)
+			// 	return (false);
+			break;
+		case PUT:
+			this->m_responses[clientfd] = this->methodPUT(clientfd);
+			break;
+		case DELETE:
+			this->m_responses[clientfd] = this->methodDELETE(clientfd);
+			break;
+		case TRACE:
+			this->m_responses[clientfd] = this->methodTRACE(clientfd);
+			break;
+		case OPTIONS:
+			this->m_responses[clientfd] = this->methodOPTIONS(clientfd);
+			break;
+		default:
+			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer());
+			break;
+		}
+	}
+	return ;
+}
+
+
+void
 Server::readProcess()
 {
 	std::vector< std::pair<FdType, int> >::const_iterator fd_iter;
@@ -317,6 +362,7 @@ Server::readProcess()
 						break;
 				}
 				resetRequest(&this->m_requests[this->m_sockfd]);
+				handleRequest(this->m_sockfd);
 				ft::fdSet(this->m_sockfd, this->m_write_fds);
 			}
 		}
@@ -1330,55 +1376,15 @@ Server::post(std::string path, Request req, Response res, Response (*func)(Reque
 bool
 Server::sendResponse(int clientfd)
 {
-	Response response = Response();
-	Method method = this->m_requests[clientfd].get_m_method();
-
-	/* make Response for Parse Error */
-	if (this->m_requests[clientfd].get_m_error_code())
-		response = this->parseErrorResponse(clientfd);
-	else
-	{
-		/* make Response for Method */
-		switch(method)
-		{
-		case GET:
-			response = this->methodGET(clientfd);
-			break;
-		case HEAD:
-			response = this->methodHEAD(clientfd);
-			break;
-		case POST:
-			response = this->methodPOST(clientfd);
-			// if (response.get_m_status_code() == 0)
-			// 	return (false);
-			break;
-		case PUT:
-			response = this->methodPUT(clientfd);
-			break;
-		case DELETE:
-			response = this->methodDELETE(clientfd);
-			break;
-		case TRACE:
-			response = this->methodTRACE(clientfd);
-			break;
-		case OPTIONS:
-			response = this->methodOPTIONS(clientfd);
-			break;
-		default:
-			response = Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer());
-			break;
-		}
-	}
-
 	// std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
 	// std::cout << response.get_m_reponse_message() << std::endl;
 
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
-	if (send(clientfd, response.get_m_reponse_message().c_str(), response.get_m_response_size(), 0) <= 0)
+	if (send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0) <= 0)
 	{
 		close(clientfd);
 		return (false);
 	}
-	writeLog("response", response);
+	writeLog("response", m_responses[clientfd]);
 	return (true);
 }
