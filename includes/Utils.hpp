@@ -96,7 +96,6 @@ namespace ft
 	bool checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list);
 	std::string getErrorMessage(int status_code);
 	FDT *makeFDT(enum FdType type, int sockfd, int clientfd);
-
 	std::string encode(const std::string &input);
 	std::string decode(const std::string &input);
 

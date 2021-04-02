@@ -18,6 +18,7 @@
 #include "HttpConfig.hpp"
 #include "HttpConfigLocation.hpp"
 #include "Utils.hpp"
+#include "signal.h"
 
 #define MAX_SOCK_NUM 1024
 #define MAXLINE 2048

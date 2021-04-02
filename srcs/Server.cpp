@@ -342,9 +342,9 @@ Server::handleRequest(int clientfd)
 void
 Server::readProcess()
 {
-	std::vector<FDT>::const_iterator fd_iter = m_fd_table.begin();
+	std::vector<FDT>::const_iterator fd_iter;
 
-	while( fd_iter != m_fd_table.end())
+	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
 	{
 		int sockfd = fd_iter->sockfd;
 		if (ft::fdIsSet(sockfd, this->m_read_fds))
@@ -357,7 +357,9 @@ Server::readProcess()
 				char buff[MAXLINE];
 				this->m_requests[fd_iter->clientfd] = Request();
 
+				std::cout << "BEFORE WAITING" << std::endl;
 				waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, 0);
+				std::cout << "AFTER WAITING" << std::endl;
 				ft::memset(buff, 0, MAXLINE);
 				if (status == 0)
 				{
@@ -367,8 +369,9 @@ Server::readProcess()
 						printf("%s\n", buff);
 					}
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
-					fd_iter = this->m_fd_table.erase(fd_iter);
+					this->m_fd_table.erase(fd_iter);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					return;
 				}
 			}
 			else if(fd_iter->type == C_SOCKET)
@@ -383,7 +386,7 @@ Server::readProcess()
 				}
 				resetRequest(&this->m_requests[sockfd]);
 				handleRequest(sockfd);
-				fd_iter++;
+				return;
 			}
 		}
 	}
@@ -406,15 +409,18 @@ Server::writeProcess()
 				std::cout << "::2::"<<std::endl;
 				std::string body = this->m_requests[fd_iter->clientfd].get_m_body();
 				char *buff = (char *)body.c_str();
+
 				int ret;
 				int pos = 0;
-				while ((ret = write(sockfd, &buff[pos], MAXLINE - 1)) > 0)
+				while ((ret = write(sockfd, buff, 10)) > 0)
 				{
 					pos += ret;
 				}
+				std::cout << "SOCK FD " << sockfd << std::endl;
 				close(sockfd);
 				ft::fdClr(sockfd, this->m_write_fds);
 				this->m_fd_table.erase(fd_iter);
+				return;
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -425,6 +431,7 @@ Server::writeProcess()
 					ft::fdClr(sockfd, this->m_write_fds);
 					//this->m_fd_table.erase(fd_iter);
 				}
+				return;
 			}
 		}
 	}
@@ -434,9 +441,10 @@ Server::writeProcess()
 void
 Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, fd_set *write_fds, int *maxfd)
 {
+	(void)copy_write_fds;
 	this->m_main_fds = main_fds;
 	this->m_read_fds = read_fds;
-	this->m_copy_write_fds = copy_write_fds;
+	this->m_copy_write_fds = write_fds;
 	this->m_write_fds = write_fds;
 	this->m_maxfd = maxfd;
 
@@ -949,23 +957,30 @@ Server::executeCgi(Request req, Response res, int clientfd)
 
 	std::cout << "Execute Cgi >0<" << std::endl;
 	pid = fork();
-	req.set_m_cgi_pid(pid);
 
 	if (pid == 0) // child process
 	{
+		req.set_m_cgi_pid(pid);
 		close(parent_write);
 		close(parent_read);
-		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
-			throw Server::CgiException();
+		// if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
+		// 	throw Server::CgiException();
+
+		int ret;
+		char buff[MAXLINE];
+		while ((ret = read(cgi_stdin, buff, MAXLINE-1) > 0))
+		{
+			std::cout << "ON THE LOOP" << std::endl;
+		}
 		if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 			throw Server::CgiException();
 
-		/* read from parent process */
+		// /* read from parent process */
 		// char buff[31];
 		// read(cgi_stdin, buff, 30);
 		// buff[30] = '\0';
 
-		/* write to parent process */
+		// /* write to parent process */
 		// write(cgi_stdout, buff, 30);
 		// std::cout << "end execve" << std::endl;
 		exit(EXIT_SUCCESS);
@@ -979,10 +994,12 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		close(cgi_stdin);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
+		std::cout << "PARENT WRITE FD " << parent_write << std::endl;
 		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_write, clientfd));
 		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		ft::fdSet(parent_write, m_write_fds);
 		ft::fdSet(parent_read, m_main_fds);
+		*m_maxfd += 2;
 
 
 		// /* write to cgi process */
