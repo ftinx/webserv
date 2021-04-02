@@ -333,6 +333,7 @@ Server::handleRequest(int clientfd)
 	}
 	if (this->m_responses[clientfd].get_m_status_code() != 0)
 	{
+		std::cout << "STATUS CODE: " << this->m_responses[clientfd].get_m_status_code() ;
 		ft::fdSet(clientfd, m_write_fds);
 	}
 	return ;
@@ -366,6 +367,8 @@ Server::readProcess()
 						buff[ret] = '\0';
 						printf("%s\n", buff);
 					}
+					ft::fdClr(fd_iter->sockfd, m_main_fds);
+					this->m_fd_table.erase(fd_iter);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 				}
 			}
@@ -375,8 +378,7 @@ Server::readProcess()
 				this->m_requests[sockfd] = Request();
 				if (this->m_requests[sockfd].getMessage(sockfd) == false)
 				{
-					ft::fdClr(sockfd, this->m_main_fds);
-					this->m_fd_table.erase(fd_iter);
+					ft::fdClr(this->m_sockfd, this->m_main_fds);
 					if (this->m_fd_table.size() <= 0)
 						break;
 				}
@@ -418,10 +420,10 @@ Server::writeProcess()
 				std::cout << "::4::"<<std::endl;
 				if (sendResponse(sockfd) == true)
 				{
+					std::cout << "ERASE " <<sockfd << " FD" << std::endl;
 					ft::fdClr(sockfd, this->m_write_fds);
-					this->m_fd_table.erase(fd_iter);
+					//this->m_fd_table.erase(fd_iter);
 				}
-				// FD_CLR(this->sockfd, main_fds);
 			}
 		}
 	}

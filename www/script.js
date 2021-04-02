@@ -61,10 +61,12 @@ function getResponse(element_id, method, path, headers) {
 		});
 		res_headers += "\r\n\r\n"
 		document.getElementById(element_id).innerText += res_headers;
+		console.log(res_headers);
 		return res.text()
 	}
 
 	function getBody(data) {
+		console.log(data);
 		document.getElementById(element_id).innerText += data;
 	}
 }
