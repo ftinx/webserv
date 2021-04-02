@@ -599,7 +599,6 @@ Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, s
 	if (is_auth_basic_match == false)
 		return (false);
 	// 인증파일 존재하지 않으면 에러
-	std::cout << "---------authfilepath" << auth_file_path << std::endl;
 	if (ft::isValidFilePath(auth_file_path) == false)
 		return (false);
 
