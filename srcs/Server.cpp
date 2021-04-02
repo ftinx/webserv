@@ -265,6 +265,19 @@ Server::closeServer()
 /*******************************  Request  ************************************/
 /*============================================================================*/
 
+int
+Server::findMaxFd()
+{
+	std::vector<FDT>::const_iterator fd_iter;
+	int ret = 0;
+
+	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
+	{
+		ret = std::max(ret, fd_iter->sockfd);
+	}
+	return (ret);
+}
+
 void
 Server::acceptSocket()
 {
@@ -334,6 +347,7 @@ Server::handleRequest(int clientfd)
 	{
 		std::cout << "STATUS CODE: " << this->m_responses[clientfd].get_m_status_code();
 		ft::fdSet(clientfd, m_write_fds);
+		*m_maxfd = findMaxFd();
 	}
 	return ;
 }
@@ -374,6 +388,7 @@ Server::readProcess()
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					this->m_fd_table.erase(fd_iter);
+					*m_maxfd = findMaxFd();
 					return (true);
 				}
 			}
@@ -383,9 +398,10 @@ Server::readProcess()
 				this->m_requests[sockfd] = Request();
 				if (this->m_requests[sockfd].getMessage(sockfd) == false)
 				{
-					// ft::fdClr(this->m_sockfd, this->m_main_fds);
-					// *m_maxfd -= 1;
-					// if (this->m_fd_table.size() <= 0)
+					ft::fdClr(sockfd, this->m_main_fds);
+					this->m_fd_table.erase(fd_iter);
+					*m_maxfd = findMaxFd();
+					if (this->m_fd_table.size() <= 0)
 						return (false);
 				}
 				resetRequest(&this->m_requests[sockfd]);
@@ -419,7 +435,7 @@ Server::writeProcess()
 				close(sockfd);
 				ft::fdClr(sockfd, this->m_write_fds);
 				this->m_fd_table.erase(fd_iter);
-				*m_maxfd -= 1;
+				*m_maxfd = findMaxFd();
 				return (true);
 			}
 			if(fd_iter->type == C_SOCKET)
@@ -427,12 +443,11 @@ Server::writeProcess()
 				std::cout << "::4::"<<std::endl;
 				if (sendResponse(sockfd) == true)
 				{
-					std::cout << "ERASE " <<sockfd << " FD" << std::endl;
 					ft::fdClr(sockfd, this->m_write_fds);
-					// *m_maxfd -= 1;
-					//this->m_fd_table.erase(fd_iter);
+					// this->m_fd_table.erase(fd_iter);
+					// *m_maxfd = findMaxFd();
+					return (true);
 				}
-				return (true);
 			}
 			return (false);
 		}
@@ -1004,8 +1019,9 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		ft::fdSet(parent_write, m_write_fds);
 		ft::fdSet(parent_read, m_main_fds);
-		*m_maxfd = std::max(*m_maxfd, parent_write);
-		*m_maxfd = std::max(*m_maxfd, parent_read);
+		// *m_maxfd = std::max(*m_maxfd, parent_write);
+		// *m_maxfd = std::max(*m_maxfd, parent_read);
+		*m_maxfd = findMaxFd();
 		std::cout << "MAX FD: " << *m_maxfd << std::endl;
 	}
 	(void)clientfd;

@@ -107,6 +107,7 @@ class Server
 
 		/* Request */
 		void getRequest(fd_set *, fd_set *, fd_set *, fd_set *, int *);
+		int findMaxFd();
 		void acceptSocket();
 		void handleRequest(int);
 		bool readProcess();
