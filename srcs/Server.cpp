@@ -296,7 +296,6 @@ Server::acceptSocket()
 		return ;
 	}
 	m_fd_table.push_back(*ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
-
 	ft::fdSet(this->m_client_socket, this->m_main_fds);
 	if (this->m_client_socket > *this->m_maxfd)
 		*(this->m_maxfd) = this->m_client_socket;
