@@ -134,7 +134,7 @@ ServerManager::runServers()
 	int fd_num = 0;
 
 	struct timeval timeout;
-	timeout.tv_sec = 4;
+	timeout.tv_sec = 1;
 	timeout.tv_usec = 2;
 
 	this->m_maxfd = 0;

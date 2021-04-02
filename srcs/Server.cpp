@@ -369,8 +369,8 @@ Server::readProcess()
 						printf("%s\n", buff);
 					}
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
-					this->m_fd_table.erase(fd_iter);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					this->m_fd_table.erase(fd_iter);
 					return;
 				}
 			}
@@ -410,16 +410,14 @@ Server::writeProcess()
 				std::string body = this->m_requests[fd_iter->clientfd].get_m_body();
 				char *buff = (char *)body.c_str();
 
-				int ret;
-				int pos = 0;
-				while ((ret = write(sockfd, buff, 10)) > 0)
-				{
-					pos += ret;
-				}
+				// int ret;
+				// int pos = 0;
+				write(sockfd, buff, body.size());
 				std::cout << "SOCK FD " << sockfd << std::endl;
 				close(sockfd);
 				ft::fdClr(sockfd, this->m_write_fds);
 				this->m_fd_table.erase(fd_iter);
+				*m_maxfd -= 1;
 				return;
 			}
 			else if(fd_iter->type == C_SOCKET)
@@ -429,6 +427,7 @@ Server::writeProcess()
 				{
 					std::cout << "ERASE " <<sockfd << " FD" << std::endl;
 					ft::fdClr(sockfd, this->m_write_fds);
+					*m_maxfd -= 1;
 					//this->m_fd_table.erase(fd_iter);
 				}
 				return;
@@ -450,7 +449,10 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 
 	writeProcess();
 	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
+	{
 		acceptSocket();
+		return ;
+	}
 	readProcess();
 	return ;
 }
@@ -963,15 +965,9 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		req.set_m_cgi_pid(pid);
 		close(parent_write);
 		close(parent_read);
-		// if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
-		// 	throw Server::CgiException();
+		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
+			throw Server::CgiException();
 
-		int ret;
-		char buff[MAXLINE];
-		while ((ret = read(cgi_stdin, buff, MAXLINE-1) > 0))
-		{
-			std::cout << "ON THE LOOP" << std::endl;
-		}
 		if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 			throw Server::CgiException();
 
