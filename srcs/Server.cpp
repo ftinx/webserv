@@ -999,11 +999,14 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
 		std::cout << "PARENT WRITE FD " << parent_write << std::endl;
+		std::cout << "PARENT READ FD " << parent_read << std::endl;
 		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_write, clientfd));
 		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		ft::fdSet(parent_write, m_write_fds);
 		ft::fdSet(parent_read, m_main_fds);
-		*m_maxfd += 2;
+		*m_maxfd = std::max(*m_maxfd, parent_write);
+		*m_maxfd = std::max(*m_maxfd, parent_read);
+		std::cout << "MAX FD: " << *m_maxfd << std::endl;
 	}
 	(void)clientfd;
 	return (response);
