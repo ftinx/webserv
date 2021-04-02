@@ -648,9 +648,9 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	}
 	page += std::string("</p><hr>\n<i>")
 			+ std::string(this->m_server_name)
-			+ std::string(" by ftinx 0.1 port ")
+			+ std::string(" (port ")
 			+ std::string(std::to_string(this->m_port))
-			+ std::string("</i>\n</body>\n</html>\n");
+			+ std::string(")</i>\n</body>\n</html>\n");
 	closedir(dirptr);
 	return (page);
 }
@@ -1285,9 +1285,9 @@ Server::makeErrorPage(int status_code)
 			+ std::string("</h3>\n<p>The server encountered an unexpected condition that prevented it from fulfilling the request.<br>\n")
 			+ std::string("We are sorry for the inconvenience.</p>\n<hr>\n<i>")
 			+ std::string(m_server_name)
-			+ std::string(" by ftinx 0.1 port ")
+			+ std::string(" (port ")
 			+ std::string(std::to_string(m_port))
-			+ std::string("</i>\n</center>\n</body>\n</html>\n");
+			+ std::string(")</i>\n</center>\n</body>\n</html>\n");
 	return (page);
 }
 
