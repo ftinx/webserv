@@ -152,6 +152,10 @@ ServerManager::runServers()
 		// printf("---Select Wait %d---\n", this->m_maxfd);
 		this->m_read_fds = this->m_main_fds;
 		this->m_copy_write_fds = this->m_write_fds;
+		for (int i=0; i<1; i++) {
+			std::cout << "-----" << "BEFORE SELECT" << "-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_write_fds.fds_bits[i]) << std::endl;
+		}
 
 		fd_num = select(
 			this->m_maxfd + 1 ,
@@ -160,6 +164,10 @@ ServerManager::runServers()
 			reinterpret_cast<fd_set *>(0),
 			&timeout
 		);
+		for (int i=0; i<1; i++) {
+			std::cout << "-----" << "AFTER SELECT" << "-----" << std::endl;
+			std::cout << std::bitset<32>(this->m_copy_write_fds.fds_bits[i]) << std::endl << std::endl;;
+		}
 
 		switch (fd_num)
 		{
