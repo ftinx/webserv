@@ -489,7 +489,7 @@ Server::writeLog(std::string type, Response response)
 
 	path += this->m_root
 		+ std::string("/debug_")
-		+ this->m_server_name
+		+ this->m_server_name.substr(11)
 		+ std::string(".log");
 	if ((fd = open(path.c_str(), O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
 		throw std::exception();
@@ -713,10 +713,10 @@ Server::methodGET(int clientfd, std::string method)
 		std::map<std::string, std::string> headers = req.get_m_headers();
 		std::map<std::string, std::string>::const_iterator header_it = headers.find("Authorization");
 		if (header_it == headers.end()) // 인증 헤더가 없으면 401 에러
-			return (Server::makeResponseBodyMessage(401, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			return (Server::makeResponseBodyMessage(401, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		std::vector<std::string> auth_value = ft::split((*header_it).second, ' ');
 		if (checkAuth(auth_value.back(), location_block.get_m_auth_basic(), location_block.get_m_root() + std::string("/") + location_block.get_m_auth_basic_user_file()) == false) // 인증 실패 시 403 에러
-			return (Server::makeResponseBodyMessage(403, makeErrorPage(403), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			return (Server::makeResponseBodyMessage(403, this->m_server_name, makeErrorPage(403), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	if (ft::isValidDirPath(absolute_path)) // 폴더라면
 	{
@@ -733,14 +733,14 @@ Server::methodGET(int clientfd, std::string method)
 					final_path = absolute_path + std::string("en/") + *index_it;
 				else
 					final_path = absolute_path + *index_it;
-				return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer())); // 200 응답과 반환
+				return (Server::makeResponseMessage(200, this->m_server_name, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer())); // 200 응답과 반환
 			}
 		}
 		std::map<std::string, bool>::const_iterator autoindex_it;
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it)
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true)
-				return (Server::makeResponseBodyMessage(200, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, req.getReferer()));
+				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, req.getReferer()));
 		}
 	}
 	else // 폴더가 아니라면
@@ -749,7 +749,7 @@ Server::methodGET(int clientfd, std::string method)
 		{
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
 			// if (type.compare(0, 5, "image") == 0) //
-			// 	return (Server::makeResponseBodyMessage(200, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.getReferer()));
+			// 	return (Server::makeResponseBodyMessage(200, this->m_server_name, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.getReferer()));
 			if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0))
 			{
 				int pos_last_slash = absolute_path.find_last_of("/");
@@ -759,10 +759,10 @@ Server::methodGET(int clientfd, std::string method)
 			}
 			else
 				final_path = absolute_path;
-			return (Server::makeResponseMessage(200, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer()));
+			return (Server::makeResponseMessage(200, this->m_server_name, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer()));
 		}
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+	return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
 
 /*============================================================================*/
@@ -830,7 +830,7 @@ Server::makeCgiArgv(Request req)
 	if (argv == NULL)
 		return (NULL);
 	argv[0] = (char *)req.get_m_script_name().c_str();
-	argv[1] = 0;
+	argv[1] = (char *)0;
 	return (argv);
 }
 
@@ -847,7 +847,6 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int fds1[2], fds2[2];
 	char buf[1025];
 	pid_t pid;
-	int ret;
 
 	if (envp == NULL)
 		throw (Server::CgiException());
@@ -864,10 +863,16 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int cgi_stdin = fds2[0];
 	int cgi_stdout = fds1[1];
 
+	/* set fd nonblock */
+	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
+	fcntl(cgi_stdout, F_SETFL, O_NONBLOCK);
+	fcntl(parent_read, F_SETFL, O_NONBLOCK);
+	fcntl(parent_write, F_SETFL, O_NONBLOCK);
+
 	std::cout << "Execute Cgi >0<" << std::endl;
 	pid=fork();
 
-	if (pid == 0)
+	if (pid == 0) // child process
 	{
 		close(parent_write);
 		close(parent_read);
@@ -877,18 +882,19 @@ Server::executeCgi(Request req, Response res, std::string method)
 			throw Server::CgiException();
 
 		/* read from parent process */
-		char buff[31];
-		read(cgi_stdin, buff, 30);
-		buff[30] = '\0';
+		// char buff[31];
+		// read(cgi_stdin, buff, 30);
+		// buff[30] = '\0';
 
 		/* write to parent process */
-		write(cgi_stdout, buff, 30);
-		std::cout << "end execve" << std::endl;
-		exit(1);
+		// write(cgi_stdout, buff, 30);
+		// std::cout << "end execve" << std::endl;
+		exit(EXIT_SUCCESS);
 	}
-	else
+	else  // parent process
 	{
 		int status;
+		int ret;
 
 		close(cgi_stdout);
 		close(cgi_stdin);
@@ -900,7 +906,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 		/* should change size() to content-length */
 		std::cout << req.get_m_body() << std::endl;
 		write(parent_write, req.get_m_body().c_str(), req.get_m_body().size());
-		close(parent_write);
+		close(parent_write); // send EOF to child
 
 		/* read from cgi process */
 		waitpid(pid, &status, 0);
@@ -914,7 +920,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 			}
 		}
 	}
-	response = makeResponseBodyMessage(404);
+	response = makeResponseBodyMessage(404, this->m_server_name);
 	return (response);
 }
 
@@ -1039,27 +1045,27 @@ Server::methodPUT(int clientfd, std::string method)
 	if (ft::isValidFilePath(path) == false)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
- 			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+ 			return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 201;
 	}
 	else
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
-			return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		close(fd);
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	else
 	{
 		close(fd);
-		return (Server::makeResponseMessage(status_code, req.get_m_reset_path(), "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
+		return (Server::makeResponseMessage(status_code, this->m_server_name, req.get_m_reset_path(), "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+	return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
 
 /*============================================================================*/
@@ -1074,9 +1080,9 @@ Server::methodDELETE(int clientfd, std::string method)
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)
-			return (Server::makeResponseMessage(200, "./www/index.html", "", this->m_requests[clientfd].getAcceptLanguage(), method, this->m_requests[clientfd].getReferer()));
+			return (Server::makeResponseMessage(200, this->m_server_name, "./www/index.html", "", this->m_requests[clientfd].getAcceptLanguage(), method, this->m_requests[clientfd].getReferer()));
 	}
-	return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
+	return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
 }
 
 /*============================================================================*/
@@ -1107,9 +1113,9 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
 
 	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
-		return (Server::makeResponseBodyMessage(404, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
+		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
-	return (Server::makeResponseBodyMessage(204, "",  "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
+	return (Server::makeResponseBodyMessage(204, this->m_server_name, "",  "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
 }
 
 
@@ -1133,12 +1139,12 @@ Server::methodTRACE(int clientfd, std::string method)
 
 Response
 Server::makeResponseMessage(
-	int status_code, std::string path, std::string transfer_encoding,
+	int status_code, std::string server,
+	std::string path, std::string transfer_encoding,
 	std::string content_language,
 	std::string method, std::string content_type,
 	std::string referer, int date_hour, int date_minute, int date_second,
-	std::string allow_method, std::string content_location, std::string location,
-	std::string server
+	std::string allow_method, std::string content_location, std::string location
 )
 {
 	(void) transfer_encoding;
@@ -1197,12 +1203,12 @@ Server::makeResponseMessage(
 
 Response
 Server::makeResponseBodyMessage(
-	int status_code, std::string body, std::string transfer_encoding,
+	int status_code, std::string server,
+	std::string body, std::string transfer_encoding,
 	std::string content_language,
 	std::string method, std::string content_type,
 	std::string referer, int date_hour, int date_minute, int date_second,
-	std::string allow_method, std::string content_location, std::string location,
-	std::string server
+	std::string allow_method, std::string content_location, std::string location
 )
 {
 	(void) transfer_encoding;
@@ -1294,7 +1300,7 @@ Server::parseErrorResponse(int clientfd)
 {
 	int status_code(this->m_requests[clientfd].get_m_error_code());
 	return (
-		Server::makeResponseBodyMessage(status_code, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
+		Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
 	);
 }
 
@@ -1303,9 +1309,9 @@ Server::checkValidRequestHeader(int clientfd)
 {
 	/* If request has no Host Header */
 	if (this->m_requests[clientfd].get_m_uri().get_m_host() == "")
-		return (Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer()));
+		return (Server::makeResponseBodyMessage(400, this->m_server_name, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer()));
 	return (
-		Server::makeResponseBodyMessage(400, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
+		Server::makeResponseBodyMessage(400, this->m_server_name, makeErrorPage(400), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
 	);
 }
 
@@ -1359,7 +1365,7 @@ Server::sendResponse(int clientfd)
 			response = this->methodOPTIONS(clientfd);
 			break;
 		default:
-			response = Server::makeResponseBodyMessage(405, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer());
+			response = Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer());
 			break;
 		}
 	}

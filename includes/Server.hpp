@@ -160,6 +160,7 @@ class Server
 		/* Response Message */
 		static Response makeResponseMessage(
 			int status_code,
+			std::string server,
 			std::string path="./www/index.html",
 			std::string transfer_encoding="",
 			std::string content_language="ko",
@@ -171,11 +172,11 @@ class Server
 			int date_second=0,
 			std::string allow_method="",
 			std::string content_location="",
-			std::string location="./www/index.html",
-			std::string server="ftnix/1.0 (MacOS)"
+			std::string location="./www/index.html"
 		);
 		static Response makeResponseBodyMessage(
 			int status_code,
+			std::string server,
 			std::string body="",
 			std::string transfer_encoding="",
 			std::string content_language="ko",
@@ -187,8 +188,7 @@ class Server
 			int date_second=0,
 			std::string allow_method="",
 			std::string content_location="",
-			std::string location="./www/index.html",
-			std::string server="ftnix/1.0 (MacOS)"
+			std::string location="./www/index.html"
 		);
 		std::string makeErrorPage(int status);
 

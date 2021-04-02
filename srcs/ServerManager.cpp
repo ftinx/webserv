@@ -111,7 +111,7 @@ ServerManager::initServers()
 		this->m_server.push_back(
 			new Server(generateServer(
 				this->m_server_block[i],
-				this->m_server_block[i].get_m_server_name(),
+				this->m_software_name + '/' + this->m_software_version + ": " + this->m_server_block[i].get_m_server_name(),
 				this->m_server_block[i].get_m_listen(),
 				this->m_server_block[i].get_m_content_length(),
 				this->m_server_block[i].get_m_location_block().size(),
