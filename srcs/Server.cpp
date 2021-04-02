@@ -830,7 +830,7 @@ Server::makeCgiArgv(Request req)
 	if (argv == NULL)
 		return (NULL);
 	argv[0] = (char *)req.get_m_script_name().c_str();
-	argv[1] = 0;
+	argv[1] = (char *)0;
 	return (argv);
 }
 
@@ -847,7 +847,6 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int fds1[2], fds2[2];
 	char buf[1025];
 	pid_t pid;
-	int ret;
 
 	if (envp == NULL)
 		throw (Server::CgiException());
@@ -864,10 +863,16 @@ Server::executeCgi(Request req, Response res, std::string method)
 	int cgi_stdin = fds2[0];
 	int cgi_stdout = fds1[1];
 
+	/* set fd nonblock */
+	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
+	fcntl(cgi_stdout, F_SETFL, O_NONBLOCK);
+	fcntl(parent_read, F_SETFL, O_NONBLOCK);
+	fcntl(parent_write, F_SETFL, O_NONBLOCK);
+
 	std::cout << "Execute Cgi >0<" << std::endl;
 	pid=fork();
 
-	if (pid == 0)
+	if (pid == 0) // child process
 	{
 		close(parent_write);
 		close(parent_read);
@@ -877,18 +882,19 @@ Server::executeCgi(Request req, Response res, std::string method)
 			throw Server::CgiException();
 
 		/* read from parent process */
-		char buff[31];
-		read(cgi_stdin, buff, 30);
-		buff[30] = '\0';
+		// char buff[31];
+		// read(cgi_stdin, buff, 30);
+		// buff[30] = '\0';
 
 		/* write to parent process */
-		write(cgi_stdout, buff, 30);
-		std::cout << "end execve" << std::endl;
-		exit(1);
+		// write(cgi_stdout, buff, 30);
+		// std::cout << "end execve" << std::endl;
+		exit(EXIT_SUCCESS);
 	}
-	else
+	else  // parent process
 	{
 		int status;
+		int ret;
 
 		close(cgi_stdout);
 		close(cgi_stdin);
@@ -900,7 +906,7 @@ Server::executeCgi(Request req, Response res, std::string method)
 		/* should change size() to content-length */
 		std::cout << req.get_m_body() << std::endl;
 		write(parent_write, req.get_m_body().c_str(), req.get_m_body().size());
-		close(parent_write);
+		close(parent_write); // send EOF to child
 
 		/* read from cgi process */
 		waitpid(pid, &status, 0);
