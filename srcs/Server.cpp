@@ -722,9 +722,9 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	}
 	page += std::string("</p><hr>\n<i>")
 			+ std::string(this->m_server_name)
-			+ std::string(" by ftinx 0.1 port ")
+			+ std::string(" (port ")
 			+ std::string(std::to_string(this->m_port))
-			+ std::string("</i>\n</body>\n</html>\n");
+			+ std::string(")</i>\n</body>\n</html>\n");
 	closedir(dirptr);
 	return (page);
 }
@@ -821,6 +821,8 @@ Server::methodGET(int clientfd, std::string method)
 	{
 		if (ft::isValidFilePath(absolute_path))
 		{
+			if (absolute_path.find("/.", absolute_path.find_last_of("/") - 1, 2) != std::string::npos)
+				return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
 			// if (type.compare(0, 5, "image") == 0) //
 			// 	return (Server::makeResponseBodyMessage(200, this->m_server_name, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.getReferer()));
@@ -1365,9 +1367,9 @@ Server::makeErrorPage(int status_code)
 			+ std::string("</h3>\n<p>The server encountered an unexpected condition that prevented it from fulfilling the request.<br>\n")
 			+ std::string("We are sorry for the inconvenience.</p>\n<hr>\n<i>")
 			+ std::string(m_server_name)
-			+ std::string(" by ftinx 0.1 port ")
+			+ std::string(" (port ")
 			+ std::string(std::to_string(m_port))
-			+ std::string("</i>\n</center>\n</body>\n</html>\n");
+			+ std::string(")</i>\n</center>\n</body>\n</html>\n");
 	return (page);
 }
 
