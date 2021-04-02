@@ -620,6 +620,15 @@ isValidCharacter(char c)
 	return (std::isalnum(c) || (c == '+') || (c == '/'));
 }
 
+FDT
+makeFDT(enum FdType type, int sockfd, int clientfd)
+{
+	FDT fdt = {type, sockfd, clientfd};
+
+	return (fdt);
+}
+
+
 std::string
 encode(const std::string &input)
 {

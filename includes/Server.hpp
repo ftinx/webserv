@@ -59,7 +59,7 @@ class Server
 		fd_set *m_write_fds;
 		fd_set *m_copy_write_fds;
 
-		std::vector< std::pair<FdType, int> > m_fd_table;
+		std::vector<FDT> m_fd_table;
 
 		/* cgi fd */
 		int m_cgi_parent_write;
@@ -139,7 +139,7 @@ class Server
 		std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		char** makeCgiEnvp(Request req, Response res);
 		char** makeCgiArgv(Request req);
-		Response executeCgi(Request req, Response res, std::string method);
+		Response executeCgi(Request req, Response res, int clientfd);
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response postAuth(Request req, Response res);
 		Response methodPOST(int clientfd, std::string method="POST");
