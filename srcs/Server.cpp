@@ -398,11 +398,10 @@ Server::readProcess()
 				if (this->m_requests[sockfd].getMessage(sockfd) == false)
 				{
 					ft::fdClr(sockfd, this->m_main_fds);
-					// close(sockfd);
-					// this->m_fd_table.erase(fd_iter);
-					// *m_maxfd = findMaxFd();
-					// if (this->m_fd_table.size() <= 0)
-					// 	return (false);
+					this->m_fd_table.erase(fd_iter);
+					*m_maxfd = findMaxFd();
+					if (this->m_fd_table.size() <= 0)
+						return (false);
 					return (false);
 				}
 				resetRequest(&this->m_requests[sockfd]);
@@ -461,7 +460,6 @@ Server::writeProcess()
 void
 Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, fd_set *write_fds, int *maxfd)
 {
-	(void)copy_write_fds;
 	this->m_main_fds = main_fds;
 	this->m_read_fds = read_fds;
 	this->m_copy_write_fds = copy_write_fds;
