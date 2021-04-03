@@ -800,8 +800,15 @@ Server::methodGET(int clientfd, std::string method)
 			if (absolute_path.find("/.", absolute_path.find_last_of("/") - 1, 2) != std::string::npos) // 숨김파일을 요청하면 404 에러
 				return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
-			// if (type.compare(0, 5, "image") == 0) //
-			// 	return (Server::makeResponseBodyMessage(200, this->m_server_name, std::string("data:image/png;base64,") + ft::encode(ft::fileToString(absolute_path)), req.getAcceptLanguage(), method, type, req.getReferer()));
+			if (getMimeType(extension).compare(0, 5, "image") == 0) //
+			{
+				std::string b64_format;
+				b64_format += std::string("data:")
+							+ getMimeType(extension)
+							+ std::string(";base64,")
+							+ ft::encode(ft::fileToString(absolute_path));
+				return (Server::makeResponseBodyMessage(200, this->m_server_name, b64_format, req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer()));
+			}
 			if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0)) // 영문 페이지 요청의 경우 path 수정
 			{
 				int pos_last_slash = absolute_path.find_last_of("/");
@@ -1210,10 +1217,9 @@ Server::makeResponseMessage(
 		response.setHttpResponseHeader("location", location);
 
 	if (referer != ""
-	&& (content_type != "image/gif" || content_type != "image/jpeg"
-	|| content_type != "image/png" || content_type != "image/x-icon"))
+		&& (content_type != "image/gif" || content_type != "image/jpeg"
+		|| content_type != "image/png" || content_type != "image/x-icon"))
 		response.setHttpResponseHeader("referer", referer);
-
 	if (method == "HEAD")
 		response
 			.setContentType(content_type)
@@ -1274,10 +1280,9 @@ Server::makeResponseBodyMessage(
 		response.setHttpResponseHeader("location", location);
 
 	if (referer != ""
-	&& (content_type != "image/gif" || content_type != "image/jpeg"
-	|| content_type != "image/png" || content_type != "image/x-icon"))
+		&& (content_type != "image/gif" || content_type != "image/jpeg"
+		|| content_type != "image/png" || content_type != "image/x-icon"))
 		response.setHttpResponseHeader("referer", referer);
-
 	if (method == "HEAD")
 		response
 			.setContentType(content_type)
@@ -1300,7 +1305,6 @@ Server::makeResponseBodyMessage(
 		response
 			.setContentType(content_type)
 			.setHttpResponseHeader("content-type", response.get_m_content_type());
-
 	return (
 		response
 			.setStatusCode(status_code)
@@ -1313,6 +1317,9 @@ Server::makeResponseBodyMessage(
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("Access-Control-Allow-Origin", "*")
+			.setHttpResponseHeader("Access-Control-Allow-Credentials", "true")
+			.setHttpResponseHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers")
 			.makeHttpResponseMessage(method)
 	);
 }
