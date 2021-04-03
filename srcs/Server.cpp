@@ -442,12 +442,17 @@ Server::writeProcess()
 				if (sendResponse(sockfd) == true)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
-					ft::fdClr(sockfd, this->m_main_fds);
+					// ft::fdClr(sockfd, this->m_main_fds);
 					// this->m_fd_table.erase(fd_iter);
 					// *m_maxfd = findMaxFd();
 					// close(sockfd);
 					return (true);
 				}
+				else
+				{
+					return (false);
+				}
+
 			}
 			return (false);
 		}
@@ -1424,7 +1429,6 @@ Server::sendResponse(int clientfd)
 	if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0)) < 0)
 	{
 		std::cout << "XXXXXXX" << std::endl;
-		close(clientfd);
 		return (false);
 	}
 	else if (ret == 0)
