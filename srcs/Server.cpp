@@ -295,7 +295,7 @@ Server::acceptSocket()
 		std::cerr << "accept error" << std::endl;
 		return ;
 	}
-	m_fd_table.push_back(*ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
+	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
 	ft::fdSet(this->m_client_socket, this->m_main_fds);
 	if (this->m_client_socket > *this->m_maxfd)
 		*(this->m_maxfd) = this->m_client_socket;
@@ -1018,8 +1018,8 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		ft::doubleFree(envp);
 		std::cout << "PARENT WRITE FD " << parent_write << std::endl;
 		std::cout << "PARENT READ FD " << parent_read << std::endl;
-		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_write, clientfd));
-		m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_read, clientfd));
+		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
+		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		ft::fdSet(parent_write, m_write_fds);
 		ft::fdSet(parent_read, m_main_fds);
 		// *m_maxfd = std::max(*m_maxfd, parent_write);
