@@ -14,7 +14,7 @@
 # include <fcntl.h>
 # include <unistd.h>
 
-# define BUFFER_SIZE 20000// 4096
+# define BUFFER_SIZE 4096
 
 enum Method
 {
