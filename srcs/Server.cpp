@@ -1248,12 +1248,10 @@ Server::makeResponseMessage(
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
-
 	if (referer != ""
 		&& (content_type != "image/gif" || content_type != "image/jpeg"
 		|| content_type != "image/png" || content_type != "image/x-icon"))
 		response.setHttpResponseHeader("referer", referer);
-
 	if (method == "HEAD")
 		response
 			.setContentType(content_type)
@@ -1309,11 +1307,8 @@ Server::makeResponseBodyMessage(
 		response.setHttpResponseHeader("retry-after", "10");
 	if (status_code == 401)
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
-	if (status_code == 301)
-		response.setHttpResponseHeader("location", body);
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
-
 	if (referer != ""
 		&& (content_type != "image/gif" || content_type != "image/jpeg"
 		|| content_type != "image/png" || content_type != "image/x-icon"))
