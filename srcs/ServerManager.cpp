@@ -137,6 +137,7 @@ ServerManager::runServers()
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 2;
 
+	signal(SIGINT, exitServers);
 	signal(SIGPIPE, SIG_IGN);
 
 	this->m_maxfd = 0;
@@ -198,7 +199,9 @@ ServerManager::exitServers(int signo)
 {
 	if (signo == SIGINT)
 	{
-		/* clean heap */
+		/* clean child process */
+		// kill(childfd, SIGTERM);
+		// waitpid(childfd, &status, WNOHANG);
 		exit(EXIT_SUCCESS);
 	}
 	return ;

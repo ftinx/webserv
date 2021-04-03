@@ -52,7 +52,7 @@ class ServerManager
 		);
 		void initServers();
 		void runServers();
-		void exitServers(int signo);
+		static void exitServers(int signo);
 };
 
 #endif
