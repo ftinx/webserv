@@ -137,6 +137,8 @@ ServerManager::runServers()
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 2;
 
+	signal(SIGPIPE, SIG_IGN);
+
 	this->m_maxfd = 0;
 	FD_ZERO(&this->m_main_fds);
 	FD_ZERO(&this->m_write_fds);
@@ -192,7 +194,12 @@ ServerManager::runServers()
 }
 
 void
-ServerManager::exitServers()
+ServerManager::exitServers(int signo)
 {
+	if (signo == SIGINT)
+	{
+		/* clean heap */
+		exit(EXIT_SUCCESS);
+	}
 	return ;
 }
