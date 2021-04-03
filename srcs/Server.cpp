@@ -1419,15 +1419,17 @@ Server::sendResponse(int clientfd)
 	// std::cout << response.get_m_reponse_message() << std::endl;
 
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
-	if (send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0) < 0)
+	int ret;
+
+	if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0)) < 0)
 	{
 		std::cout << "XXXXXXX" << std::endl;
 		close(clientfd);
 		return (false);
 	}
-	else if (send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0) == 0)
+	else if (ret == 0)
 	{
-		std::cout << "OOOO" << std::endl;
+		std::cout << "OOOOOOO" << std::endl;
 	}
 	writeLog("response", m_responses[clientfd]);
 	return (true);
