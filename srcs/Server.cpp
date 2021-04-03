@@ -421,11 +421,9 @@ Server::writeProcess()
 
 	for (fd_iter = m_fd_table.begin() ; fd_iter != m_fd_table.end() ; ++fd_iter)
 	{
-		// std::cout << fd_iter->first << std::endl;
 		int sockfd = fd_iter->sockfd;
 		if (ft::fdIsSet(sockfd, this->m_copy_write_fds))
 		{
-			/* good code */
 			if (fd_iter->type == CGI_PIPE)
 			{
 				std::cout << "::2::"<<std::endl;
@@ -993,23 +991,6 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	}
 	else  // parent process
 	{
-		/* bad code */
-		// close(cgi_stdout);
-		// close(cgi_stdin);
-		// ft::doubleFree(argv);
-		// ft::doubleFree(envp);
-		// std::cout << "PARENT WRITE FD " << parent_write << std::endl;
-		// m_fd_table.push_back(*ft::makeFDT(CGI_PIPE, parent_read, clientfd));
-		// ft::fdSet(parent_read, m_main_fds);
-		// *m_maxfd += 1;
-
-		// std::cout << "::2::"<<std::endl;
-		// std::string body = req.get_m_body();
-		// char *buff = (char *)body.c_str();
-		// write(parent_write, buff, body.size());
-		// close(parent_write);
-
-		/* good code */
 		close(cgi_stdout);
 		close(cgi_stdin);
 		ft::doubleFree(argv);
@@ -1020,8 +1001,6 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		ft::fdSet(parent_write, m_write_fds);
 		ft::fdSet(parent_read, m_main_fds);
-		// *m_maxfd = std::max(*m_maxfd, parent_write);
-		// *m_maxfd = std::max(*m_maxfd, parent_read);
 		*m_maxfd = findMaxFd();
 		std::cout << "MAX FD: " << *m_maxfd << std::endl;
 	}
