@@ -452,19 +452,19 @@ Server::writeProcess()
 				if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
-					std::cout << "A" << EAGAIN << std::endl;
-					std::cout << "B" << EWOULDBLOCK << std::endl;
-					std::cout << "C" << EBADF << std::endl;
-					std::cout << "D" << EDESTADDRREQ << std::endl;
-					std::cout << "E" << EDQUOT << std::endl;
-					std::cout << "F" << EFAULT << std::endl;
-					std::cout << "G" << EFBIG << std::endl;
-					std::cout << "H" << EINTR << std::endl;
-					std::cout << "I" << EINVAL << std::endl;
-					std::cout << "J" << EIO << std::endl;
-					std::cout << "K" << ENOSPC << std::endl;
-					std::cout << "L" << EPERM  << std::endl;
-					std::cout << "M" << EPIPE << std::endl;
+					// std::cout << "A" << EAGAIN << std::endl;
+					// std::cout << "B" << EWOULDBLOCK << std::endl;
+					// std::cout << "C" << EBADF << std::endl;
+					// std::cout << "D" << EDESTADDRREQ << std::endl;
+					// std::cout << "E" << EDQUOT << std::endl;
+					// std::cout << "F" << EFAULT << std::endl;
+					// std::cout << "G" << EFBIG << std::endl;
+					// std::cout << "H" << EINTR << std::endl;
+					// std::cout << "I" << EINVAL << std::endl;
+					// std::cout << "J" << EIO << std::endl;
+					// std::cout << "K" << ENOSPC << std::endl;
+					// std::cout << "L" << EPERM  << std::endl;
+					// std::cout << "M" << EPIPE << std::endl;
 					return (false);
 				}
 				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(B): " << written_bytes << std::endl;
@@ -1463,18 +1463,21 @@ Server::sendResponse(int clientfd)
 
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
 	int ret;
+	int buffsize;
 	static int pos = 0;
 	const std::string &body = m_responses[clientfd].get_m_reponse_message();
+	int content_length = body.size();
 
-	while ((ret = send(clientfd, &(body.c_str()[pos]), MAXLINE, 0)) > 0)
+	buffsize = std::min(content_length - pos, MAXLINE);
+	while ((ret = send(clientfd, &(body.c_str()[pos]), buffsize, 0)) > 0)
 	{
 		pos += ret;
+		buffsize = std::min(content_length - pos, MAXLINE);
 		std::cout << "OOOOOOO OK " << pos << std::endl;
 	}
 	if (ret < 0)
 	{
 		std::cout << "XXXXXXX FAIL" << pos << std::endl;
-		sleep(5);
 		return (false);
 	}
 	else if (ret == 0)
