@@ -346,7 +346,6 @@ Server::handleRequest(int clientfd)
 	{
 		std::cout << "STATUS CODE: " << this->m_responses[clientfd].get_m_status_code();
 		ft::fdSet(clientfd, m_write_fds);
-		*m_maxfd = findMaxFd();
 	}
 	return ;
 }
@@ -398,8 +397,8 @@ Server::readProcess()
 				this->m_requests[sockfd] = Request();
 				if (this->m_requests[sockfd].getMessage(sockfd) == false)
 				{
-					// std::cout << "XXXXXXX" << std::endl;
-					// ft::fdClr(sockfd, this->m_main_fds);
+					ft::fdClr(sockfd, this->m_main_fds);
+					// close(sockfd);
 					// this->m_fd_table.erase(fd_iter);
 					// *m_maxfd = findMaxFd();
 					// if (this->m_fd_table.size() <= 0)
@@ -434,8 +433,8 @@ Server::writeProcess()
 				std::string body = this->m_requests[fd_iter->clientfd].get_m_body();
 				char *buff = (char *)body.c_str();
 				write(sockfd, buff, body.size());
-				close(sockfd);
 				ft::fdClr(sockfd, this->m_write_fds);
+				close(sockfd);
 				this->m_fd_table.erase(fd_iter);
 				*m_maxfd = findMaxFd();
 				return (true);
@@ -446,6 +445,10 @@ Server::writeProcess()
 				if (sendResponse(sockfd) == true)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
+					ft::fdClr(sockfd, this->m_main_fds);
+					// this->m_fd_table.erase(fd_iter);
+					// *m_maxfd = findMaxFd();
+					// close(sockfd);
 					return (true);
 				}
 			}
