@@ -1354,6 +1354,7 @@ Server::makeResponseBodyMessage(
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("Content-Disposition", "inline")
 			.setHttpResponseHeader("Access-Control-Allow-Origin", "*")
 			.setHttpResponseHeader("Access-Control-Allow-Credentials", "true")
 			.setHttpResponseHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers")
