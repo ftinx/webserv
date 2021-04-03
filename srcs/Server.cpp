@@ -382,6 +382,7 @@ Server::readProcess()
 						buff[ret] = '\0';
 						body += std::string(buff);
 					}
+					std::cout << "READ PROCESS) BODY SIZE: " << body.size() << std::endl;
 					this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
 					std::cout << "PARENT READ FD: " << fd_iter->sockfd << std::endl;
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
@@ -390,6 +391,7 @@ Server::readProcess()
 					*m_maxfd = findMaxFd();
 					return (true);
 				}
+				std::cout << "FALSE" << std::endl;
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -427,13 +429,50 @@ Server::writeProcess()
 			if (fd_iter->type == CGI_PIPE)
 			{
 				std::cout << "::2::"<<std::endl;
-				std::string body = this->m_requests[fd_iter->clientfd].get_m_body();
-				char *buff = (char *)body.c_str();
-				write(sockfd, buff, body.size());
+
+				Request &request = this->m_requests[fd_iter->clientfd];
+				const std::string &body = request.get_m_body();
+				int content_length = request.get_m_content_length();
+				int written_bytes = request.get_m_written_bytes();
+				int buffsize = std::min(MAXLINE, content_length - written_bytes);
+				int ret;
+				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(A): " << written_bytes << std::endl;
+				std::cout << "WRITE PROCESS) BODY SIZE: " << body.size() << std::endl;
+				std::cout << "WRITE PROCESS) CONTENT LENGTH: " << content_length << std::endl;
+
+				while ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				{
+					written_bytes += ret;
+					request.set_m_written_bytes(written_bytes);
+					buffsize = std::min(MAXLINE, content_length - written_bytes);
+					std::cout << "WRITE PROCESS) BUFF SIZE: " << buffsize << std::endl;
+				}
+				std::cout << "WRITE PROCESS) ret: " << ret << std::endl;
+				if (ret < 0)
+				{
+					std::cout << "ERRNO IS " << errno << std::endl;
+					std::cout << "A" << EAGAIN << std::endl;
+					std::cout << "B" << EWOULDBLOCK << std::endl;
+					std::cout << "C" << EBADF << std::endl;
+					std::cout << "D" << EDESTADDRREQ << std::endl;
+					std::cout << "E" << EDQUOT << std::endl;
+					std::cout << "F" << EFAULT << std::endl;
+					std::cout << "G" << EFBIG << std::endl;
+					std::cout << "H" << EINTR << std::endl;
+					std::cout << "I" << EINVAL << std::endl;
+					std::cout << "J" << EIO << std::endl;
+					std::cout << "K" << ENOSPC << std::endl;
+					std::cout << "L" << EPERM  << std::endl;
+					std::cout << "M" << EPIPE << std::endl;
+					return (false);
+				}
+				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(B): " << written_bytes << std::endl;
+
 				ft::fdClr(sockfd, this->m_write_fds);
 				close(sockfd);
 				this->m_fd_table.erase(fd_iter);
 				*m_maxfd = findMaxFd();
+				std::cout << "CLOSE PIPE!!!!" << std::endl;
 				return (true);
 			}
 			if(fd_iter->type == C_SOCKET)
@@ -584,7 +623,9 @@ Server::resetRequest(Request *req)
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
 	int pos = block.get_m_limit_body_size();
+	std::cout << "POSPOS " << pos << std::endl;
 	req->set_m_body(req->get_m_body().substr(0, pos));
+	std::cout << "RESETREQUEST) BODY SIZE: " << req->get_m_body().size() << std::endl;
 	writeLog("request", Response(), *req);
 }
 
