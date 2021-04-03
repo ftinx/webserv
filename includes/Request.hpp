@@ -33,6 +33,7 @@ class Request
 		std::string m_path_translated;
 		std::string m_path_info;
 		std::string m_script_name;
+		pid_t m_cgi_pid;
 
 		/* HTTP Header */
 		std::string m_content_type;
@@ -59,6 +60,7 @@ class Request
 		std::string get_m_path_translated() const;
 		std::string get_m_path_info() const;
 		std::string get_m_script_name() const;
+		pid_t get_m_cgi_pid() const;
 		std::string get_m_content_type() const;
 		std::string get_m_referer() const;
 
@@ -67,6 +69,7 @@ class Request
 		void set_m_cgi_version(std::string);
 		void set_m_check_cgi(bool);
 		void set_m_method(Method);
+		void set_m_cgi_pid(pid_t);
 
 		// setHeaders
 		void set_m_body(std::string);

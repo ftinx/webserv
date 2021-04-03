@@ -59,11 +59,7 @@ class Server
 		fd_set *m_write_fds;
 		fd_set *m_copy_write_fds;
 
-		std::vector< std::pair<FdType, int> > m_fd_table;
-
-		/* cgi fd */
-		int m_cgi_parent_write;
-		int m_cgi_parent_read;
+		std::vector<FDT> m_fd_table;
 
 		/* Request, Response */
 		std::vector<Request> m_requests;
@@ -110,10 +106,11 @@ class Server
 
 		/* Request */
 		void getRequest(fd_set *, fd_set *, fd_set *, fd_set *, int *);
+		int findMaxFd();
 		void acceptSocket();
 		void handleRequest(int);
-		void readProcess();
-		void writeProcess();
+		bool readProcess();
+		bool writeProcess();
 
 		/* Server Util */
 		std::vector<HttpConfigLocation> getMethodLocation(Method method);
@@ -139,7 +136,7 @@ class Server
 		std::map<std::string, std::string> makeCgiEnvpMap(Request req, Response res);
 		char** makeCgiEnvp(Request req, Response res);
 		char** makeCgiArgv(Request req);
-		Response executeCgi(Request req, Response res, std::string method);
+		Response executeCgi(Request req, Response res, int clientfd);
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response postAuth(Request req, Response res);
 		Response methodPOST(int clientfd, std::string method="POST");

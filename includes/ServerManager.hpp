@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <signal.h>
+
 #include "Server.hpp"
 #include "HttpConfig.hpp"
 
@@ -50,7 +52,7 @@ class ServerManager
 		);
 		void initServers();
 		void runServers();
-		void exitServers();
+		void exitServers(int signo);
 };
 
 #endif

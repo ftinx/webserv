@@ -134,8 +134,10 @@ ServerManager::runServers()
 	int fd_num = 0;
 
 	struct timeval timeout;
-	timeout.tv_sec = 4;
+	timeout.tv_sec = 1;
 	timeout.tv_usec = 2;
+
+	signal(SIGPIPE, SIG_IGN);
 
 	this->m_maxfd = 0;
 	FD_ZERO(&this->m_main_fds);
@@ -152,6 +154,10 @@ ServerManager::runServers()
 		// printf("---Select Wait %d---\n", this->m_maxfd);
 		this->m_read_fds = this->m_main_fds;
 		this->m_copy_write_fds = this->m_write_fds;
+		// for (int i=0; i<1; i++) {
+		// 	std::cout << "-----" << "BEFORE SELECT" << "-----" << std::endl;
+		// 	std::cout << std::bitset<32>(this->m_copy_write_fds.fds_bits[i]) << std::endl;
+		// }
 
 		fd_num = select(
 			this->m_maxfd + 1 ,
@@ -160,6 +166,10 @@ ServerManager::runServers()
 			reinterpret_cast<fd_set *>(0),
 			&timeout
 		);
+		// for (int i=0; i<1; i++) {
+		// 	std::cout << "-----" << "AFTER SELECT" << "-----" << std::endl;
+		// 	std::cout << std::bitset<32>(this->m_copy_write_fds.fds_bits[i]) << std::endl << std::endl;;
+		// }
 
 		switch (fd_num)
 		{
@@ -184,7 +194,12 @@ ServerManager::runServers()
 }
 
 void
-ServerManager::exitServers()
+ServerManager::exitServers(int signo)
 {
+	if (signo == SIGINT)
+	{
+		/* clean heap */
+		exit(EXIT_SUCCESS);
+	}
 	return ;
 }
