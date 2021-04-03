@@ -364,33 +364,34 @@ Server::readProcess()
 			if (fd_iter->type == CGI_PIPE)
 			{
 				std::cout << "::3::"<<std::endl;
-				int status;
+				//int status;
 				int ret;
 				char buff[MAXLINE];
-				this->m_requests[fd_iter->clientfd] = Request();
+				static std::string body("");
 
 				std::cout << "BEFORE WAITING" << std::endl;
 				// kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
-				waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, WNOHANG);
+				//waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, WNOHANG);
 				std::cout << "AFTER WAITING" << std::endl;
 				ft::memset(buff, 0, MAXLINE);
-				if (status == 0)
-				{
-					std::string body("");
+				// if (status == 0)
+				// {
 					while ( 0 < (ret = read(fd_iter->sockfd, buff, MAXLINE - 1)))
 					{
 						buff[ret] = '\0';
 						body += std::string(buff);
 					}
 					std::cout << "READ PROCESS) BODY SIZE: " << body.size() << std::endl;
-					this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
-					std::cout << "PARENT READ FD: " << fd_iter->sockfd << std::endl;
-					ft::fdClr(fd_iter->sockfd, m_main_fds);
-					ft::fdSet(fd_iter->clientfd, m_write_fds);
-					this->m_fd_table.erase(fd_iter);
-					*m_maxfd = findMaxFd();
+					if (ret  == 0)
+					{
+						this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
+						ft::fdClr(fd_iter->sockfd, m_main_fds);
+						ft::fdSet(fd_iter->clientfd, m_write_fds);
+						this->m_fd_table.erase(fd_iter);
+						*m_maxfd = findMaxFd();
+					}
 					return (true);
-				}
+				//}
 				std::cout << "FALSE" << std::endl;
 			}
 			else if(fd_iter->type == C_SOCKET)
@@ -444,8 +445,8 @@ Server::writeProcess()
 				{
 					written_bytes += ret;
 					request.set_m_written_bytes(written_bytes);
-					buffsize = std::min(MAXLINE, content_length - written_bytes);
 					std::cout << "WRITE PROCESS) BUFF SIZE: " << buffsize << std::endl;
+					buffsize = std::min(MAXLINE, content_length - written_bytes);
 				}
 				std::cout << "WRITE PROCESS) ret: " << ret << std::endl;
 				if (ret < 0)
@@ -1462,16 +1463,34 @@ Server::sendResponse(int clientfd)
 
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
 	int ret;
+	static int pos = 0;
+	const std::string &body = m_responses[clientfd].get_m_reponse_message();
 
-	if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0)) < 0)
+	while ((ret = send(clientfd, &(body.c_str()[pos]), MAXLINE, 0)) > 0)
 	{
-		std::cout << "XXXXXXX" << std::endl;
+		pos += ret;
+		std::cout << "OOOOOOO OK " << pos << std::endl;
+	}
+	if (ret < 0)
+	{
+		std::cout << "XXXXXXX FAIL" << pos << std::endl;
+		sleep(5);
 		return (false);
 	}
 	else if (ret == 0)
 	{
-		std::cout << "OOOOOOO" << std::endl;
+		std::cout << "OOOOOOO END " << pos << std::endl;
 	}
+	pos = 0;
+	// if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0)) < 0)
+	// {
+	// 	std::cout << "XXXXXXX" << std::endl;
+	// 	return (false);
+	// }
+	// else if (ret == 0)
+	// {
+	// 	std::cout << "OOOOOOO" << std::endl;
+	// }
 	writeLog("response", m_responses[clientfd], Request());
 	return (true);
 }
