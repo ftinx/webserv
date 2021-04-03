@@ -871,6 +871,7 @@ Server::methodGET(int clientfd, std::string method)
 							+ getMimeType(extension)
 							+ std::string(";base64,")
 							+ ft::encode(ft::fileToString(absolute_path));
+				// b64_format += ft::encode(ft::fileToString(absolute_path));
 				return (Server::makeResponseBodyMessage(200, this->m_server_name, b64_format, req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer()));
 			}
 			if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0)) // 영문 페이지 요청의 경우 path 수정
@@ -1297,6 +1298,9 @@ Server::makeResponseMessage(
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
+			.setHttpResponseHeader("Access-Control-Allow-Origin", "*")
+			.setHttpResponseHeader("Access-Control-Allow-Credentials", "true")
+			.setHttpResponseHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers")
 			.makeHttpResponseMessage(method)
 	);
 }
@@ -1359,7 +1363,6 @@ Server::makeResponseBodyMessage(
 			.setHttpResponseHeader("content-language", response.get_m_content_language())
 			.setHttpResponseHeader("status", std::to_string(response.get_m_status_code()))
 			.setHttpResponseHeader("server", response.get_m_server())
-			.setHttpResponseHeader("Content-Disposition", "inline")
 			.setHttpResponseHeader("Access-Control-Allow-Origin", "*")
 			.setHttpResponseHeader("Access-Control-Allow-Credentials", "true")
 			.setHttpResponseHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers")

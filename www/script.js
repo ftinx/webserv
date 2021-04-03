@@ -28,7 +28,7 @@ fetch('http://localhost:8080/imgs/favicon.jpg')
 	return response.text()
 })
 .then((data) => {
-	document.getElementById("b64").src = 'data:image/png;base64,' + data;
+	document.getElementById("b64").src = data;
 	console.log(data)
 })
 
@@ -100,4 +100,3 @@ function postResponse(element_id, method, path, headers, body) {
 		document.getElementById(element_id).innerText += data;
 	}
 }
-
