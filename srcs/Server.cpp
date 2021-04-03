@@ -585,11 +585,11 @@ Server::resetRequest(Request *req)
 	req->set_m_location_block(block);
 	int pos = block.get_m_limit_body_size();
 	req->set_m_body(req->get_m_body().substr(0, pos));
-	writeLog("request", Response());
+	writeLog("request", Response(), *req);
 }
 
 void
-Server::writeLog(std::string type, Response response)
+Server::writeLog(std::string type, Response res, Request req)
 {
 	int fd;
 	static int start = 1;
@@ -621,7 +621,7 @@ Server::writeLog(std::string type, Response response)
 		ft::putstr_fd("] [ ", fd);
 		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
 		ft::putendl_fd(" ] ----------", fd);
-		// ft::putendl_fd(this->m_requests[this->m_sockfd].get_m_message().c_str(), fd);
+		ft::putendl_fd(req.get_m_message().c_str(), fd);
 		ft::putendl_fd("---------------------------------------------------------------------------",fd);
 	}
 	else if (type.compare("response") == 0)
@@ -631,7 +631,7 @@ Server::writeLog(std::string type, Response response)
 		ft::putstr_fd("] [ ", fd);
 		ft::putstr_fd(ft::getDateTimestamp(0, 0, 0).c_str(), fd);
 		ft::putendl_fd("] ##########", fd);
-		ft::putendl_fd(response.get_m_reponse_message().c_str(), fd);
+		ft::putendl_fd(res.get_m_reponse_message().c_str(), fd);
 		ft::putendl_fd("###########################################################################",fd);
 	}
 	close(fd);
@@ -1447,6 +1447,6 @@ Server::sendResponse(int clientfd)
 	{
 		std::cout << "OOOOOOO" << std::endl;
 	}
-	writeLog("response", m_responses[clientfd]);
+	writeLog("response", m_responses[clientfd], Request());
 	return (true);
 }

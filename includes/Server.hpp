@@ -120,7 +120,7 @@ class Server
 		void resetRequest(Request *req);
 		bool checkAuth(std::string auth_value, std::vector<std::string> auth_basic, std::string auth_file_path);
 
-		void writeLog(std::string type, Response response);
+		void writeLog(std::string type, Response res, Request req);
 
 		/* HEAD */
 		Response methodHEAD(int clientfd, std::string method="HEAD");
