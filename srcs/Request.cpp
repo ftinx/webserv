@@ -10,7 +10,7 @@ Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
 m_reset_path(""), m_location_block(),
-m_path_translated(""), m_path_info(""), m_script_name(""),
+m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
 m_content_type(""), m_referer("")
 {
 }
@@ -38,6 +38,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_path_translated = rhs.get_m_path_translated();
 	this->m_path_info = rhs.get_m_path_info();
 	this->m_script_name = rhs.get_m_script_name();
+	this->m_cgi_pid = rhs.get_m_cgi_pid();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
 	return (*this);
@@ -142,6 +143,12 @@ Request::get_m_script_name() const
 	return (this->m_script_name);
 }
 
+pid_t
+Request::get_m_cgi_pid() const
+{
+	return (this->m_cgi_pid);
+}
+
 std::string
 Request::get_m_content_type() const
 {
@@ -204,6 +211,12 @@ void
 Request::set_m_location_block(HttpConfigLocation block)
 {
 	this->m_location_block = block;
+}
+
+void
+Request::set_m_cgi_pid(pid_t pid)
+{
+	this->m_cgi_pid = pid;
 }
 
 /*============================================================================*/
@@ -396,7 +409,7 @@ Request::getMessage(int fd)
 			break;
 		memset(recvline, 0, MAXLINE);
 	}
-	if (ret < 0)
+	if (ret <= 0)
 	{
 		close(fd);
 		return (false);
@@ -404,7 +417,10 @@ Request::getMessage(int fd)
 	// std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
 	// std::cout << m_message << std::endl;
 	if (this->parseMessage(chunked) == false)
+	{
+		close(fd);
 		return (false);
+	}
 	return (true);
 }
 
