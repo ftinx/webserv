@@ -82,6 +82,7 @@ class Response
 		std::vector<std::string> get_m_index_file() const;
 		std::string get_m_root() const;
 		std::string get_m_cgi_path() const;
+		std::map<std::string, std::string> get_m_headers() const;
 
 		/* setter */
 		void set_m_status_code(int status_code);
