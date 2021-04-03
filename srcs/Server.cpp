@@ -1451,7 +1451,7 @@ Server::post(std::string path, Request req, Response res, Response (*func)(Reque
 	return (res);
 }
 
-/*============================================================================*/
+/*============================================================================*/ß
 /***************************  Response  ***************************************/
 /*============================================================================*/
 
@@ -1475,9 +1475,9 @@ Server::sendResponse(int clientfd)
 		buffsize = std::min(content_length - pos, MAXLINE);
 		std::cout << "OOOOOOO OK " << pos << std::endl;
 	}
-	if (ret < 0)
-	{
-		std::cout << "XXXXXXX FAIL" << pos << std::endl;
+	if (ret < 0)ß
+	{ß
+		std::cout << "XXXXXXX FAIL" << pos << std::endl;ß
 		return (false);
 	}
 	else if (ret == 0)
