@@ -8,8 +8,9 @@
 
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
-m_method(DEFAULT), m_uri(), m_headers(), m_body(""), m_error_code(0),
-m_reset_path(""), m_location_block(),
+m_method(DEFAULT), m_uri(), m_headers(), m_body(""),
+m_content_length(0), m_written_bytes(0),
+m_error_code(0),m_reset_path(""), m_location_block(),
 m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
 m_content_type(""), m_referer("")
 {
@@ -32,6 +33,8 @@ Request& Request::operator=(Request const &rhs)
 	this->m_uri = rhs.get_m_uri();
 	this->m_headers = rhs.get_m_headers();
 	this->m_body = rhs.get_m_body();
+	this->m_content_length = rhs.get_m_content_length();
+	this->m_written_bytes = rhs.get_m_written_bytes();
 	this->m_error_code = rhs.get_m_error_code();
 	this->m_reset_path = rhs.get_m_reset_path();
 	this->m_location_block = rhs.get_m_location_block();
@@ -105,6 +108,18 @@ std::string
 Request::get_m_body() const
 {
 	return (this->m_body);
+}
+
+int
+Request::get_m_content_length() const
+{
+	return (this->m_content_length);
+}
+
+int
+Request::get_m_written_bytes() const
+{
+	return (this->m_written_bytes);
 }
 
 int
@@ -193,6 +208,12 @@ void
 Request::set_m_body(std::string body)
 {
 	this->m_body = body;
+}
+
+void
+Request::set_m_written_bytes(int written_bytes)
+{
+	this->m_written_bytes = written_bytes;
 }
 
 void
@@ -347,6 +368,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
 			content_length = ft::stoi(tmp);
+			m_content_length = content_length;
 		}
 	}
 	else if ((pos = this->m_message.find("content-length:")) != std::string::npos)
@@ -356,6 +378,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
 			content_length = ft::stoi(tmp);
+			m_content_length = content_length;
 		}
 	}
 	if (content_length >= 0 && content_length <= body_bytes)
@@ -421,6 +444,7 @@ Request::getMessage(int fd)
 		close(fd);
 		return (false);
 	}
+	std::cout << "GETMESSAGE) BODY SIZE: " << m_body.size() << std::endl;
 	return (true);
 }
 
@@ -556,6 +580,7 @@ Request::parseBody(std::string line, int i, int size, bool chunked)
 	else if (num != 0 && content_length == -1)
 	{
 		content_length = num;
+		m_content_length += content_length;
 	}
 	return (true);
 }
