@@ -67,7 +67,7 @@ class Response
 		/* getter */
 		int get_m_status_code() const;
 		std::string get_m_html_document() const;
-		std::string get_m_reponse_message() const;
+		std::string& get_m_reponse_message();
 		int get_m_response_size() const;
 		std::string get_m_body() const;
 		int get_m_content_length() const;
