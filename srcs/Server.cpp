@@ -1083,10 +1083,10 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	else if (argv == NULL)
 	{
 		ft::doubleFree(envp);
-		throw(Server::CgiException());
+		throw (Server::CgiException());
 	}
 	else if (pipe(fds1) < 0 || pipe(fds2) < 0)
-		throw Server::CgiException();
+		throw (Server::CgiException());
 
 	int parent_write = fds2[1];
 	int parent_read = fds1[0];
@@ -1108,9 +1108,9 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		close(parent_write);
 		close(parent_read);
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
-			throw Server::CgiException();
+			throw (Server::CgiException());
 		if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
-			throw Server::CgiException();
+			throw (Server::CgiException());
 		exit(EXIT_SUCCESS);
 	}
 	else  // parent process
