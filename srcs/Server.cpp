@@ -63,6 +63,7 @@ Server& Server::operator=(Server const &rhs)
 	this->m_options_location = rhs.m_options_location;
 	this->m_trace_location = rhs.m_trace_location;
 	this->m_http_config_file_path_set = rhs.m_http_config_file_path_set;
+	this->m_http_config_path_method = rhs.m_http_config_path_method;
 	this->m_get_location_auto_index = rhs.m_get_location_auto_index;
 
 	/* Socket */
@@ -153,9 +154,14 @@ Server::noteHttpConfigLocation()
 	{
 		std::vector<Method> limit_except = location_iter->get_m_limit_except();
 		std::vector<Method>::const_iterator limit = limit_except.begin();
+		std::string methods("");
 		m_http_config_file_path_set.push_back(location_iter->get_m_path());
 		while (limit != limit_except.end())
 		{
+			if (methods == "")
+				methods = ft::getMethodString(*limit);
+			else
+				methods += ", " + ft::getMethodString(*limit);
 			switch (*limit)
 			{
 				case HEAD:
@@ -186,6 +192,7 @@ Server::noteHttpConfigLocation()
 			}
 			limit++;
 		}
+		m_http_config_path_method.insert(make_pair(location_iter->get_m_path(), methods));
 		location_iter++;
 	}
 	return ;
@@ -338,7 +345,12 @@ Server::handleRequest(int clientfd)
 			this->m_responses[clientfd] = this->methodOPTIONS(clientfd);
 			break;
 		default:
-			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer());
+			std::map<std::string, std::string>::const_iterator it;
+			std::string allow_method("");
+			it = m_http_config_path_method.find(this->m_requests[clientfd].get_m_uri().get_m_path());
+			if (it != m_http_config_path_method.end())
+				allow_method = it->second;
+			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
 			break;
 		}
 	}
@@ -1279,6 +1291,8 @@ Server::makeResponseMessage(
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
+	if (allow_method != "")
+		response.setHttpResponseHeader("allow", allow_method);
 	if (referer != ""
 		&& (content_type != "image/gif" || content_type != "image/jpeg"
 		|| content_type != "image/png" || content_type != "image/x-icon"))
@@ -1340,6 +1354,8 @@ Server::makeResponseBodyMessage(
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
 	if ((300 <= status_code && status_code < 400) || status_code == 201)
 		response.setHttpResponseHeader("location", location);
+	if (allow_method != "")
+		response.setHttpResponseHeader("allow", allow_method);
 	if (referer != ""
 		&& (content_type != "image/gif" || content_type != "image/jpeg"
 		|| content_type != "image/png" || content_type != "image/x-icon"))
@@ -1416,6 +1432,15 @@ Response
 Server::parseErrorResponse(int clientfd)
 {
 	int status_code(this->m_requests[clientfd].get_m_error_code());
+	if (status_code == 405)
+	{
+		std::map<std::string, std::string>::const_iterator it;
+		std::string allow_method("");
+		it = m_http_config_path_method.find(this->m_requests[clientfd].get_m_uri().get_m_path());
+		if (it != m_http_config_path_method.end())
+			allow_method = it->second;
+		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
+	}
 	return (
 		Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
 	);
