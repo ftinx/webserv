@@ -20,7 +20,7 @@
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
-#define MAXLINE 2048
+#define MAXLINE 65536
 
 class Server
 {
