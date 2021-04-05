@@ -408,10 +408,11 @@ Request::getMessage(int fd)
 	int ret;
 	int header_bytes = 0;
 	int body_bytes = 0;
-	char recvline[MAXLINE + 1];
+	char *recvline;
 
 	this->m_message = buff;
-	while ((ret = read(fd, recvline, MAXLINE - 1)) > 0)
+	recvline = (char*)malloc(sizeof(char) * SOCK_BUFF);
+	while ((ret = read(fd, recvline, SOCK_BUFF - 1)) > 0)
 	{
 		recvline[ret] = '\0';
 		std::string str(recvline);
@@ -430,11 +431,12 @@ Request::getMessage(int fd)
 		}
 		if (isBreakCondition(&chunked, body_bytes, header_bytes, &buff))
 			break;
-		memset(recvline, 0, MAXLINE);
+		memset(recvline, 0, SOCK_BUFF);
 	}
 	if (ret <= 0)
 	{
 		close(fd);
+		free(recvline);
 		return (false);
 	}
 	// std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
