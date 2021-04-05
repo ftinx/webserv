@@ -43,6 +43,7 @@ class Server
 		std::vector<HttpConfigLocation> m_options_location;
 		std::vector<HttpConfigLocation> m_trace_location;
 		std::vector<std::string> m_http_config_file_path_set;
+		std::map<std::string, std::string> m_http_config_path_method;
 		std::map<std::string, bool> m_get_location_auto_index;
 
 		// /* Socket */
