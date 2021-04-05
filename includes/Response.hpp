@@ -57,6 +57,7 @@ class Response
 		in_addr_t m_cgi_client_addr;
 		int m_cgi_port;
 		std::string m_cgi_path;
+		std::string m_cgi_response;
 
 	public:
 		Response();
@@ -83,6 +84,7 @@ class Response
 		std::string get_m_root() const;
 		std::string get_m_cgi_path() const;
 		std::map<std::string, std::string> get_m_headers() const;
+		std::string &get_m_cgi_response();
 
 		/* setter */
 		void set_m_status_code(int status_code);
@@ -94,6 +96,8 @@ class Response
 		void set_m_index_file(std::vector<std::string> index_file);
 		void set_m_root(std::string root);
 		void set_m_cgi_path(std::string cgi_path);
+		void set_m_cgi_response(std::string cgi_response);
+		void set_m_content_length(int content_length);
 
 		/* CGI */
 		bool parseCgiResponse(std::string&);
@@ -108,6 +112,9 @@ class Response
 		Response& setContentLanguage(std::string content_language);
 		Response& setContentType(std::string content_type);
 		Response& setServer(std::string server);
+		Response& makeCgiHttpResponseMessage(int content_length);
+		Response& setCgiResponse(std::string cgi_response);
+		Response& setContentLength(int content_length);
 
 		/* HTML Document Util */
 		Response& setHtmlDocument();

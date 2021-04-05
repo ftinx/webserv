@@ -13,7 +13,7 @@ Response::Response()
 m_server(""), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_index_file(),
 m_root(""), m_cgi_extension(), m_cgi_server_name(""), m_cgi_client_addr(), m_cgi_port(0),
-m_cgi_path("")
+m_cgi_path(""), m_cgi_response("")
 {
 }
 
@@ -53,6 +53,7 @@ Response::operator=(Response const &rhs)
 	this->m_cgi_server_name = rhs.m_cgi_server_name;
 	this->m_cgi_port = rhs.m_cgi_port;
 	this->m_cgi_path = rhs.m_cgi_path;
+	this->m_cgi_response = rhs.m_cgi_response;
 	return (*this);
 }
 
@@ -179,6 +180,12 @@ Response::get_m_headers() const
 	return (this->m_headers);
 }
 
+std::string&
+Response::get_m_cgi_response()
+{
+	return (this->m_cgi_response);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -244,6 +251,20 @@ Response::set_m_cgi_path(std::string cgi_path)
 {
 	this->m_cgi_path = cgi_path;
 	return ;
+}
+
+void
+Response::set_m_cgi_response(std::string cgi_response)
+{
+	this->m_cgi_response = cgi_response;
+	return ;
+}
+
+void
+Response::set_m_content_length(int content_length)
+{
+	this->m_content_length = content_length;
+	return;
 }
 
 /*============================================================================*/
@@ -439,6 +460,34 @@ Response::makeHttpResponseMessage(std::string method)
 	/* Set Response Config */
 	this->m_response_size = this->m_response_message.length();
 
+	return (*this);
+}
+
+Response &
+Response::makeCgiHttpResponseMessage(int content_length)
+{
+	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
+		+ "content-length: " + std::to_string(content_length)
+		+ setCRLF()
+		+ this->m_cgi_response;
+
+	/* Set Response Config */
+	this->m_response_size = this->m_content_length;
+
+	return (*this);
+}
+
+Response&
+Response::setCgiResponse(std::string cgi_response)
+{
+	this->m_cgi_response += cgi_response;
+	return (*this);
+}
+
+Response&
+Response::setContentLength(int content_length)
+{
+	this->m_content_length = content_length;
 	return (*this);
 }
 
