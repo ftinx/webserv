@@ -1478,7 +1478,7 @@ Server::sendResponse(int clientfd)
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
 	int ret;
 
-	if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), MSG_NOSIGNAL)) < 0)
+	if ((ret = write(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size())) < 0)
 	{
 		std::cout << "XXXXXXX" << std::endl;
 		return (false);
