@@ -20,7 +20,7 @@
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
-#define MAXLINE 2048
+#define MAXLINE 65536
 
 class Server
 {
@@ -33,6 +33,7 @@ class Server
 		int m_content_length;
 		size_t m_location_size;
 		std::string m_root;
+		std::vector<Method> m_limit_except;
 
 		/* Parse */
 		std::vector<HttpConfigLocation> m_head_location;

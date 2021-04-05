@@ -11,7 +11,7 @@
 #include "Utils.hpp"
 #include "HttpConfigLocation.hpp"
 
-#define MAXLINE 2048
+#define MAXLINE 65536
 #define SOCK_SETSIZE 1021
 
 class Request

@@ -380,7 +380,7 @@ Server::readProcess()
 					while ( 0 < (ret = read(fd_iter->sockfd, buff, MAXLINE - 1)))
 					{
 						buff[ret] = '\0';
-						body += std::string(buff);
+						body += std::string(buff, ret);
 					}
 					this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
 					std::cout << "PARENT READ FD: " << fd_iter->sockfd << std::endl;
@@ -719,6 +719,10 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	std::vector<std::string> entry_dir;
 	std::vector<std::string> entry_file;
 	DIR *dirptr = opendir(path.c_str());
+	struct stat buffer;
+	struct tm *tm;
+	char timestamp[64];
+	std::string bytes;
 
 	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
 	{
@@ -733,31 +737,58 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	}
 	std::sort(entry_dir.begin(), entry_dir.end());
 	std::sort(entry_file.begin(), entry_file.end());
-	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<title>Index of /")
+	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
+			+ std::string("<style>\ntable{border-collapse:collapse;width:100%;font-family:Monaco;}\nth,td{text-align:left;padding:4px;}\ntr:not(:first-child):hover{background-color:#f5f5f5;}\n</style>\n")
+			+ std::string("<title>Index of /")
 			+ std::string(dir_name)
-			+ std::string("</title>\n</head>\n<body>\n<h2>Directory Listing</h2>\n<h3>Index of /")
+			+ std::string("</title>\n</head>\n<body>\n<h1>Directory Listing</h1>\n<h2>Index of /")
 			+ std::string(dir_name)
-			+ std::string("</h3>\n");
+			+ std::string("</h2>\n<hr>\n");
 	if (dir_name[0] != '/')
 		dir_name = std::string("/") + dir_name;
-	page += std::string("<hr><p>name</p><hr><table><p>\n");
+	page += std::string("<table>\n<tr><th width=\"50%\">name</th><th>last modified</th><th style=\"text-align:right;\">size</th></tr>\n");
 	for (std::vector<std::string>::const_iterator it = entry_dir.begin() ; it != entry_dir.end() ; ++it)
 	{
-		page += std::string("<a href=\"")
+		std::string dash("-");
+		stat((root + dir_name + *it).c_str(), &buffer);
+		tm = localtime(&buffer.st_atimespec.tv_sec);
+		ft::memset(reinterpret_cast<void *>(timestamp), 0, 64);
+		strftime(timestamp, sizeof(timestamp), "%d-%b-%Y %H:%M", tm);
+		if ((*it).compare("..") == 0)
+		{
+			dash = "";
+			ft::memset(reinterpret_cast<void *>(timestamp), 0, 64);
+		}
+		page += std::string("<tr><td><a href=\"")
 				+ std::string(dir_name + *it)
 				+ std::string("\">")
 				+ std::string(*it)
-				+ std::string("</a></br>\n");
+				+ std::string("/</a></td><td>")
+				+ std::string(timestamp)
+				+ std::string("</td><td style=\"text-align:right;\">")
+				+ dash
+				+ std::string("</td></tr>\n");
 	}
 	for (std::vector<std::string>::const_iterator it = entry_file.begin() ; it != entry_file.end() ; ++it)
 	{
-		page += std::string("<a href=\"")
+		stat((root + dir_name + *it).c_str(), &buffer);
+		tm = localtime(&buffer.st_mtimespec.tv_sec);
+		ft::memset(reinterpret_cast<void *>(timestamp), 0, 64);
+		strftime(timestamp, sizeof(timestamp), "%d-%b-%Y %H:%M", tm);
+		bytes = std::to_string(buffer.st_size);
+		if (bytes.size() >= 5)
+			bytes = std::to_string(buffer.st_size / 1024) + std::string("K");
+		page += std::string("<tr><td><a href=\"")
 				+ std::string(dir_name + *it)
 				+ std::string("\">")
 				+ std::string(*it)
-				+ std::string("</a></br>\n");
+				+ std::string("</a></td><td>")
+				+ std::string(timestamp)
+				+ std::string("</td><td style=\"text-align:right;\">")
+				+ bytes
+				+ std::string("</td></tr>\n");
 	}
-	page += std::string("</p><hr>\n<i>")
+	page += std::string("</table>\n<hr>\n<i>")
 			+ std::string(this->m_server_name)
 			+ std::string(" (port ")
 			+ std::string(std::to_string(this->m_port))
@@ -854,7 +885,7 @@ Server::methodGET(int clientfd, std::string method)
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it) // index 를 못찾은 경우
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true) // location 블록의 autoindex 값이 on인 경우 페이지 만들어서 200 응답과 반환
-				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, req.getReferer()));
+				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		}
 	}
 	else // 폴더가 아니라면
@@ -1422,7 +1453,7 @@ Server::sendResponse(int clientfd)
 	/* 아무것도 전송안할순없으니까 0도 포함..? */
 	int ret;
 
-	if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0)) < 0)
+	if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), MSG_NOSIGNAL)) < 0)
 	{
 		std::cout << "XXXXXXX" << std::endl;
 		return (false);
