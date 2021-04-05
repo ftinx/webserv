@@ -812,18 +812,6 @@ Server::methodHEAD(int clientfd, std::string method)
 /*============================================================================*/
 
 std::string
-Server::getMimeType(std::string extension)
-{
-	std::map<std::string, std::string>::const_iterator it;
-	it = this->m_mime_types.find(extension);
-	if (it == m_mime_types.end())
-		return ("none");
-	if ((it->first.compare("css") == 0) || (it->first.compare("js") == 0))
-		return (it->second + std::string("; charset=utf-8"));
-	return (it->second);
-}
-
-std::string
 Server::makeAutoindexPage(std::string root, std::string path)
 {
 	std::string page;
@@ -832,6 +820,10 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	std::vector<std::string> entry_dir;
 	std::vector<std::string> entry_file;
 	DIR *dirptr = opendir(path.c_str());
+	struct stat buffer;
+	struct tm *tm;
+	char timestamp[64];
+	std::string bytes;
 
 	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
 	{
@@ -846,31 +838,58 @@ Server::makeAutoindexPage(std::string root, std::string path)
 	}
 	std::sort(entry_dir.begin(), entry_dir.end());
 	std::sort(entry_file.begin(), entry_file.end());
-	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<title>Index of /")
+	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
+			+ std::string("<style>\ntable{border-collapse:collapse;width:100%;font-family:Monaco;}\nth,td{text-align:left;padding:4px;}\ntr:not(:first-child):hover{background-color:#f5f5f5;}\n</style>\n")
+			+ std::string("<title>Index of /")
 			+ std::string(dir_name)
-			+ std::string("</title>\n</head>\n<body>\n<h2>Directory Listing</h2>\n<h3>Index of /")
+			+ std::string("</title>\n</head>\n<body>\n<h1>Directory Listing</h1>\n<h2>Index of /")
 			+ std::string(dir_name)
-			+ std::string("</h3>\n");
+			+ std::string("</h2>\n<hr>\n");
 	if (dir_name[0] != '/')
 		dir_name = std::string("/") + dir_name;
-	page += std::string("<hr><p>name</p><hr><table><p>\n");
+	page += std::string("<table>\n<tr><th width=\"50%\">name</th><th>last modified</th><th style=\"text-align:right;\">size</th></tr>\n");
 	for (std::vector<std::string>::const_iterator it = entry_dir.begin() ; it != entry_dir.end() ; ++it)
 	{
-		page += std::string("<a href=\"")
+		std::string dash("-");
+		stat((root + dir_name + *it).c_str(), &buffer);
+		tm = localtime(&buffer.st_atimespec.tv_sec);
+		ft::memset(reinterpret_cast<void *>(timestamp), 0, 64);
+		strftime(timestamp, sizeof(timestamp), "%d-%b-%Y %H:%M", tm);
+		if ((*it).compare("..") == 0)
+		{
+			dash = "";
+			ft::memset(reinterpret_cast<void *>(timestamp), 0, 64);
+		}
+		page += std::string("<tr><td><a href=\"")
 				+ std::string(dir_name + *it)
 				+ std::string("\">")
 				+ std::string(*it)
-				+ std::string("</a></br>\n");
+				+ std::string("/</a></td><td>")
+				+ std::string(timestamp)
+				+ std::string("</td><td style=\"text-align:right;\">")
+				+ dash
+				+ std::string("</td></tr>\n");
 	}
 	for (std::vector<std::string>::const_iterator it = entry_file.begin() ; it != entry_file.end() ; ++it)
 	{
-		page += std::string("<a href=\"")
+		stat((root + dir_name + *it).c_str(), &buffer);
+		tm = localtime(&buffer.st_mtimespec.tv_sec);
+		ft::memset(reinterpret_cast<void *>(timestamp), 0, 64);
+		strftime(timestamp, sizeof(timestamp), "%d-%b-%Y %H:%M", tm);
+		bytes = std::to_string(buffer.st_size);
+		if (bytes.size() >= 5)
+			bytes = std::to_string(buffer.st_size / 1024) + std::string("K");
+		page += std::string("<tr><td><a href=\"")
 				+ std::string(dir_name + *it)
 				+ std::string("\">")
 				+ std::string(*it)
-				+ std::string("</a></br>\n");
+				+ std::string("</a></td><td>")
+				+ std::string(timestamp)
+				+ std::string("</td><td style=\"text-align:right;\">")
+				+ bytes
+				+ std::string("</td></tr>\n");
 	}
-	page += std::string("</p><hr>\n<i>")
+	page += std::string("</table>\n<hr>\n<i>")
 			+ std::string(this->m_server_name)
 			+ std::string(" (port ")
 			+ std::string(std::to_string(this->m_port))
