@@ -393,17 +393,24 @@ Server::readProcess()
 						std::cout << "RET IS " << ret << std::endl;
 						buff[ret] = '\0';
 						this->m_responses[fd_iter->clientfd].setCgiResponse(std::string(buff));
+						try
+						{
 						if (status_code == 0 &&
 							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCode()))
 						{
 							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
 						}
+						}
+						catch (std::exception &e)
+						{
+							std::cout << e.what() << std::endl;
+							return (true);
+						}
 					}
-					std::cout << "READ PROCESS) BODY SIZE: " << body.size() << std::endl;
+					std::cout << "READ PROCESS) BODY SIZE: " << this->m_responses[fd_iter->clientfd].get_m_cgi_response().size() << std::endl;
 					if (ret  == 0)
 					{
 						std::cout << "RET IS 0" << std::endl;
-						// this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
 						this->m_responses[fd_iter->clientfd]
 								.setCgiContentLength()
 								.makeCgiHttpResponseMessage();
@@ -460,10 +467,8 @@ Server::writeProcess()
 				int written_bytes = request.get_m_written_bytes();
 				int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 				int ret;
-				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(A): " << written_bytes << std::endl;
-				std::cout << "WRITE PROCESS) BODY SIZE: " << body.size() << std::endl;
-				std::cout << "WRITE PROCESS) CONTENT LENGTH: " << content_length << std::endl;
-
+				// std::cout << "------BODY-------" << std::endl;
+				// std::cout << body << std::endl;
 				if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
 				{
 					written_bytes += ret;
@@ -491,7 +496,7 @@ Server::writeProcess()
 					std::cout << "M" << EPIPE << std::endl;
 					return (false);
 				}
-				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(B): " << written_bytes << std::endl;
+				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE: " << written_bytes << std::endl;
 				if (ret == 0)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
@@ -1104,7 +1109,6 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		close(parent_read);
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
 			throw Server::CgiException();
-
 		if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 			throw Server::CgiException();
 		exit(EXIT_SUCCESS);
