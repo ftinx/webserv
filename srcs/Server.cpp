@@ -375,36 +375,44 @@ Server::readProcess()
 			if (fd_iter->type == CGI_PIPE)
 			{
 				std::cout << "::3::"<<std::endl;
-				//int status;
+				// int status;
 				int ret;
-				char buff[MAXLINE];
+				char buff[CGI_BUFF];
 				static std::string body("");
 
 				std::cout << "BEFORE WAITING" << std::endl;
-				// kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
-				//waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, WNOHANG);
+				//kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
+				//waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, 0);
 				std::cout << "AFTER WAITING" << std::endl;
-				ft::memset(buff, 0, MAXLINE);
+				ft::memset(buff, 0, CGI_BUFF);
 				// if (status == 0)
 				// {
-					while ( 0 < (ret = read(fd_iter->sockfd, buff, MAXLINE - 1)))
+					if( 0 < (ret = read(fd_iter->sockfd, buff, CGI_BUFF - 1)))
 					{
 						buff[ret] = '\0';
-						body += std::string(buff, ret);
+
+						//body += std::string(buff);
+						this->m_responses[fd_iter->clientfd].setCgiResponse(std::string(buff));
 					}
 					std::cout << "READ PROCESS) BODY SIZE: " << body.size() << std::endl;
 					if (ret  == 0)
 					{
-						this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
+						std::cout << "RET IS 0" << std::endl;
+						// this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
+						this->m_responses[fd_iter->clientfd]
+								.setStatusCode(200)
+								// .setContentLength(10)
+								.setBodyDocument(body)
+								.makeCgiHttpResponseMessage(10);
+						close(fd_iter->sockfd);
 						ft::fdClr(fd_iter->sockfd, m_main_fds);
 						ft::fdSet(fd_iter->clientfd, m_write_fds);
 						this->m_fd_table.erase(fd_iter);
 						*m_maxfd = findMaxFd();
 						body = "";
+						return (true);
 					}
-					return (true);
-				//}
-				std::cout << "FALSE" << std::endl;
+				// }
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -447,7 +455,7 @@ Server::writeProcess()
 				const std::string &body = request.get_m_body();
 				int content_length = request.get_m_content_length();
 				int written_bytes = request.get_m_written_bytes();
-				int buffsize = std::min(MAXLINE, content_length - written_bytes);
+				int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 				int ret;
 				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(A): " << written_bytes << std::endl;
 				std::cout << "WRITE PROCESS) BODY SIZE: " << body.size() << std::endl;
@@ -458,25 +466,26 @@ Server::writeProcess()
 					written_bytes += ret;
 					request.set_m_written_bytes(written_bytes);
 					std::cout << "WRITE PROCESS) BUFF SIZE: " << buffsize << std::endl;
-					buffsize = std::min(MAXLINE, content_length - written_bytes);
+					buffsize = std::min(CGI_BUFF, content_length - written_bytes);
+					return (false);
 				}
 				std::cout << "WRITE PROCESS) ret: " << ret << std::endl;
 				if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
-					// std::cout << "A" << EAGAIN << std::endl;
-					// std::cout << "B" << EWOULDBLOCK << std::endl;
-					// std::cout << "C" << EBADF << std::endl;
-					// std::cout << "D" << EDESTADDRREQ << std::endl;
-					// std::cout << "E" << EDQUOT << std::endl;
-					// std::cout << "F" << EFAULT << std::endl;
-					// std::cout << "G" << EFBIG << std::endl;
-					// std::cout << "H" << EINTR << std::endl;
-					// std::cout << "I" << EINVAL << std::endl;
-					// std::cout << "J" << EIO << std::endl;
-					// std::cout << "K" << ENOSPC << std::endl;
-					// std::cout << "L" << EPERM  << std::endl;
-					// std::cout << "M" << EPIPE << std::endl;
+					std::cout << "A" << EAGAIN << std::endl;
+					std::cout << "B" << EWOULDBLOCK << std::endl;
+					std::cout << "C" << EBADF << std::endl;
+					std::cout << "D" << EDESTADDRREQ << std::endl;
+					std::cout << "E" << EDQUOT << std::endl;
+					std::cout << "F" << EFAULT << std::endl;
+					std::cout << "G" << EFBIG << std::endl;
+					std::cout << "H" << EINTR << std::endl;
+					std::cout << "I" << EINVAL << std::endl;
+					std::cout << "J" << EIO << std::endl;
+					std::cout << "K" << ENOSPC << std::endl;
+					std::cout << "L" << EPERM  << std::endl;
+					std::cout << "M" << EPIPE << std::endl;
 					return (false);
 				}
 				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(B): " << written_bytes << std::endl;
@@ -491,7 +500,14 @@ Server::writeProcess()
 			if(fd_iter->type == C_SOCKET)
 			{
 				std::cout << "::4::"<<std::endl;
-				if (sendResponse(sockfd) == true)
+				int ret;
+				int buffsize;
+				static int pos = 0;
+				const std::string &body = m_responses[sockfd].get_m_reponse_message();
+				int content_length = body.size();
+
+				buffsize = std::min(content_length - pos, SOCK_BUFF);
+				if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
 					// ft::fdClr(sockfd, this->m_main_fds);
@@ -1524,11 +1540,11 @@ Server::sendResponse(int clientfd)
 	const std::string &body = m_responses[clientfd].get_m_reponse_message();
 	int content_length = body.size();
 
-	buffsize = std::min(content_length - pos, MAXLINE);
-	while ((ret = send(clientfd, &(body.c_str()[pos]), buffsize, 0)) > 0)
+	buffsize = std::min(content_length - pos, SOCK_BUFF);
+	while ((ret = write(clientfd, &(body.c_str()[pos]), buffsize)) > 0)
 	{
 		pos += ret;
-		buffsize = std::min(content_length - pos, MAXLINE);
+		buffsize = std::min(content_length - pos, SOCK_BUFF);
 		std::cout << "OOOOOOO OK " << pos << std::endl;
 	}
 	if (ret < 0)
