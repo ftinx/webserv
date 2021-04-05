@@ -84,8 +84,8 @@ Response::get_m_html_document() const
 	return (this->m_html_document);
 }
 
-std::string
-Response::get_m_reponse_message() const
+std::string&
+Response::get_m_reponse_message()
 {
 	return (this->m_response_message);
 }
