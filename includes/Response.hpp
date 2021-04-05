@@ -100,7 +100,7 @@ class Response
 		void set_m_content_length(int content_length);
 
 		/* CGI */
-		bool parseCgiResponse(std::string&);
+		int findCgiStatusCode();
 
 		/* HTTP Response Util */
 		Response& makeHttpResponseMessage(std::string method = "");
@@ -112,9 +112,9 @@ class Response
 		Response& setContentLanguage(std::string content_language);
 		Response& setContentType(std::string content_type);
 		Response& setServer(std::string server);
-		Response& makeCgiHttpResponseMessage(int content_length);
+		Response& makeCgiHttpResponseMessage();
 		Response& setCgiResponse(std::string cgi_response);
-		Response& setContentLength(int content_length);
+		Response& setCgiContentLength();
 
 		/* HTML Document Util */
 		Response& setHtmlDocument();
