@@ -362,7 +362,6 @@ Server::handleRequest(int clientfd)
 	return ;
 }
 
-
 bool
 Server::readProcess()
 {
@@ -388,24 +387,24 @@ Server::readProcess()
 				ft::memset(buff, 0, MAXLINE);
 				// if (status == 0)
 				// {
-					if( 0 < (ret = read(fd_iter->sockfd, buff, MAXLINE - 1)))
+					while ( 0 < (ret = read(fd_iter->sockfd, buff, MAXLINE - 1)))
 					{
-						std::cout << "RET IS " << ret << std::endl;
 						buff[ret] = '\0';
 						body += std::string(buff, ret);
 					}
 					std::cout << "READ PROCESS) BODY SIZE: " << body.size() << std::endl;
 					if (ret  == 0)
 					{
-						std::cout << "RET IS 0" << std::endl;
 						this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
 						ft::fdClr(fd_iter->sockfd, m_main_fds);
 						ft::fdSet(fd_iter->clientfd, m_write_fds);
 						this->m_fd_table.erase(fd_iter);
 						*m_maxfd = findMaxFd();
-						return (true);
+						body = "";
 					}
+					return (true);
 				//}
+				std::cout << "FALSE" << std::endl;
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -454,13 +453,12 @@ Server::writeProcess()
 				std::cout << "WRITE PROCESS) BODY SIZE: " << body.size() << std::endl;
 				std::cout << "WRITE PROCESS) CONTENT LENGTH: " << content_length << std::endl;
 
-				if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				while ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
 				{
 					written_bytes += ret;
 					request.set_m_written_bytes(written_bytes);
 					std::cout << "WRITE PROCESS) BUFF SIZE: " << buffsize << std::endl;
 					buffsize = std::min(MAXLINE, content_length - written_bytes);
-					return (false);
 				}
 				std::cout << "WRITE PROCESS) ret: " << ret << std::endl;
 				if (ret < 0)
@@ -482,77 +480,30 @@ Server::writeProcess()
 					return (false);
 				}
 				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(B): " << written_bytes << std::endl;
-				if (ret == 0)
-				{
-					ft::fdClr(sockfd, this->m_write_fds);
-					close(sockfd);
-					this->m_fd_table.erase(fd_iter);
-					*m_maxfd = findMaxFd();
-					std::cout << "CLOSE PIPE!!!!" << std::endl;
-					return (true);
-				}
+
+				ft::fdClr(sockfd, this->m_write_fds);
+				close(sockfd);
+				this->m_fd_table.erase(fd_iter);
+				*m_maxfd = findMaxFd();
+				std::cout << "CLOSE PIPE!!!!" << std::endl;
+				return (true);
 			}
-			else if(fd_iter->type == C_SOCKET)
+			if(fd_iter->type == C_SOCKET)
 			{
 				std::cout << "::4::"<<std::endl;
-				int ret;
-				int buffsize;
-				static int pos = 0;
-				const std::string &body = m_responses[sockfd].get_m_reponse_message();
-				int content_length = body.size();
-
-				buffsize = std::min(content_length - pos, MAXLINE);
-				if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
+				if (sendResponse(sockfd) == true)
 				{
-					pos += ret;
-					std::cout << "OOOOOOO OK " << pos << std::endl;
-					return (false);
-				}
-				if (ret < 0)
-				{
-					std::cout << "XXXXXXX FAIL" << pos << std::endl;
-					std::cout << "ERRNO IS " << errno << std::endl;
-					std::cout << "X" << EACCES << std::endl;
-					std::cout << "A" << EAGAIN << std::endl;
-					std::cout << "B" << EALREADY << std::endl;
-					std::cout << "C" << EBADF << std::endl;
-					std::cout << "D" << ECONNRESET << std::endl;
-					std::cout << "E" << EFAULT  << std::endl;
-					std::cout << "F" << EINTR << std::endl;
-					std::cout << "G" << EINVAL << std::endl;
-					std::cout << "H" << EISCONN << std::endl;
-					std::cout << "I" << EMSGSIZE << std::endl;
-					std::cout << "J" << ENOBUFS << std::endl;
-					std::cout << "K" << ENOMEM << std::endl;
-					std::cout << "L" << ENOTCONN << std::endl;
-					std::cout << "M" << ENOTSOCK << std::endl;
-					std::cout << "N" << EOPNOTSUPP << std::endl;
-					std::cout << "O" << EPIPE << std::endl;
-					std::cout << "P" << EDESTADDRREQ << std::endl;
-					writeLog("response", m_responses[sockfd], Request());
-					return (false);
-				}
-				else if (ret == 0)
-				{
-					std::cout << "OOOOOOO END " << pos << std::endl;
 					ft::fdClr(sockfd, this->m_write_fds);
-					pos = 0;
+					// ft::fdClr(sockfd, this->m_main_fds);
+					// this->m_fd_table.erase(fd_iter);
+					// *m_maxfd = findMaxFd();
+					// close(sockfd);
+					return (true);
 				}
-				writeLog("response", m_responses[sockfd], Request());
-
-				// if (sendResponse(sockfd) == true)
-				// {
-				// 	ft::fdClr(sockfd, this->m_write_fds);
-				// 	// ft::fdClr(sockfd, this->m_main_fds);
-				// 	// this->m_fd_table.erase(fd_iter);
-				// 	// *m_maxfd = findMaxFd();
-				// 	// close(sockfd);
-				// 	return (true);
-				// }
-				// else
-				// {
-				// 	return (false);
-				// }
+				else
+				{
+					return (false);
+				}
 
 			}
 			return (false);
@@ -570,9 +521,8 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 	this->m_write_fds = write_fds;
 	this->m_maxfd = maxfd;
 
-	// if (writeProcess() == true)
-	// 	return;
-	writeProcess();
+	if (writeProcess() == true)
+		return;
 	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
 	{
 		acceptSocket();
@@ -686,6 +636,7 @@ Server::resetRequest(Request *req)
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
 	int pos = block.get_m_limit_body_size();
+	std::cout << "POSPOS " << pos << std::endl;
 	req->set_m_body(req->get_m_body().substr(0, pos));
 	std::cout << "RESETREQUEST) BODY SIZE: " << req->get_m_body().size() << std::endl;
 	writeLog("request", Response(), *req);
@@ -1574,7 +1525,7 @@ Server::sendResponse(int clientfd)
 	int content_length = body.size();
 
 	buffsize = std::min(content_length - pos, MAXLINE);
-	while ((ret = write(clientfd, &(body.c_str()[pos]), buffsize)) > 0)
+	while ((ret = send(clientfd, &(body.c_str()[pos]), buffsize, 0)) > 0)
 	{
 		pos += ret;
 		buffsize = std::min(content_length - pos, MAXLINE);
