@@ -275,6 +275,23 @@ Response::set_m_content_length(int content_length)
 /*********************************  Util  *************************************/
 /*============================================================================*/
 
+int
+Response::findCgiStatusCode()
+{
+	size_t pos;
+	int ret;
+	char *buff = (char *)this->m_cgi_response.c_str();
+
+	if ((pos = this->m_cgi_response.find_first_of("Status: ")) == std::string::npos
+		&& (pos = this->m_cgi_response.find_first_of("status: ")) == std::string::npos)
+		return (0);
+	ret = std::stoi(&buff[pos + std::strlen("Status: ")]);
+	if (ret >= 100 && ret < 600)
+		return (ret);
+	return (0);
+}
+
+
 Response &
 Response::setStatusCode(int status_code)
 {
@@ -464,15 +481,15 @@ Response::makeHttpResponseMessage(std::string method)
 }
 
 Response &
-Response::makeCgiHttpResponseMessage(int content_length)
+Response::makeCgiHttpResponseMessage()
 {
 	this->m_response_message += httpResponseStartLine("HTTP/1.1", this->m_status_code)
-		+ "content-length: " + std::to_string(content_length)
+		+ "content-length: " + std::to_string(this->m_content_length)
 		+ setCRLF()
 		+ this->m_cgi_response;
 
 	/* Set Response Config */
-	this->m_response_size = this->m_content_length;
+	this->m_response_size = this->m_response_message.size();
 
 	return (*this);
 }
@@ -485,9 +502,11 @@ Response::setCgiResponse(std::string cgi_response)
 }
 
 Response&
-Response::setContentLength(int content_length)
+Response::setCgiContentLength()
 {
-	this->m_content_length = content_length;
+	size_t pos = this->m_cgi_response.find("\r\n\r\n");
+
+	this->m_content_length = this->m_cgi_response.size() - pos - 4;
 	return (*this);
 }
 

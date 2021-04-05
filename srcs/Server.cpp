@@ -362,7 +362,6 @@ Server::handleRequest(int clientfd)
 	return ;
 }
 
-
 bool
 Server::readProcess()
 {
@@ -378,6 +377,7 @@ Server::readProcess()
 				std::cout << "::3::"<<std::endl;
 				// int status;
 				int ret;
+				int status_code = 0;
 				char buff[CGI_BUFF];
 				static std::string body("");
 
@@ -392,9 +392,12 @@ Server::readProcess()
 					{
 						std::cout << "RET IS " << ret << std::endl;
 						buff[ret] = '\0';
-
-						//body += std::string(buff);
 						this->m_responses[fd_iter->clientfd].setCgiResponse(std::string(buff));
+						if (status_code == 0 &&
+							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCode()))
+						{
+							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
+						}
 					}
 					std::cout << "READ PROCESS) BODY SIZE: " << body.size() << std::endl;
 					if (ret  == 0)
@@ -402,10 +405,8 @@ Server::readProcess()
 						std::cout << "RET IS 0" << std::endl;
 						// this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
 						this->m_responses[fd_iter->clientfd]
-								.setStatusCode(200)
-								// .setContentLength(10)
-								.setBodyDocument(body)
-								.makeCgiHttpResponseMessage(10);
+								.setCgiContentLength()
+								.makeCgiHttpResponseMessage();
 						close(fd_iter->sockfd);
 						ft::fdClr(fd_iter->sockfd, m_main_fds);
 						ft::fdSet(fd_iter->clientfd, m_write_fds);
