@@ -812,6 +812,18 @@ Server::methodHEAD(int clientfd, std::string method)
 /*============================================================================*/
 
 std::string
+Server::getMimeType(std::string extension)
+{
+	std::map<std::string, std::string>::const_iterator it;
+	it = this->m_mime_types.find(extension);
+	if (it == m_mime_types.end())
+		return ("none");
+	if ((it->first.compare("css") == 0) || (it->first.compare("js") == 0))
+		return (it->second + std::string("; charset=utf-8"));
+	return (it->second);
+}
+
+std::string
 Server::makeAutoindexPage(std::string root, std::string path)
 {
 	std::string page;
