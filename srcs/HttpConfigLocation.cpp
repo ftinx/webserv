@@ -14,7 +14,7 @@ HttpConfigLocation::HttpConfigLocation():
 	m_autoindex(false),
 	m_auth_basic(),
 	m_auth_basic_user_file(""),
-	m_limit_body_size(1048567)
+	m_limit_body_size(INT_MAX)
 {
 }
 

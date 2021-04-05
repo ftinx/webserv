@@ -344,7 +344,7 @@ Server::handleRequest(int clientfd)
 	}
 	if (this->m_responses[clientfd].get_m_status_code() != 0)
 	{
-		std::cout << "STATUS CODE: " << this->m_responses[clientfd].get_m_status_code();
+		std::cout << "STATUS CODE: " << this->m_responses[clientfd].get_m_status_code() << std::endl;;
 		ft::fdSet(clientfd, m_write_fds);
 	}
 	return ;
@@ -1191,12 +1191,12 @@ Server::methodPUT(int clientfd, std::string method)
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
-		close(fd);
+		//close(fd);
 		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	else
 	{
-		close(fd);
+		//close(fd);
 		return (Server::makeResponseMessage(status_code, this->m_server_name, req.get_m_reset_path(), "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
 	}
 	return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
@@ -1475,16 +1475,34 @@ Server::sendResponse(int clientfd)
 		buffsize = std::min(content_length - pos, MAXLINE);
 		std::cout << "OOOOOOO OK " << pos << std::endl;
 	}
-	if (ret < 0)ß
-	{ß
-		std::cout << "XXXXXXX FAIL" << pos << std::endl;ß
+	if (ret < 0)
+	{
+		std::cout << "XXXXXXX FAIL" << pos << std::endl;
+		std::cout << "ERRNO IS " << errno << std::endl;
+		std::cout << "X" << EACCES << std::endl;
+		std::cout << "A" << EAGAIN << std::endl;
+		std::cout << "B" << EALREADY << std::endl;
+		std::cout << "C" << EBADF << std::endl;
+		std::cout << "D" << ECONNRESET << std::endl;
+		std::cout << "E" << EFAULT  << std::endl;
+		std::cout << "F" << EINTR << std::endl;
+		std::cout << "G" << EINVAL << std::endl;
+		std::cout << "H" << EISCONN << std::endl;
+		std::cout << "I" << EMSGSIZE << std::endl;
+		std::cout << "J" << ENOBUFS << std::endl;
+		std::cout << "K" << ENOMEM << std::endl;
+		std::cout << "L" << ENOTCONN << std::endl;
+		std::cout << "M" << ENOTSOCK << std::endl;
+		std::cout << "N" << EOPNOTSUPP << std::endl;
+		std::cout << "O" << EPIPE << std::endl;
+		std::cout << "P" << EDESTADDRREQ << std::endl;
 		return (false);
 	}
 	else if (ret == 0)
 	{
 		std::cout << "OOOOOOO END " << pos << std::endl;
+		pos = 0;
 	}
-	pos = 0;
 	// if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0)) < 0)
 	// {
 	// 	std::cout << "XXXXXXX" << std::endl;
