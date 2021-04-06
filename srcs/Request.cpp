@@ -631,6 +631,7 @@ Request::getRestPath()
 			if (path == "")
 				path = "/";
 			return (path);
+			// return (m_reset_path.substr(pos + (*it).size(), std::string::npos));
 		}
 	}
 	return ("/");
