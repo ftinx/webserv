@@ -399,24 +399,29 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 	return (false);
 }
 
-bool
+int
 Request::getMessage(int fd)
 {
 	static std::string buff("");
-	bool found_break_line = false;
-	bool chunked = false;
+	static bool found_break_line = false;
+	static bool chunked = false;
 	int ret;
-	int header_bytes = 0;
-	int body_bytes = 0;
+	static int header_bytes = 0;
+	static int body_bytes = 0;
 	char *recvline;
 
-	this->m_message = buff;
+
+	if (this->m_message == "")
+	{
+		this->m_message = buff;
+		buff = "";
+	}
 	recvline = (char*)malloc(sizeof(char) * SOCK_BUFF);
-	while ((ret = read(fd, recvline, SOCK_BUFF - 1)) > 0)
+	memset(recvline, 0, SOCK_BUFF);
+	if ((ret = read(fd, recvline, SOCK_BUFF - 1)) > 0)
 	{
 		recvline[ret] = '\0';
 		std::string str(recvline);
-
 		this->m_message.append(str);
 		if (this->m_message.find("\r\n\r\n") >= 0)
 		{
@@ -430,24 +435,32 @@ Request::getMessage(int fd)
 				body_bytes += ret;
 		}
 		if (isBreakCondition(&chunked, body_bytes, header_bytes, &buff))
-			break;
-		memset(recvline, 0, SOCK_BUFF);
+		{
+			if (this->parseMessage(chunked) == false)
+			{
+				close(fd);
+				free(recvline);
+				return (FAIL);
+			}
+			found_break_line = false;
+			chunked = false;
+			header_bytes = 0;
+			body_bytes = 0;
+			return (SUCCESS);
+		}
+		free(recvline);
+		return (CONTINUE);
 	}
-	if (ret < 0)
+	if (ret <= 0)
 	{
 		close(fd);
 		free(recvline);
-		return (false);
+		return (FAIL);
 	}
 	// std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
 	// std::cout << m_message << std::endl;
-	if (this->parseMessage(chunked) == false)
-	{
-		close(fd);
-		return (false);
-	}
 	std::cout << "GETMESSAGE) BODY SIZE: " << m_body.size() << std::endl;
-	return (true);
+	return (FAIL);
 }
 
 bool
