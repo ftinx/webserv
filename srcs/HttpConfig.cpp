@@ -188,7 +188,7 @@ HttpConfig::setConfigFileCheckValid(std::string file_path)
 	{
 		this->m_lines[idx] = ft::trim(this->m_lines[idx], " ");
 		if (checkCurlyBracketsDouble(this->m_lines[idx]))
-			throw HttpConfig::BracketErrorException();
+			throw BracketErrorException();
 		if (checkBlankLine(this->m_lines[idx]) ||
 			HttpConfigLocation::checkCommentLine(this->m_lines[idx]))
 		{
@@ -199,27 +199,9 @@ HttpConfig::setConfigFileCheckValid(std::string file_path)
 		idx++;
 	}
 	if (checkStartHttp() == false)
-		throw HttpConfig::HttpBlockDoesNotExistException();
+		throw HttpBlockDoesNotExistException();
 	if (checkCurlyBracketsFaired() == false)
-		throw HttpConfig::BracketErrorException();
-}
-
-const char *
-HttpConfig::HttpBlockDoesNotExistException::what() const throw()
-{
-	return ("HttpConfigClassException: Http Block Does Not Exist");
-}
-
-const char *
-HttpConfig::ServerBlockDoesNotExistException::what() const throw()
-{
-	return ("HttpConfigClassException: Server Block Does Not Exist");
-}
-
-const char *
-HttpConfig::BracketErrorException::what() const throw()
-{
-	return ("HttpConfigClassException: Bracket Error");
+		throw BracketErrorException();
 }
 
 void
@@ -263,7 +245,9 @@ HttpConfig::parseConfigFile(std::string file_path)
 		idx++;
 	}
 	if (server_block_exist == false)
-		throw HttpConfig::ServerBlockDoesNotExistException();
+		throw ServerBlockDoesNotExistException();
+	if (this->m_mime_types.empty())
+		throw MimeTypeErrorException();
 }
 
 void

@@ -393,17 +393,24 @@ Server::readProcess()
 						std::cout << "RET IS " << ret << std::endl;
 						buff[ret] = '\0';
 						this->m_responses[fd_iter->clientfd].setCgiResponse(std::string(buff));
+						try
+						{
 						if (status_code == 0 &&
 							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCode()))
 						{
 							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
 						}
+						}
+						catch (std::exception &e)
+						{
+							std::cout << e.what() << std::endl;
+							return (true);
+						}
 					}
-					std::cout << "READ PROCESS) BODY SIZE: " << body.size() << std::endl;
+					std::cout << "READ PROCESS) BODY SIZE: " << this->m_responses[fd_iter->clientfd].get_m_cgi_response().size() << std::endl;
 					if (ret  == 0)
 					{
 						std::cout << "RET IS 0" << std::endl;
-						// this->m_responses[fd_iter->clientfd] = Server::makeResponseBodyMessage(200, this->m_server_name, body);
 						this->m_responses[fd_iter->clientfd]
 								.setCgiContentLength()
 								.makeCgiHttpResponseMessage();
@@ -429,7 +436,7 @@ Server::readProcess()
 					*m_maxfd = findMaxFd();
 					if (this->m_fd_table.size() <= 0)
 						return (false);
-					return (false);
+					return (true);
 				}
 				resetRequest(&this->m_requests[sockfd]);
 				handleRequest(sockfd);
@@ -461,9 +468,6 @@ Server::writeProcess()
 				int written_bytes = request.get_m_written_bytes();
 				int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 				int ret;
-				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(A): " << written_bytes << std::endl;
-				std::cout << "WRITE PROCESS) BODY SIZE: " << body.size() << std::endl;
-				std::cout << "WRITE PROCESS) CONTENT LENGTH: " << content_length << std::endl;
 
 				if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
 				{
@@ -492,14 +496,13 @@ Server::writeProcess()
 					std::cout << "M" << EPIPE << std::endl;
 					return (false);
 				}
-				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE(B): " << written_bytes << std::endl;
+				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE: " << written_bytes << std::endl;
 				if (ret == 0)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					std::cout << "CLOSE PIPE!!!!" << std::endl;
 					return (true);
 				}
 			}
@@ -540,31 +543,14 @@ Server::writeProcess()
 					std::cout << "N" << EOPNOTSUPP << std::endl;
 					std::cout << "O" << EPIPE << std::endl;
 					std::cout << "P" << EDESTADDRREQ << std::endl;
-					writeLog("response", m_responses[sockfd], Request());
-					return (false);
 				}
-				else if (ret == 0)
+				if (ret <= 0)
 				{
 					std::cout << "OOOOOOO END " << pos << std::endl;
 					ft::fdClr(sockfd, this->m_write_fds);
 					pos = 0;
 				}
 				writeLog("response", m_responses[sockfd], Request());
-
-				// if (sendResponse(sockfd) == true)
-				// {
-				// 	ft::fdClr(sockfd, this->m_write_fds);
-				// 	// ft::fdClr(sockfd, this->m_main_fds);
-				// 	// this->m_fd_table.erase(fd_iter);
-				// 	// *m_maxfd = findMaxFd();
-				// 	// close(sockfd);
-				// 	return (true);
-				// }
-				// else
-				// {
-				// 	return (false);
-				// }
-
 			}
 			return (false);
 		}
@@ -581,9 +567,8 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 	this->m_write_fds = write_fds;
 	this->m_maxfd = maxfd;
 
-	// if (writeProcess() == true)
-	// 	return;
-	writeProcess();
+	if (writeProcess() == true)
+		return;
 	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
 	{
 		acceptSocket();
@@ -1081,14 +1066,14 @@ Server::makeCgiEnvp(Request req, Response res)
 	return (env);
 }
 
-char**
+char **
 Server::makeCgiArgv(Request req)
 {
 	char **argv = (char **)malloc(sizeof(char *) * 2);
 
 	if (argv == NULL)
 		return (NULL);
-	argv[0] = (char *)req.get_m_script_name().c_str();
+	argv[0] = ft::strdup((char *)req.get_m_script_name().c_str());
 	argv[1] = (char *)0;
 	return (argv);
 }
@@ -1110,10 +1095,10 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	else if (argv == NULL)
 	{
 		ft::doubleFree(envp);
-		throw(Server::CgiException());
+		throw (Server::CgiException());
 	}
 	else if (pipe(fds1) < 0 || pipe(fds2) < 0)
-		throw Server::CgiException();
+		throw (Server::CgiException());
 
 	int parent_write = fds2[1];
 	int parent_read = fds1[0];
@@ -1126,7 +1111,16 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-	std::cout << "Execute Cgi >0<" << std::endl;
+	printf("\n=========== cgi argv ============\n");
+	printf("%s\n", argv[0]);
+	printf("\n=========== cgi envp ============\n");
+	for (int i = 0; i<3; i++)
+	{
+		printf("%s\n", envp[i]);
+	}
+	printf("===================================\n\n");
+
+	std::cout << "Execute Cgi >0<"<< req.get_m_path_translated().c_str() << std::endl;
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1135,10 +1129,9 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		close(parent_write);
 		close(parent_read);
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
-			throw Server::CgiException();
-
+			throw (Server::CgiException());
 		if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
-			throw Server::CgiException();
+			throw (Server::CgiException());
 		exit(EXIT_SUCCESS);
 	}
 	else  // parent process

@@ -433,7 +433,7 @@ Request::getMessage(int fd)
 			break;
 		memset(recvline, 0, SOCK_BUFF);
 	}
-	if (ret <= 0)
+	if (ret < 0)
 	{
 		close(fd);
 		free(recvline);

@@ -282,10 +282,10 @@ Response::findCgiStatusCode()
 	int ret;
 	char *buff = (char *)this->m_cgi_response.c_str();
 
-	if ((pos = this->m_cgi_response.find_first_of("Status: ")) == std::string::npos
-		&& (pos = this->m_cgi_response.find_first_of("status: ")) == std::string::npos)
+	if ((pos = this->m_cgi_response.find("Status: ")) == std::string::npos
+		&& (pos = this->m_cgi_response.find("status: ")) == std::string::npos)
 		return (0);
-	ret = std::stoi(&buff[pos + std::strlen("Status: ")]);
+	ret = std::stoi(std::string(&buff[pos + std::strlen("Status: ")]));
 	if (ret >= 100 && ret < 600)
 		return (ret);
 	return (0);
