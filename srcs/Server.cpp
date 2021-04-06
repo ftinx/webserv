@@ -435,7 +435,7 @@ Server::readProcess()
 					*m_maxfd = findMaxFd();
 					if (this->m_fd_table.size() <= 0)
 						return (false);
-					return (false);
+					return (true);
 				}
 				resetRequest(&this->m_requests[sockfd]);
 				handleRequest(sockfd);
@@ -467,8 +467,7 @@ Server::writeProcess()
 				int written_bytes = request.get_m_written_bytes();
 				int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 				int ret;
-				// std::cout << "------BODY-------" << std::endl;
-				// std::cout << body << std::endl;
+
 				if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
 				{
 					written_bytes += ret;
@@ -503,7 +502,6 @@ Server::writeProcess()
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					std::cout << "CLOSE PIPE!!!!" << std::endl;
 					return (true);
 				}
 			}
@@ -554,21 +552,6 @@ Server::writeProcess()
 					pos = 0;
 				}
 				writeLog("response", m_responses[sockfd], Request());
-
-				// if (sendResponse(sockfd) == true)
-				// {
-				// 	ft::fdClr(sockfd, this->m_write_fds);
-				// 	// ft::fdClr(sockfd, this->m_main_fds);
-				// 	// this->m_fd_table.erase(fd_iter);
-				// 	// *m_maxfd = findMaxFd();
-				// 	// close(sockfd);
-				// 	return (true);
-				// }
-				// else
-				// {
-				// 	return (false);
-				// }
-
 			}
 			return (false);
 		}
@@ -585,9 +568,8 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 	this->m_write_fds = write_fds;
 	this->m_maxfd = maxfd;
 
-	// if (writeProcess() == true)
-	// 	return;
-	writeProcess();
+	if (writeProcess() == true)
+		return;
 	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
 	{
 		acceptSocket();
