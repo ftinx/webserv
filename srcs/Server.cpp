@@ -357,6 +357,7 @@ Server::handleRequest(int clientfd)
 	if (this->m_responses[clientfd].get_m_status_code() != 0)
 	{
 		std::cout << "STATUS CODE: " << this->m_responses[clientfd].get_m_status_code() << std::endl;;
+		std::cout << "SET WRITE FD :D" << std::endl;
 		ft::fdSet(clientfd, m_write_fds);
 	}
 	return ;
@@ -426,10 +427,19 @@ Server::readProcess()
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
+				int ret;
+
 				std::cout << "::1:: " << sockfd << " ::" <<std::endl;
-				this->m_requests[sockfd] = Request();
-				if (this->m_requests[sockfd].getMessage(sockfd) == false)
+				if ((ret = this->m_requests[sockfd].getMessage(sockfd)) == SUCCESS)
 				{
+					std::cout << "GET MESSAGE SUCCESS " << std::endl;
+					resetRequest(&this->m_requests[sockfd]);
+					handleRequest(sockfd);
+					return (true);
+				}
+				else if (ret == FAIL)
+				{
+					close(sockfd);
 					ft::fdClr(sockfd, this->m_main_fds);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
@@ -437,8 +447,6 @@ Server::readProcess()
 						return (false);
 					return (true);
 				}
-				resetRequest(&this->m_requests[sockfd]);
-				handleRequest(sockfd);
 				return (true);
 			}
 			return (false);
@@ -546,6 +554,7 @@ Server::writeProcess()
 				if (ret <= 0)
 				{
 					std::cout << "OOOOOOO END " << pos << std::endl;
+					this->m_requests[sockfd] = Request();
 					ft::fdClr(sockfd, this->m_write_fds);
 					pos = 0;
 				}

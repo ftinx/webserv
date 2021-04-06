@@ -15,6 +15,13 @@
 #define CGI_BUFF 65536
 #define SOCK_BUFF 1000000
 
+enum REQUEST_STATUS
+{
+	FAIL,
+	CONTINUE,
+	SUCCESS,
+};
+
 class Request
 {
 	private:
@@ -87,7 +94,7 @@ class Request
 		std::string getAcceptLanguage();
 		std::string getReferer();
 		bool isBreakCondition(bool*, int, int, std::string *);
-		bool getMessage(int);
+		int getMessage(int);
 		bool parseMessage(bool);
 		bool parseRequestLine(std::string);
 		bool checkMethod();
