@@ -3,6 +3,7 @@
 
 # include "HttpConfigLocation.hpp"
 # include "Utils.hpp"
+# include "Exception.hpp"
 
 class HttpConfigServer
 {

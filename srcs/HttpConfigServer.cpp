@@ -123,6 +123,6 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 		idx++;
 	}
 	if (location_block_exist == false)
-		throw std::exception();
+		throw LocationBlockDoesNotExistException();
 	return (*this);
 }

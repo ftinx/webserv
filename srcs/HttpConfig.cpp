@@ -230,7 +230,7 @@ HttpConfig::parseConfigFile(std::string file_path)
 		}
 		else if (line.front().compare("root") == 0)
 		{
-			// HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
+			HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_root = line.back();
 		}
 		else if (line.front().compare("server") == 0)

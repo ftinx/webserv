@@ -3,6 +3,8 @@
 
 # include <iostream>
 
+/* parse config */
+
 class HttpBlockDoesNotExistException : public std::exception
 {
 	public:
@@ -10,6 +12,12 @@ class HttpBlockDoesNotExistException : public std::exception
 };
 
 class ServerBlockDoesNotExistException : public std::exception
+{
+	public:
+		virtual const char* what() const throw();
+};
+
+class LocationBlockDoesNotExistException : public std::exception
 {
 	public:
 		virtual const char* what() const throw();
@@ -26,5 +34,12 @@ class MimeTypeErrorException : public std::exception
 	public:
 		virtual const char* what() const throw();
 };
+
+class PathErrorException : public std::exception
+{
+	public:
+		virtual const char* what() const throw();
+};
+
 
 #endif
