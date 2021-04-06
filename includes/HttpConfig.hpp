@@ -55,6 +55,23 @@ class HttpConfig
 		// void setConfigLines();
 		// void checkValidHttpBlock();
 
+		/* exception */
+		class HttpBlockDoesNotExistException : public std::exception
+		{
+			public:
+				virtual const char* what() const throw();
+		};
+		class ServerBlockDoesNotExistException : public std::exception
+		{
+			public:
+				virtual const char* what() const throw();
+		};
+		class ServerBlockDoesNotExistException : public std::exception
+		{
+			public:
+				virtual const char* what() const throw();
+		};
+
 		/* key func. */
 		void parseConfigFile(std::string file_path);
 

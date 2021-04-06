@@ -408,6 +408,7 @@ Server::readProcess()
 								.setCgiContentLength()
 								.makeCgiHttpResponseMessage();
 						close(fd_iter->sockfd);
+
 						ft::fdClr(fd_iter->sockfd, m_main_fds);
 						ft::fdSet(fd_iter->clientfd, m_write_fds);
 						this->m_fd_table.erase(fd_iter);
