@@ -627,7 +627,10 @@ Request::getRestPath()
 	{
 		if ((pos = m_reset_path.find(*it)) != std::string::npos)
 		{
-			return (m_reset_path.substr(pos + (*it).size(), std::string::npos));
+			std::string path = m_reset_path.substr(pos + (*it).size(), std::string::npos);
+			if (path == "")
+				path = "/";
+			return (path);
 		}
 	}
 	return ("/");
@@ -666,6 +669,7 @@ Request::checkCGI()
 			this->m_path_translated = loc.get_m_cgi_path();
 			this->m_script_name = getScriptName(m_path_translated);
 			this->m_path_info = getRestPath();
+			// std::cout << "***** PATH INFO ******" << m_path_info << std::endl;
 		}
 		return (true);
 	}
