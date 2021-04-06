@@ -139,7 +139,7 @@ void
 HttpConfigLocation::checkDirExist(std::string path)
 {
 	if (ft::isValidDirPath(path) == false)
-		throw HttpConfigLocation::parseErrorException();
+		throw PathErrorException();
 }
 
 void
@@ -148,18 +148,13 @@ HttpConfigLocation::checkFileExist(std::string root, std::string path)
 	if (root != "") // 상대경로라면 root와 path 결합 후 유효성체크
 	{
 		if (ft::isValidFilePath(root + path.substr(2, path.length())) == false)
-			throw HttpConfigLocation::parseErrorException();
+			throw PathErrorException();
 	}
 	else // 절대경로라면 path 유효성 체크
 	{
 		if (ft::isValidFilePath(path) == false)
-			throw HttpConfigLocation::parseErrorException();
+			throw PathErrorException();
 	}
-}
-
-const char* HttpConfigLocation::parseErrorException::what() const throw()
-{
-	return ("Error: Failed to parse the config file.");
 }
 
 HttpConfigLocation&
@@ -193,7 +188,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 		}
 		else if (line.front().compare("root") == 0)
 		{
-			// checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
+			checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_root = line.back();
 		}
 		else if (line.front().compare("index") == 0)
@@ -217,7 +212,7 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 		}
 		else if (line.front().compare("cgi_path") == 0)
 		{
-			// checkFileExist("", line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
+			checkFileExist("", line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_cgi_path = line.back();
 		}
 		else if (line.front().compare("autoindex") == 0)

@@ -416,6 +416,7 @@ Server::readProcess()
 								.setCgiContentLength()
 								.makeCgiHttpResponseMessage();
 						close(fd_iter->sockfd);
+
 						ft::fdClr(fd_iter->sockfd, m_main_fds);
 						ft::fdSet(fd_iter->clientfd, m_write_fds);
 						this->m_fd_table.erase(fd_iter);
@@ -1074,14 +1075,14 @@ Server::makeCgiEnvp(Request req, Response res)
 	return (env);
 }
 
-char**
+char **
 Server::makeCgiArgv(Request req)
 {
 	char **argv = (char **)malloc(sizeof(char *) * 2);
 
 	if (argv == NULL)
 		return (NULL);
-	argv[0] = (char *)req.get_m_script_name().c_str();
+	argv[0] = ft::strdup((char *)req.get_m_script_name().c_str());
 	argv[1] = (char *)0;
 	return (argv);
 }
@@ -1119,7 +1120,16 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-	std::cout << "Execute Cgi >0<" << std::endl;
+	printf("\n=========== cgi argv ============\n");
+	printf("%s\n", argv[0]);
+	printf("\n=========== cgi envp ============\n");
+	for (int i = 0; i<3; i++)
+	{
+		printf("%s\n", envp[i]);
+	}
+	printf("===================================\n\n");
+
+	std::cout << "Execute Cgi >0<"<< req.get_m_path_translated().c_str() << std::endl;
 	pid = fork();
 
 	if (pid == 0) // child process

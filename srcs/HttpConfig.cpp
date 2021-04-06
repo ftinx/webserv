@@ -188,7 +188,7 @@ HttpConfig::setConfigFileCheckValid(std::string file_path)
 	{
 		this->m_lines[idx] = ft::trim(this->m_lines[idx], " ");
 		if (checkCurlyBracketsDouble(this->m_lines[idx]))
-			throw std::exception();
+			throw BracketErrorException();
 		if (checkBlankLine(this->m_lines[idx]) ||
 			HttpConfigLocation::checkCommentLine(this->m_lines[idx]))
 		{
@@ -199,9 +199,9 @@ HttpConfig::setConfigFileCheckValid(std::string file_path)
 		idx++;
 	}
 	if (checkStartHttp() == false)
-		throw std::exception();
+		throw HttpBlockDoesNotExistException();
 	if (checkCurlyBracketsFaired() == false)
-		throw std::exception();
+		throw BracketErrorException();
 }
 
 void
@@ -230,7 +230,7 @@ HttpConfig::parseConfigFile(std::string file_path)
 		}
 		else if (line.front().compare("root") == 0)
 		{
-			// HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
+			HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
 			this->m_root = line.back();
 		}
 		else if (line.front().compare("server") == 0)
@@ -245,7 +245,9 @@ HttpConfig::parseConfigFile(std::string file_path)
 		idx++;
 	}
 	if (server_block_exist == false)
-		throw std::exception();
+		throw ServerBlockDoesNotExistException();
+	if (this->m_mime_types.empty())
+		throw MimeTypeErrorException();
 }
 
 void

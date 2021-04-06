@@ -43,6 +43,7 @@ struct FDT
 	int clientfd;
 };
 
+const std::string B64CHRS =  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 namespace ft
 {
@@ -73,6 +74,7 @@ namespace ft
 	void fdSet(int fd, fd_set *fds);
 	void fdClr(int fd, fd_set *fds);
 	bool fdIsSet(int fd, fd_set *fds);
+	FDT makeFDT(enum FdType type, int sockfd, int clientfd);
 
 	/* TCP */
 	unsigned short hToNS(unsigned short hostshort);
@@ -85,6 +87,10 @@ namespace ft
 	std::string getDateTimestamp(int hour, int minute, int second);
 	int compareTimestampToCurrent(std::string timestamp);
 
+	/* BASE64 */
+	std::string encode(const std::string &input);
+	std::string decode(const std::string &input);
+
 	/* ETC */
 	void doubleFree(char** str);
 	bool isValidFilePath(std::string path);
@@ -95,11 +101,6 @@ namespace ft
 	bool checkValidFileExtension(std::string file_name, std::string ext);
 	bool checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list);
 	std::string getErrorMessage(int status_code);
-	FDT makeFDT(enum FdType type, int sockfd, int clientfd);
-	std::string encode(const std::string &input);
-	std::string decode(const std::string &input);
-
-
 }
 
 #endif

@@ -21,6 +21,7 @@ SRC =	main.cpp \
 		HttpConfig.cpp \
 		HttpConfigLocation.cpp \
 		HttpConfigServer.cpp \
+		Exception.cpp \
 
 SRCS = $(addprefix $(DIR_SRC), $(SRC))
 OBJS = $(SRCS:%.cpp=%.o)
