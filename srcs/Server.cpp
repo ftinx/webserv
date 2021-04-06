@@ -408,6 +408,7 @@ Server::readProcess()
 						}
 					}
 					std::cout << "READ PROCESS) BODY SIZE: " << this->m_responses[fd_iter->clientfd].get_m_cgi_response().size() << std::endl;
+					std::cout << "WHY: " << ":" << this->m_responses[fd_iter->clientfd].get_m_cgi_response() << ":"<< std::endl;
 					if (ret  == 0)
 					{
 						std::cout << "RET IS 0" << std::endl;
@@ -1112,7 +1113,7 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-	std::cout << "Execute Cgi >0<" << std::endl;
+	std::cout << "Execute Cgi >0<"<< req.get_m_path_translated().c_str() << std::endl;
 	pid = fork();
 
 	if (pid == 0) // child process
