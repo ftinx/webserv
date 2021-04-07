@@ -350,7 +350,7 @@ Server::handleRequest(int clientfd)
 			it = m_http_config_path_method.find(this->m_requests[clientfd].get_m_uri().get_m_path());
 			if (it != m_http_config_path_method.end())
 				allow_method = it->second;
-			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
+			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, "", "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
 			break;
 		}
 	}
@@ -1203,47 +1203,6 @@ Server::methodPOST(int clientfd, std::string method)
 	}
 	return (response);
 }
-
-// Response
-// Server::methodPOST(int clientfd, std::string method)
-// {
-// 	(void) clientfd;
-	// Response response;
-
-	// /* Response Setting */
-	// response.set_m_err_page_path(this->m_err_page_path);
-
-	// /* CGI Response Setting */
-	// response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
-	// response.set_m_cgi_port(this->get_m_port());
-	// response.set_m_cgi_server_name(this->get_m_server_name());
-	// response = Server::page404(response.get_m_err_page_path());
-
-	/* Route */
-	// if (this->m_requests[clientfd].get_m_uri().get_m_path() == "/cgi-bin/cgi_tester")
-		// response = executeCgi(this->m_requests[clientfd], response, method);
-	// response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
-	// response = post("/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
-
-	/* Config File Route */
-	// if (this->m_post_location.size() == 0)
-	// 	return (response);
-	// std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_post_location.begin();
-	// while (location_iter != this->m_post_location.end())
-	// {
-	// 	/* HttpConfig path Response Setting */
-	// 	response.set_m_cgi_extension(location_iter->get_m_cgi());
-	// 	response.set_m_index_file(location_iter->get_m_index());
-	// 	response.set_m_root(location_iter->get_m_root());
-	// 	// response.set_m_cgi_path(location_iter->get_m_cgi_path());
-
-	// 	/* CGI */
-	// 	if (location_iter->get_m_cgi_path() != "")
-	// 		response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
-	// 	location_iter++;
-	// }
-// 	return (Server::makeResponseBodyMessage(405, makeErrorPage(405), method));
-// }
 
 /*============================================================================*/
 /**********************************  PUT  *************************************/
