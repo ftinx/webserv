@@ -22,7 +22,7 @@
 #define MAX_SOCK_NUM 1024
 #define CGI_BUFF 65536
 #define SOCK_BUFF 1000000
-#define WRITE_LOG 1
+#define WRITE_LOG 0
 
 class Server
 {
@@ -142,6 +142,7 @@ class Server
 		Response executeCgi(Request req, Response res, int clientfd);
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response postAuth(Request req, Response res);
+		Response postBody(Request req, Response res);
 		Response methodPOST(int clientfd, std::string method="POST");
 
 		/* PUT */
