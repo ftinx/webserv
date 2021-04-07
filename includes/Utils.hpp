@@ -62,12 +62,12 @@ namespace ft
 
 	/* LIBFT C++ */
 	int stoi(const std::string &str);
-	char* strdup(std::string str);
-	std::string ltrim(std::string str, std::string set);
-	std::string rtrim(std::string str, std::string set);
-	std::string trim(std::string str, std::string set);
-	std::vector<std::string> split(std::string const &str, char set);
-	std::vector<std::string> split(std::string const &str, std::string set);
+	char* strdup(const std::string &str);
+	std::string ltrim(const std::string &str, const std::string &set);
+	std::string rtrim(const std::string &str, const std::string &set);
+	std::string trim(const std::string &str, const std::string &set);
+	std::vector<std::string> split(const std::string &str, const char &set);
+	std::vector<std::string> split(const std::string &str, const std::string &set);
 
 	/* FD SET */
 	void fdZero(fd_set *fds);

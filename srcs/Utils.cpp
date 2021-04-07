@@ -160,7 +160,7 @@ stoi(const std::string &str)
 }
 
 char *
-strdup(std::string str)
+strdup(const std::string &str)
 {
 	size_t	idx;
 	char	*ret;
@@ -178,7 +178,7 @@ strdup(std::string str)
 }
 
 std::string
-ltrim(std::string str, std::string set)
+ltrim(const std::string &str, const std::string &set)
 {
 	size_t n;
 
@@ -190,7 +190,7 @@ ltrim(std::string str, std::string set)
 }
 
 std::string
-rtrim(std::string str, std::string set)
+rtrim(const std::string &str, const std::string &set)
 {
 	size_t n;
 
@@ -202,13 +202,13 @@ rtrim(std::string str, std::string set)
 }
 
 std::string
-trim(std::string str, std::string set)
+trim(const std::string &str, const std::string &set)
 {
 	return (rtrim(ltrim(str, set), set));
 }
 
 std::vector<std::string>
-split(std::string const &str, char set)
+split(const std::string &str, const char &set)
 {
 	std::size_t start = 0;
 	std::size_t pos_set = 0;
@@ -228,7 +228,7 @@ split(std::string const &str, char set)
 }
 
 std::vector<std::string>
-split(std::string const &str, std::string set)
+split(const std::string &str, const std::string &set)
 {
 	std::size_t start = 0;
 	std::size_t pos_set = 0;
