@@ -691,6 +691,11 @@ Server::resetRequest(Request *req)
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
 	int pos = block.get_m_limit_body_size();
+	if (pos < req->get_m_content_length())
+	{
+		req->set_m_error_code(413);
+		return ;
+	}
 	req->set_m_body(req->get_m_body().substr(0, pos));
 	std::cout << "RESETREQUEST) BODY SIZE: " << req->get_m_body().size() << std::endl;
 	writeLog("request", Response(), *req, WRITE_LOG);
@@ -1038,7 +1043,7 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["PATH_INFO"] = req.get_m_path_info();
 	map["PATH_TRANSLATED"] = req.get_m_path_translated();
-	// map["HTTP_X_SECRET_HEADER_FOR_TEST"] = 1;
+	map["HTTP_X_SECRET_HEADER_FOR_TEST"] = '1';
 	// map["SCRIPT_NAME"] = req.get_m_script_name();
 
 	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
@@ -1208,6 +1213,18 @@ Server::executeCgi(Request req, Response res, int clientfd)
 // }
 
 Response
+Server::postBody(Request req, Response res)
+{
+	std::string path = req.get_m_uri().get_m_path();
+
+	if (path == "/post_body")
+	{
+		res = makeResponseBodyMessage(200, this->m_server_name, req.get_m_body());
+	}
+	return (res);
+}
+
+Response
 Server::methodPOST(int clientfd, std::string method)
 {
 	(void)method;
@@ -1224,6 +1241,10 @@ Server::methodPOST(int clientfd, std::string method)
 		{
 			std::cerr << e.what() << std::endl;
 		}
+	}
+	else
+	{
+		response = postBody(request, response);
 	}
 	return (response);
 }

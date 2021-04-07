@@ -142,6 +142,7 @@ class Server
 		Response executeCgi(Request req, Response res, int clientfd);
 		static std::map<std::string, std::string> parseQuery(std::string str);
 		static Response postAuth(Request req, Response res);
+		Response postBody(Request req, Response res);
 		Response methodPOST(int clientfd, std::string method="POST");
 
 		/* PUT */
