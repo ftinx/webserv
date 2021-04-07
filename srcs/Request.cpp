@@ -413,6 +413,8 @@ Request::getMessage(int fd)
 
 	if (this->m_message == "")
 	{
+		this->m_message.reserve(SOCK_BUFF);
+		this->m_body.reserve(SOCK_BUFF);
 		this->m_message = buff;
 		buff = "";
 	}

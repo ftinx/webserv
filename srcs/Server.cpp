@@ -1167,49 +1167,6 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	return (response);
 }
 
-// std::map<std::string, std::string>
-// Server::parseQuery(std::string str)
-// {
-// 	std::map<std::string, std::string> m_query;
-// 	std::vector<std::string> pieces = ft::split(str, "&");
-
-// 	for (size_t i = 0; i < pieces.size(); i++)
-// 	{
-// 		std::vector<std::string> queries = ft::split(pieces[i], "=");
-// 		m_query.insert(make_pair(ft::trim(queries[0], " \n\t\v\f\r"), ft::trim(queries[1], " \n\t\v\f\r")));
-// 	}
-// 	return (m_query);
-// }
-
-// Response
-// Server::postAuth(Request req, Response res)
-// {
-// 	std::string path = req.get_m_uri().get_m_path();
-
-// 	if (path == "/auth")
-// 	{
-// 		std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
-// 		std::string username;
-// 		std::string password;
-
-// 		if(m_query.find("formType") != m_query.end()
-// 		&& m_query.find("formType")->second == "login")
-// 		{
-// 			username = m_query.find("username")->second;
-// 			password = m_query.find("password")->second;
-
-// 			printf("::%s:: ::%s::", username.c_str(), password.c_str());
-// 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
-
-// 			if (username == "42seoul" && password == "42seoul")
-// 				return (Server::makeResponseMessage(200, "./www/srcs/login.html", ""));
-// 			else
-// 				return (Server::makeResponseMessage(200, "./www/index.html", ""));
-// 		}
-// 	}
-// 	return (res);
-// }
-
 Response
 Server::postBody(Request req, Response res)
 {
@@ -1246,47 +1203,6 @@ Server::methodPOST(int clientfd, std::string method)
 	}
 	return (response);
 }
-
-// Response
-// Server::methodPOST(int clientfd, std::string method)
-// {
-// 	(void) clientfd;
-	// Response response;
-
-	// /* Response Setting */
-	// response.set_m_err_page_path(this->m_err_page_path);
-
-	// /* CGI Response Setting */
-	// response.set_m_cgi_client_addr(this->m_client_addr.sin_addr.s_addr);
-	// response.set_m_cgi_port(this->get_m_port());
-	// response.set_m_cgi_server_name(this->get_m_server_name());
-	// response = Server::page404(response.get_m_err_page_path());
-
-	/* Route */
-	// if (this->m_requests[clientfd].get_m_uri().get_m_path() == "/cgi-bin/cgi_tester")
-		// response = executeCgi(this->m_requests[clientfd], response, method);
-	// response = post("/auth", this->m_requests[clientfd], response, Server::postAuth);
-	// response = post("/cgi-bin/cgi_tester", this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
-
-	/* Config File Route */
-	// if (this->m_post_location.size() == 0)
-	// 	return (response);
-	// std::vector<HttpConfigLocation>::const_iterator location_iter = this->m_post_location.begin();
-	// while (location_iter != this->m_post_location.end())
-	// {
-	// 	/* HttpConfig path Response Setting */
-	// 	response.set_m_cgi_extension(location_iter->get_m_cgi());
-	// 	response.set_m_index_file(location_iter->get_m_index());
-	// 	response.set_m_root(location_iter->get_m_root());
-	// 	// response.set_m_cgi_path(location_iter->get_m_cgi_path());
-
-	// 	/* CGI */
-	// 	if (location_iter->get_m_cgi_path() != "")
-	// 		response = post(location_iter->get_m_path(), this->m_requests[clientfd], response, &this->m_write_fds, Server::executeCgi);
-	// 	location_iter++;
-	// }
-// 	return (Server::makeResponseBodyMessage(405, makeErrorPage(405), method));
-// }
 
 /*============================================================================*/
 /**********************************  PUT  *************************************/
