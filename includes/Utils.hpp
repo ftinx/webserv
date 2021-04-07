@@ -30,10 +30,10 @@ enum Method
 
 enum FdType
 {
-    S_SOCKET,
-    C_SOCKET,
-    CGI_PIPE,
-    CLOSED,
+	S_SOCKET,
+	C_SOCKET,
+	CGI_PIPE,
+	CLOSED,
 };
 
 struct FDT
@@ -93,13 +93,13 @@ namespace ft
 
 	/* ETC */
 	void doubleFree(char** str);
-	bool isValidFilePath(std::string path);
-	bool isValidDirPath(std::string path);
-	std::string fileToString(std::string file_path);
-	Method getMethodType(std::string str);
-	std::string getMethodString(Method method);
-	bool checkValidFileExtension(std::string file_name, std::string ext);
-	bool checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list);
+	bool isValidFilePath(const std::string &path);
+	bool isValidDirPath(const std::string &path);
+	std::string fileToString(const std::string &file_path);
+	Method getMethodType(const std::string &str);
+	std::string getMethodString(const Method &method);
+	bool checkValidFileExtension(const std::string &file_name, const std::string &ext);
+	bool checkValidFileExtension(const std::string &file_name, const std::vector<std::string> &ext_list);
 	std::string getErrorMessage(int status_code);
 }
 

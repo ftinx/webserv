@@ -499,7 +499,7 @@ decode(const std::string &input)
 /*============================================================================*/
 
 bool
-isValidFilePath(std::string path)
+isValidFilePath(const std::string &path)
 {
 	struct stat buffer;
 
@@ -510,7 +510,7 @@ isValidFilePath(std::string path)
 }
 
 bool
-isValidDirPath(std::string path)
+isValidDirPath(const std::string &path)
 {
 	DIR *dirptr;
 
@@ -523,7 +523,7 @@ isValidDirPath(std::string path)
 }
 
 std::string
-fileToString(std::string file_path)
+fileToString(const std::string &file_path)
 {
 	int fd;
 	int bytes;
@@ -542,7 +542,7 @@ fileToString(std::string file_path)
 }
 
 Method
-getMethodType(std::string str)
+getMethodType(const std::string &str)
 {
 	if (str == "GET")
 		return (GET);
@@ -562,7 +562,7 @@ getMethodType(std::string str)
 }
 
 std::string
-getMethodString(Method method)
+getMethodString(const Method &method)
 {
 	if (method == GET)
 		return ("GET");
@@ -582,7 +582,7 @@ getMethodString(Method method)
 }
 
 bool
-checkValidFileExtension(std::string file_name, std::string ext)
+checkValidFileExtension(const std::string &file_name, const std::string &ext)
 {
 	std::vector<std::string> tmp;
 	std::string extension;
@@ -597,7 +597,7 @@ checkValidFileExtension(std::string file_name, std::string ext)
 }
 
 bool
-checkValidFileExtension(std::string file_name, std::vector<std::string> ext_list)
+checkValidFileExtension(const std::string &file_name, const std::vector<std::string> &ext_list)
 {
 	std::vector<std::string>::const_iterator it;
 	std::string extension;
