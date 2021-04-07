@@ -22,6 +22,7 @@
 #define MAX_SOCK_NUM 1024
 #define CGI_BUFF 65536
 #define SOCK_BUFF 1000000
+#define WRITE_LOG 1
 
 class Server
 {
@@ -122,7 +123,7 @@ class Server
 		void resetRequest(Request *req);
 		bool checkAuth(std::string auth_value, std::vector<std::string> auth_basic, std::string auth_file_path);
 
-		void writeLog(std::string type, Response res, Request req);
+		void writeLog(std::string type, Response res, Request req, bool work);
 
 		/* HEAD */
 		Response methodHEAD(int clientfd, std::string method="HEAD");
