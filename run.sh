@@ -1,26 +1,29 @@
 #!/bin/bash
 
 clear
-echo ""
-echo -e "\033[47;30m* WELCOME TO FTINX 0.1 :) *\033[0m"
+echo -e "\033[47;30m* WELCOME TO FTINX :) *\033[0m"
 echo ""
 
-for config_file_list in `ls config $1`
+for config_file_list in `ls config`
 do
         let I=I+1
         echo "$I) $config_file_list"
 done
+echo -e "\033[40;33mIf you do not enter any number, the default server runs\033[0m"
 echo ""
 echo -n "SELECT CONFIG FILE : "
-read selected_file_num
-file_name=`ls config $1 | sed -n "$selected_file_num"p`
-# if [[ x{$select_file_num} == x ]];then
-#         echo "here"
-#         file_name="default.conf"
-# else
-#         echo "here2"
-#         file_name=`ls config $1 | sed -n "$selected_file_num"p`
-# fi
+if [[ $# == 1 ]];then
+        selected_file_num="$1"
+else
+        read selected_file_num
+fi
+# 인자가 입력된 경우 config 파일 숫자를 대체
+if [[ $selected_file_num == "" ]];then
+        file_name="default.conf"
+else
+        file_name=`ls config | sed -n "$selected_file_num"p`
+fi
+# 숫자를 입력하지 않는 경우 default.conf 파일 입력
 
 clear
 echo -e "\033[47;30m* DELETE LOG *\033[0m"
