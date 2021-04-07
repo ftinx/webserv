@@ -3,7 +3,7 @@
 
 # include <iostream>
 
-/* parse config */
+/* parse config exception */
 
 class HttpBlockDoesNotExistException : public std::exception
 {
