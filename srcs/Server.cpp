@@ -1167,49 +1167,6 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	return (response);
 }
 
-// std::map<std::string, std::string>
-// Server::parseQuery(std::string str)
-// {
-// 	std::map<std::string, std::string> m_query;
-// 	std::vector<std::string> pieces = ft::split(str, "&");
-
-// 	for (size_t i = 0; i < pieces.size(); i++)
-// 	{
-// 		std::vector<std::string> queries = ft::split(pieces[i], "=");
-// 		m_query.insert(make_pair(ft::trim(queries[0], " \n\t\v\f\r"), ft::trim(queries[1], " \n\t\v\f\r")));
-// 	}
-// 	return (m_query);
-// }
-
-// Response
-// Server::postAuth(Request req, Response res)
-// {
-// 	std::string path = req.get_m_uri().get_m_path();
-
-// 	if (path == "/auth")
-// 	{
-// 		std::map<std::string, std::string> m_query = Server::parseQuery(req.get_m_body());
-// 		std::string username;
-// 		std::string password;
-
-// 		if(m_query.find("formType") != m_query.end()
-// 		&& m_query.find("formType")->second == "login")
-// 		{
-// 			username = m_query.find("username")->second;
-// 			password = m_query.find("password")->second;
-
-// 			printf("::%s:: ::%s::", username.c_str(), password.c_str());
-// 			printf("::%d:: ::%d::", username == "42seoul", password == "42seoul");
-
-// 			if (username == "42seoul" && password == "42seoul")
-// 				return (Server::makeResponseMessage(200, "./www/srcs/login.html", ""));
-// 			else
-// 				return (Server::makeResponseMessage(200, "./www/index.html", ""));
-// 		}
-// 	}
-// 	return (res);
-// }
-
 Response
 Server::postBody(Request req, Response res)
 {
