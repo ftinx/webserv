@@ -537,6 +537,7 @@ fileToString(std::string file_path)
 		ret += std::string(buffer, bytes);
 	if (bytes < 0)
 		throw std::exception();
+	close(fd);
 	return (ret);
 }
 
