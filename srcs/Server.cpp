@@ -690,13 +690,11 @@ Server::resetRequest(Request *req)
 	}
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
-	int pos = block.get_m_limit_body_size();
-	if (pos < req->get_m_content_length())
+	if (block.get_m_limit_body_size() < req->get_m_content_length())
 	{
 		req->set_m_error_code(413);
 		return ;
 	}
-	req->set_m_body(req->get_m_body().substr(0, pos));
 	std::cout << "RESETREQUEST) BODY SIZE: " << req->get_m_body().size() << std::endl;
 	writeLog("request", Response(), *req, WRITE_LOG);
 }
