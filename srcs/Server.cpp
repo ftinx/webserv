@@ -559,7 +559,7 @@ Server::writeProcess()
 					ft::fdClr(sockfd, this->m_write_fds);
 					pos = 0;
 				}
-				writeLog("response", m_responses[sockfd], Request());
+				writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
 			}
 			return (false);
 		}
@@ -693,12 +693,14 @@ Server::resetRequest(Request *req)
 	int pos = block.get_m_limit_body_size();
 	req->set_m_body(req->get_m_body().substr(0, pos));
 	std::cout << "RESETREQUEST) BODY SIZE: " << req->get_m_body().size() << std::endl;
-	writeLog("request", Response(), *req);
+	writeLog("request", Response(), *req, WRITE_LOG);
 }
 
 void
-Server::writeLog(std::string type, Response res, Request req)
+Server::writeLog(std::string type, Response res, Request req, bool work)
 {
+	if (!work)
+		return ;
 	int fd;
 	static int start = 1;
 	static int cnt_request = 0;
@@ -993,7 +995,7 @@ Server::methodGET(int clientfd, std::string method)
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it) // index 를 못찾은 경우
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true) // location 블록의 autoindex 값이 on인 경우 페이지 만들어서 200 응답과 반환
-				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, req.getReferer()));
+				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		}
 	}
 	else // 폴더가 아니라면
@@ -1036,7 +1038,7 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();
 	map["PATH_INFO"] = req.get_m_path_info();
 	map["PATH_TRANSLATED"] = req.get_m_path_translated();
-
+	// map["HTTP_X_SECRET_HEADER_FOR_TEST"] = 1;
 	// map["SCRIPT_NAME"] = req.get_m_script_name();
 
 	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
@@ -1630,6 +1632,6 @@ Server::sendResponse(int clientfd)
 	// {
 	// 	std::cout << "OOOOOOO" << std::endl;
 	// }
-	writeLog("response", m_responses[clientfd], Request());
+	writeLog("response", m_responses[clientfd], Request(), WRITE_LOG);
 	return (true);
 }

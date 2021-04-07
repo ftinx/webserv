@@ -28,7 +28,7 @@ class HttpConfig
 
 	private:
 		/* utils */
-		bool checkStartHttp(); // m_liens의 시작이 "http" 인지 여부 확인
+		bool checkStartHttp(); // m_lines의 시작이 "http" 인지 여부 확인
 		bool checkBlankLine(std::string str);
 		bool checkCurlyBracketsFaired(); // 중괄호의 갯수와 열고 닫음에 에러가 없는지 확인
 		bool checkCurlyBracketsDouble(std::string str);
@@ -51,6 +51,7 @@ class HttpConfig
 		/* setter */
 		void parseMimeTypes();
 		void setConfigFileCheckValid(std::string file_path);
+		void setDefaultRootPath();
 		// void setConfigFile();
 		// void setConfigLines();
 		// void checkValidHttpBlock();

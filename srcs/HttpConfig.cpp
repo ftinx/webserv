@@ -6,8 +6,8 @@
 
 HttpConfig::HttpConfig()
 :
-	m_name(""),
-	m_version(""),
+	m_name("ftinx"),
+	m_version("0.1"),
 	m_include(""),
 	m_root(""),
 	m_server_block(),
@@ -179,11 +179,11 @@ void
 HttpConfig::setConfigFileCheckValid(std::string file_path)
 {
 	size_t idx = 0;
-
 	this->m_cnt_trash_lines = 0;
 	this->m_file_path = file_path;
 	this->m_config_file = ft::fileToString(m_file_path);
 	this->m_lines = ft::split(this->m_config_file, '\n');
+
 	while (idx < this->m_lines.size())
 	{
 		this->m_lines[idx] = ft::trim(this->m_lines[idx], " ");
@@ -205,11 +205,21 @@ HttpConfig::setConfigFileCheckValid(std::string file_path)
 }
 
 void
+HttpConfig::setDefaultRootPath()
+{
+	char path[1024];
+
+	getcwd(path, 1024);
+	this->m_root = std::string(path) + std::string("/www-default");
+}
+
+void
 HttpConfig::parseConfigFile(std::string file_path)
 {
 	size_t idx = 0;
 	bool server_block_exist = false;
 
+	setDefaultRootPath();
 	setConfigFileCheckValid(file_path);
 	while (idx < this->m_lines.size())
 	{
