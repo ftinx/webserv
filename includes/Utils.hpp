@@ -30,10 +30,10 @@ enum Method
 
 enum FdType
 {
-    S_SOCKET,
-    C_SOCKET,
-    CGI_PIPE,
-    CLOSED,
+	S_SOCKET,
+	C_SOCKET,
+	CGI_PIPE,
+	CLOSED,
 };
 
 struct FDT
