@@ -35,6 +35,7 @@ class Server
 		int m_content_length;
 		size_t m_location_size;
 		std::string m_root;
+		std::string m_default_type;
 
 		/* Parse */
 		std::vector<HttpConfigLocation> m_head_location;
@@ -98,7 +99,7 @@ class Server
 			int content_length,
 			size_t location_size,
 			std::string root,
-			std::map<std::string, std::string> mime_types,
+			std::map<std::string, std::string> mime_types, std::string default_type,
 			int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds
 		);
 
