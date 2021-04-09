@@ -974,33 +974,32 @@ Server::makeAutoindexPage(std::string root, std::string path)
 // 	return (true);
 // }
 
-
 Response
 Server::methodGET(int clientfd, std::string method)
 {
 	Request &req(this->m_requests[clientfd]);
 	HttpConfigLocation location_block(req.get_m_location_block());
-	std::string absolute_path(req.get_m_reset_path());
+	std::string abs_path(req.get_m_reset_path());
 	std::string final_path;
 	std::string extension;
 
-	if (ft::isValidDirPath(absolute_path)) // 폴더라면
+	if (ft::isValidDirPath(abs_path)) // 폴더라면
 	{
-		if (absolute_path.find("/", absolute_path.length() - 1) == std::string::npos)
-			absolute_path = absolute_path + std::string("/");
+		if (abs_path.find("/", abs_path.length() - 1) == std::string::npos)
+			abs_path = abs_path + std::string("/");
 		if (location_block.get_m_index().empty() == false) // index 벡터가 존재하면
 		{
 			std::vector<std::string> index = location_block.get_m_index();
 			std::vector<std::string>::const_iterator index_it;
 			for (index_it = index.begin() ; index_it != index.end() ; ++index_it) // index 벡터 순회
 			{
-				if (ft::isValidFilePath(absolute_path + *index_it)) // 만약 유효한 파일이면
+				if (ft::isValidFilePath(abs_path + *index_it)) // 만약 유효한 파일이면
 				{
 					extension = (*index_it).substr((*index_it).find_last_of(".") + 1, std::string::npos);
 					if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0)) // 영문 페이지 요청의 경우 path 수정
-						final_path = absolute_path + std::string("en/") + *index_it;
+						final_path = abs_path + std::string("en/") + *index_it;
 					else
-						final_path = absolute_path + *index_it;
+						final_path = abs_path + *index_it;
 					return (Server::makeResponseMessage(200, this->m_server_name, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer())); // 200 응답과 반환
 				}
 			}
@@ -1009,23 +1008,23 @@ Server::methodGET(int clientfd, std::string method)
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it) // index 를 못찾은 경우
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true) // location 블록의 autoindex 값이 on인 경우 페이지 만들어서 200 응답과 반환
-				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), absolute_path), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), abs_path), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		}
 	}
 	else // 폴더가 아니라면
 	{
-		if (ft::isValidFilePath(absolute_path)) // 유효한 파일이면
+		if (ft::isValidFilePath(abs_path)) // 유효한 파일이면
 		{
-			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
+			extension = abs_path.substr(abs_path.find_last_of(".") + 1, std::string::npos);
 			if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0)) // 영문 페이지 요청의 경우 path 수정
 			{
-				int pos_last_slash = absolute_path.find_last_of("/");
-				final_path += absolute_path.substr(0, pos_last_slash + 1)
+				int pos_last_slash = abs_path.find_last_of("/");
+				final_path += abs_path.substr(0, pos_last_slash + 1)
 							+ std::string("en/")
-							+ absolute_path.substr(pos_last_slash + 1, std::string::npos);
+							+ abs_path.substr(pos_last_slash + 1, std::string::npos);
 			}
 			else
-				final_path = absolute_path;
+				final_path = abs_path;
 			return (Server::makeResponseMessage(200, this->m_server_name, final_path, "", req.getAcceptLanguage(), method, getMimeType(extension), req.getReferer()));
 		}
 	}
