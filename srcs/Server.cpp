@@ -1220,7 +1220,7 @@ Server::methodPOST(int clientfd, std::string method)
 Response
 Server::methodPUT(int clientfd, std::string method)
 {
-	Request req = this->m_requests[clientfd];
+	Request &req(this->m_requests[clientfd]);
 	std::string path = req.get_m_reset_path();
 
 	int fd;
@@ -1260,7 +1260,8 @@ Server::methodPUT(int clientfd, std::string method)
 Response
 Server::methodDELETE(int clientfd, std::string method)
 {
-	std::string path = m_requests[clientfd].get_m_reset_path();
+	Request &req(this->m_requests[clientfd]);
+	std::string path = req.get_m_reset_path();
 
 	if (ft::isValidFilePath(path))
 	{

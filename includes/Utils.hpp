@@ -19,7 +19,6 @@
 # define SOCK_BUFF 1000000
 # define RESV_SIZE 150000000
 
-
 enum Method
 {
 	DEFAULT,
@@ -63,6 +62,7 @@ namespace ft
 	void putnbr_fd(int n, int fd);
 	char* strchr(const char *str, int c);
 	void* memset(void *str, int c, size_t n);
+	void doubleFree(char** str);
 
 	/* LIBFT C++ */
 	int stoi(const std::string &str);
@@ -95,15 +95,16 @@ namespace ft
 	std::string encode(const std::string &input);
 	std::string decode(const std::string &input);
 
-	/* ETC */
-	void doubleFree(char** str);
+	/* FILE */
+	std::string fileToString(const std::string &file_path);
 	bool isValidFilePath(const std::string &path);
 	bool isValidDirPath(const std::string &path);
-	std::string fileToString(const std::string &file_path);
-	Method getMethodType(const std::string &str);
-	std::string getMethodString(const Method &method);
 	bool checkValidFileExtension(const std::string &file_name, const std::string &ext);
 	bool checkValidFileExtension(const std::string &file_name, const std::vector<std::string> &ext_list);
+
+	/* ETC */
+	Method getMethodType(const std::string &str);
+	std::string getMethodString(const Method &method);
 	std::string getErrorMessage(int status_code);
 }
 
