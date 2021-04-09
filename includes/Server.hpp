@@ -20,7 +20,7 @@
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
-#define WRITE_LOG 0
+#define WRITE_LOG 1
 
 class Server
 {
@@ -132,6 +132,7 @@ class Server
 		// bool checkHttpConfigFilePathHead(std::string path);
 		std::string getMimeType(std::string extension);
 		std::string makeAutoindexPage(std::string root, std::string path);
+
 		Response methodGET(int clientfd, std::string method="GET");
 
 		/* POST */
