@@ -384,16 +384,16 @@ Server::readProcess()
 				char buff[CGI_BUFF];
 				static std::string body("");
 
-				std::cout << "BEFORE WAITING" << std::endl;
+				// std::cout << "BEFORE WAITING" << std::endl;
 				//kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
 				//waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, 0);
-				std::cout << "AFTER WAITING" << std::endl;
+				// std::cout << "AFTER WAITING" << std::endl;
 				ft::memset(buff, 0, CGI_BUFF);
 				// if (status == 0)
 				// {
 					if( 0 < (ret = read(fd_iter->sockfd, buff, CGI_BUFF - 1)))
 					{
-						std::cout << "RET IS " << ret << std::endl;
+						// std::cout << "RET IS " << ret << std::endl;
 						buff[ret] = '\0';
 						this->m_responses[fd_iter->clientfd].setCgiResponse(std::string(buff));
 						try
@@ -410,7 +410,7 @@ Server::readProcess()
 							return (true);
 						}
 					}
-					std::cout << "READ PROCESS) BODY SIZE: " << this->m_responses[fd_iter->clientfd].get_m_cgi_response().size() << std::endl;
+					// std::cout << "READ PROCESS) BODY SIZE: " << this->m_responses[fd_iter->clientfd].get_m_cgi_response().size() << std::endl;
 					if (ret  == 0)
 					{
 						std::cout << "RET IS 0" << std::endl;
@@ -483,11 +483,11 @@ Server::writeProcess()
 				{
 					written_bytes += ret;
 					request.set_m_written_bytes(written_bytes);
-					std::cout << "WRITE PROCESS) BUFF SIZE: " << buffsize << std::endl;
+					// std::cout << "WRITE PROCESS) BUFF SIZE: " << buffsize << std::endl;
 					buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 					return (false);
 				}
-				std::cout << "WRITE PROCESS) ret: " << ret << std::endl;
+				// std::cout << "WRITE PROCESS) ret: " << ret << std::endl;
 				if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
@@ -1223,27 +1223,27 @@ Server::methodPUT(int clientfd, std::string method)
 	if (ft::isValidFilePath(path) == false)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
- 			return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+ 			return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 201;
 	}
 	else
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
-			return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		//close(fd);
-		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+		return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	else
 	{
 		//close(fd);
-		return (Server::makeResponseMessage(status_code, this->m_server_name, req.get_m_reset_path(), "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
 	}
-	return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+	return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
 
 /*============================================================================*/
