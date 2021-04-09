@@ -433,6 +433,7 @@ Server::readProcess()
 				if ((ret = this->m_requests[sockfd].getMessage(sockfd)) == SUCCESS)
 				{
 					std::cout << "GET MESSAGE SUCCESS " << std::endl;
+
 					resetRequest(&this->m_requests[sockfd]);
 					handleRequest(sockfd);
 					return (true);
@@ -519,14 +520,15 @@ Server::writeProcess()
 				std::cout << "::4::"<<std::endl;
 				int ret;
 				int buffsize;
-				static int pos = 0;
-				const std::string &body = m_responses[sockfd].get_m_reponse_message();
+				Response &response = m_responses[sockfd];
+				int pos = response.get_m_pos();
+				const std::string &body = response.get_m_reponse_message();
 				int content_length = body.size();
 
 				buffsize = std::min(content_length - pos, SOCK_BUFF);
 				if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
 				{
-					pos += ret;
+					response.set_m_pos(pos + ret);
 					std::cout << "OOOOOOO OK " << pos << std::endl;
 					return (false);
 				}
@@ -557,7 +559,7 @@ Server::writeProcess()
 					std::cout << "OOOOOOO END " << pos << std::endl;
 					this->m_requests[sockfd] = Request();
 					ft::fdClr(sockfd, this->m_write_fds);
-					pos = 0;
+					response.set_m_pos(0);
 				}
 				writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
 			}
@@ -1527,60 +1529,6 @@ Server::post(std::string path, Request req, Response res, Response (*func)(Reque
 bool
 Server::sendResponse(int clientfd)
 {
-	// std::cout << "\033[47:30m**** response message ****\033[0m" << std::endl;;
-	// std::cout << response.get_m_reponse_message() << std::endl;
-
-	/* 아무것도 전송안할순없으니까 0도 포함..? */
-	int ret;
-	int buffsize;
-	static int pos = 0;
-	const std::string &body = m_responses[clientfd].get_m_reponse_message();
-	int content_length = body.size();
-
-	buffsize = std::min(content_length - pos, SOCK_BUFF);
-	while ((ret = write(clientfd, &(body.c_str()[pos]), buffsize)) > 0)
-	{
-		pos += ret;
-		buffsize = std::min(content_length - pos, SOCK_BUFF);
-		std::cout << "OOOOOOO OK " << pos << std::endl;
-	}
-	if (ret < 0)
-	{
-		std::cout << "XXXXXXX FAIL" << pos << std::endl;
-		std::cout << "ERRNO IS " << errno << std::endl;
-		std::cout << "X" << EACCES << std::endl;
-		std::cout << "A" << EAGAIN << std::endl;
-		std::cout << "B" << EALREADY << std::endl;
-		std::cout << "C" << EBADF << std::endl;
-		std::cout << "D" << ECONNRESET << std::endl;
-		std::cout << "E" << EFAULT  << std::endl;
-		std::cout << "F" << EINTR << std::endl;
-		std::cout << "G" << EINVAL << std::endl;
-		std::cout << "H" << EISCONN << std::endl;
-		std::cout << "I" << EMSGSIZE << std::endl;
-		std::cout << "J" << ENOBUFS << std::endl;
-		std::cout << "K" << ENOMEM << std::endl;
-		std::cout << "L" << ENOTCONN << std::endl;
-		std::cout << "M" << ENOTSOCK << std::endl;
-		std::cout << "N" << EOPNOTSUPP << std::endl;
-		std::cout << "O" << EPIPE << std::endl;
-		std::cout << "P" << EDESTADDRREQ << std::endl;
-		return (false);
-	}
-	else if (ret == 0)
-	{
-		std::cout << "OOOOOOO END " << pos << std::endl;
-		pos = 0;
-	}
-	// if ((ret = send(clientfd, m_responses[clientfd].get_m_reponse_message().c_str(), m_responses[clientfd].get_m_response_size(), 0)) < 0)
-	// {
-	// 	std::cout << "XXXXXXX" << std::endl;
-	// 	return (false);
-	// }
-	// else if (ret == 0)
-	// {
-	// 	std::cout << "OOOOOOO" << std::endl;
-	// }
-	writeLog("response", m_responses[clientfd], Request(), WRITE_LOG);
+	(void) clientfd;
 	return (true);
 }

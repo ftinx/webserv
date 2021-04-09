@@ -12,7 +12,8 @@ m_method(DEFAULT), m_uri(), m_headers(), m_body(""),
 m_content_length(0), m_written_bytes(0),
 m_error_code(0),m_reset_path(""), m_location_block(),
 m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
-m_content_type(""), m_referer("")
+m_content_type(""), m_referer(""), m_buffer(""), m_chunked_content_length(-1), m_parse_content_length(-1),
+m_found_break_line(false), m_chunked(false), m_header_bytes(0), m_body_bytes(0)
 {
 }
 
@@ -44,6 +45,13 @@ Request& Request::operator=(Request const &rhs)
 	this->m_cgi_pid = rhs.get_m_cgi_pid();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
+	this->m_buffer = rhs.get_m_buffer();
+	this->m_chunked_content_length = rhs.get_m_chunked_content_length();
+	this->m_parse_content_length = rhs.get_m_parse_content_length();
+	this->m_found_break_line =  rhs.get_m_found_break_line();
+	this->m_chunked =  rhs.get_m_chunked();
+	this->m_header_bytes =  rhs.get_m_header_bytes();
+	this->m_body_bytes =  rhs.get_m_body_bytes();
 	return (*this);
 }
 
@@ -174,6 +182,48 @@ std::string
 Request::get_m_referer() const
 {
 	return (this->m_referer);
+}
+
+std::string
+Request::get_m_buffer() const
+{
+	return (this->m_buffer);
+}
+
+long int
+Request::get_m_chunked_content_length() const
+{
+	return(this->m_chunked_content_length);
+}
+
+long int
+Request::get_m_parse_content_length() const
+{
+	return (this->m_parse_content_length);
+}
+
+bool
+Request::get_m_found_break_line() const
+{
+	return (this->m_found_break_line);
+}
+
+bool
+Request::get_m_chunked() const
+{
+	return (this->m_chunked);
+}
+
+int
+Request::get_m_header_bytes() const
+{
+	return (this->m_header_bytes);
+}
+
+int
+Request::get_m_body_bytes() const
+{
+	return (this->m_body_bytes);
 }
 
 /*============================================================================*/
@@ -346,10 +396,8 @@ Request::getAcceptLanguage()
 bool
 Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::string *buff)
 {
-	static int content_length = -1;
 	size_t pos;
 	std::string tmp;
-
 	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
 		*chunked = true;
 	else if ((pos = this->m_message.find("transfer-encoding: chunked")) != std::string::npos)
@@ -367,8 +415,8 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
-			content_length = ft::stoi(tmp);
-			m_content_length = content_length;
+			m_chunked_content_length = ft::stoi(tmp);
+			m_content_length = m_chunked_content_length;
 		}
 	}
 	else if ((pos = this->m_message.find("content-length:")) != std::string::npos)
@@ -377,14 +425,14 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
-			content_length = ft::stoi(tmp);
-			m_content_length = content_length;
+			m_chunked_content_length = ft::stoi(tmp);
+			m_content_length = m_chunked_content_length;
 		}
 	}
-	if (content_length >= 0 && content_length <= body_bytes)
+	if (m_chunked_content_length >= 0 && m_chunked_content_length <= body_bytes)
 	{
-		this->m_message = this->m_message.substr(0, header_bytes + content_length);
-		*buff = this->m_message.substr(header_bytes + content_length, std::string::npos);
+		this->m_message = this->m_message.substr(0, header_bytes + m_chunked_content_length);
+		*buff = this->m_message.substr(header_bytes + m_chunked_content_length, std::string::npos);
 		std::cout << "CASE 2" << std::endl;
 		return (true);
 	}
@@ -402,12 +450,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 int
 Request::getMessage(int fd)
 {
-	static std::string buff("");
-	static bool found_break_line = false;
-	static bool chunked = false;
 	int ret;
-	static int header_bytes = 0;
-	static int body_bytes = 0;
 	char *recvline;
 
 
@@ -415,8 +458,8 @@ Request::getMessage(int fd)
 	{
 		this->m_message.reserve(RESV_SIZE);
 		this->m_body.reserve(RESV_SIZE);
-		this->m_message = buff;
-		buff = "";
+		this->m_message = m_buffer;
+		m_buffer = "";
 	}
 	recvline = (char*)malloc(sizeof(char) * SOCK_BUFF);
 	memset(recvline, 0, SOCK_BUFF);
@@ -426,26 +469,26 @@ Request::getMessage(int fd)
 		this->m_message.append(recvline);
 		if (this->m_message.find("\r\n\r\n") >= 0)
 		{
-			if (found_break_line == false)
+			if (m_found_break_line == false)
 			{
-				found_break_line = true;
-				body_bytes = this->m_message.size() - (this->m_message.find("\r\n\r\n") + 3);
-				header_bytes = this->m_message.find("\r\n\r\n") + 4;
+				m_found_break_line = true;
+				m_body_bytes = this->m_message.size() - (this->m_message.find("\r\n\r\n") + 3);
+				m_header_bytes = this->m_message.find("\r\n\r\n") + 4;
 			}
 			else
-				body_bytes += ret;
+				m_body_bytes += ret;
 		}
-		if (isBreakCondition(&chunked, body_bytes, header_bytes, &buff))
+		if (isBreakCondition(&m_chunked, m_body_bytes, m_header_bytes, &m_buffer))
 		{
-			if (this->parseMessage(chunked) == false)
+			if (this->parseMessage(m_chunked) == false)
 			{
 				free(recvline);
 				return (FAIL);
 			}
-			found_break_line = false;
-			chunked = false;
-			header_bytes = 0;
-			body_bytes = 0;
+			m_found_break_line = false;
+			m_chunked = false;
+			m_header_bytes = 0;
+			m_body_bytes = 0;
 			return (SUCCESS);
 		}
 		free(recvline);
@@ -579,7 +622,6 @@ Request::checkBlankLine(std::string str)
 bool
 Request::parseBody(std::string& line, int i, int size, bool chunked)
 {
-	static long int content_length = -1;
 	long int num;
 	std::string newline;
 
@@ -594,15 +636,15 @@ Request::parseBody(std::string& line, int i, int size, bool chunked)
 	/* else chunked == true */
 	newline = ft::rtrim(line, "\r");
 	num = std::strtol(newline.c_str(), 0, 16);
-	if (content_length != -1 && newline != "0")
+	if (m_parse_content_length != -1 && newline != "0")
 	{
-		this->m_body += newline.substr(0, content_length);
-		content_length = -1;
+		this->m_body += newline.substr(0, m_parse_content_length);
+		m_parse_content_length = -1;
 	}
-	else if (num != 0 && content_length == -1)
+	else if (num != 0 && m_parse_content_length == -1)
 	{
-		content_length = num;
-		m_content_length += content_length;
+		m_parse_content_length = num;
+		m_content_length += m_parse_content_length;
 	}
 	return (true);
 }

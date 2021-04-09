@@ -47,6 +47,15 @@ class Request
 		std::string m_content_type;
 		std::string m_referer;
 
+		/* pipeline */
+		std::string m_buffer;
+		long int m_chunked_content_length;
+		long int m_parse_content_length;
+		bool m_found_break_line;
+		bool m_chunked;
+		int m_header_bytes;
+		int m_body_bytes;
+
 	public:
 		Request();
 		Request(Request const &other);
@@ -60,7 +69,7 @@ class Request
 		bool get_m_check_cgi() const;
 		Method get_m_method() const;
 		Uri get_m_uri() const;
-		std::map<std::string, std::string> get_m_headers() const;
+		std::map<std::string, std::string> get_m_headers() const ;
 		int get_m_content_length() const;
 		int get_m_written_bytes() const;
 		std::string get_m_body() const;
@@ -73,6 +82,13 @@ class Request
 		pid_t get_m_cgi_pid() const;
 		std::string get_m_content_type() const;
 		std::string get_m_referer() const;
+		std::string get_m_buffer() const;
+		long int get_m_chunked_content_length() const;
+		long int get_m_parse_content_length() const;
+		bool get_m_found_break_line() const;
+		bool get_m_chunked() const;
+		int get_m_header_bytes() const;
+		int get_m_body_bytes() const;
 
 		/* setter */
 		void set_m_http_version(std::string);

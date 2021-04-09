@@ -66,6 +66,7 @@ class Server
 		/* Request, Response */
 		std::vector<Request> m_requests;
 		std::vector<Response> m_responses;
+		std::queue<Request, int> q;
 
 	public:
 		Server();

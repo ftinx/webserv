@@ -59,6 +59,9 @@ class Response
 		std::string m_cgi_path;
 		std::string m_cgi_response;
 
+		/* server */
+		int		m_pos;
+
 	public:
 		Response();
 		virtual ~Response();
@@ -85,6 +88,7 @@ class Response
 		std::string get_m_cgi_path() const;
 		std::map<std::string, std::string> get_m_headers() const;
 		std::string &get_m_cgi_response();
+		int get_m_pos();
 
 		/* setter */
 		void set_m_status_code(int status_code);
@@ -98,6 +102,7 @@ class Response
 		void set_m_cgi_path(std::string cgi_path);
 		void set_m_cgi_response(std::string cgi_response);
 		void set_m_content_length(int content_length);
+		void set_m_pos(int pos);
 
 		/* CGI */
 		int findCgiStatusCode();
