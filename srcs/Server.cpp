@@ -1404,12 +1404,9 @@ Server::makeResponseBodyMessage(
 		|| content_type != "image/png" || content_type != "image/x-icon"))
 		response.setHttpResponseHeader("referer", referer);
 	if (method == "HEAD")
-	{
 		response
 			.setContentType(content_type)
 			.setHttpResponseHeader("content-type", response.get_m_content_type());
-		body = "";
-	}
 	else if (method == "GET")
 		response
 			.setContentType(content_type)
