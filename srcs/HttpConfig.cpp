@@ -9,6 +9,7 @@ HttpConfig::HttpConfig()
 	m_name("ftinx"),
 	m_version("0.1"),
 	m_include(""),
+	m_default_type(""),
 	m_root(""),
 	m_server_block(),
 	m_mime_types()
@@ -26,6 +27,7 @@ HttpConfig::operator=(HttpConfig const &rhs)
 	m_name = rhs.m_name;
 	m_version = rhs.m_version;
 	m_include = rhs.m_include;
+	m_default_type = rhs.m_default_type;
 	m_root = rhs.m_root;
 	m_server_block = rhs.m_server_block;
 	m_mime_types = rhs.m_mime_types;
@@ -61,6 +63,12 @@ std::string
 HttpConfig::get_m_include() const
 {
 	return (this->m_include);
+}
+
+std::string
+HttpConfig::get_m_default_type() const
+{
+	return (this->m_default_type);
 }
 
 std::string
@@ -238,6 +246,8 @@ HttpConfig::parseConfigFile(std::string file_path)
 			if (ft::checkValidFileExtension(this->m_include, "types"))
 				parseMimeTypes();
 		}
+		else if (line.front().compare("default_type") == 0)
+			this->m_default_type =  line.back();
 		else if (line.front().compare("root") == 0)
 		{
 			HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리

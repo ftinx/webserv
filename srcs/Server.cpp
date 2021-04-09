@@ -200,7 +200,7 @@ Server::noteHttpConfigLocation()
 
 void
 Server::init(HttpConfigServer server_block, std::string server_name, int port,
-int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types,
+int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types, std::string default_type,
 int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
@@ -212,6 +212,7 @@ int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_
 	this->m_location_size = location_size;
 	this->m_root = root;
 	this->m_mime_types = mime_types;
+	this->m_default_type = default_type;
 	this->m_maxfd = maxfd;
 	this->m_main_fds = main_fds;
 	this->m_read_fds = read_fds;
@@ -817,7 +818,7 @@ Server::getMimeType(std::string extension)
 	std::map<std::string, std::string>::const_iterator it;
 	it = this->m_mime_types.find(extension);
 	if (it == m_mime_types.end())
-		return ("none");
+		return (this->m_default_type);
 	if ((it->first.compare("css") == 0) || (it->first.compare("js") == 0))
 		return (it->second + std::string("; charset=utf-8"));
 	return (it->second);

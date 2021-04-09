@@ -27,6 +27,7 @@ ServerManager& ServerManager::operator=(ServerManager const &rhs)
 	this->m_software_version = rhs.m_software_version;
 	this->m_mime_include = rhs.m_mime_include;
 	this->m_root = rhs.m_root;
+	this->m_default_type = rhs.m_default_type;
 
 	/* Socket */
 	this->m_maxfd = rhs.m_maxfd;
@@ -72,6 +73,7 @@ ServerManager::storeParseValue()
 	this->m_server_size = this->m_httpConfig.get_m_server_block().size();
 	this->m_server_block = this->m_httpConfig.get_m_server_block();
 	this->m_mime_types = this->m_httpConfig.get_m_mime_types();
+	this->m_default_type = this->m_httpConfig.get_m_default_type();
 	return ;
 }
 
@@ -89,13 +91,13 @@ Server
 ServerManager::generateServer(
 	HttpConfigServer server_block,
 	std::string server_name, int port, int content_length, size_t location_size, std::string root,
-	std::map<std::string, std::string> mime_types,
+	std::map<std::string, std::string> mime_types, std::string default_type,
 	int maxfd, fd_set main_fds, fd_set read_fds, fd_set write_fds, fd_set copy_write_fds
 	)
 {
 	Server server;
 	server.init(
-		server_block, server_name, port, content_length,location_size, root, mime_types,
+		server_block, server_name, port, content_length,location_size, root, mime_types, default_type,
 		&maxfd, &main_fds, &read_fds, &write_fds, &copy_write_fds
 		);
 	server.setServerAddr(port);
@@ -117,6 +119,7 @@ ServerManager::initServers()
 				this->m_server_block[i].get_m_location_block().size(),
 				this->m_root,
 				this->m_mime_types,
+				this->m_default_type,
 				this->m_maxfd,
 				this->m_main_fds,
 				this->m_read_fds,
