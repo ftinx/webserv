@@ -351,7 +351,7 @@ Server::handleRequest(int clientfd)
 			it = m_http_config_path_method.find(this->m_requests[clientfd].get_m_uri().get_m_path());
 			if (it != m_http_config_path_method.end())
 				allow_method = it->second;
-			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
+			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, "", "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
 			break;
 		}
 	}
@@ -1481,10 +1481,10 @@ Server::parseErrorResponse(int clientfd)
 		it = m_http_config_path_method.find(this->m_requests[clientfd].get_m_uri().get_m_path());
 		if (it != m_http_config_path_method.end())
 			allow_method = it->second;
-		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
+		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, "", "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
 	}
 	return (
-		Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
+		Server::makeResponseBodyMessage(status_code, this->m_server_name, "", "", this->m_requests[clientfd].getAcceptLanguage(), "GET", getMimeType("html"), this->m_requests[clientfd].getReferer())
 	);
 }
 
