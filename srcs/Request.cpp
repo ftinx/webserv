@@ -439,7 +439,6 @@ Request::getMessage(int fd)
 		{
 			if (this->parseMessage(chunked) == false)
 			{
-				close(fd);
 				free(recvline);
 				return (FAIL);
 			}
@@ -454,7 +453,6 @@ Request::getMessage(int fd)
 	}
 	if (ret <= 0)
 	{
-		close(fd);
 		free(recvline);
 		return (FAIL);
 	}
