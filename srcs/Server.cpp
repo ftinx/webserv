@@ -688,6 +688,8 @@ Server::resetRequest(Request *req)
 		req->set_m_error_code(405);
 		return;
 	}
+	if (path_out.find("/.") != std::string::npos)
+		req->set_m_error_code(404);
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
 	if (block.get_m_limit_body_size() < req->get_m_content_length())
@@ -963,6 +965,8 @@ Server::methodGET(int clientfd, std::string method)
 	std::string final_path;
 	std::string extension;
 
+	// if (absolute_path.find("/.") != std::string::npos)
+	// 	return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	if (location_block.get_m_auth_basic().empty() == false) // 인증이 필요한 블럭일 때
 	{
 		std::map<std::string, std::string> headers = req.get_m_headers();
@@ -1005,8 +1009,8 @@ Server::methodGET(int clientfd, std::string method)
 	{
 		if (ft::isValidFilePath(absolute_path)) // 유효한 파일이면
 		{
-			if (absolute_path.find("/.", absolute_path.find_last_of("/") - 1, 2) != std::string::npos) // 숨김파일을 요청하면 404 에러
-				return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			// if (absolute_path.find("/.", absolute_path.find("/") - 1, 2) != std::string::npos) // 숨김파일을 요청하면 404 에러
+				// return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 			extension = absolute_path.substr(absolute_path.find_last_of(".") + 1, std::string::npos);
 			if ((req.getAcceptLanguage().compare("en") == 0) || (req.getAcceptLanguage().compare("en-US") == 0)) // 영문 페이지 요청의 경우 path 수정
 			{
@@ -1479,15 +1483,17 @@ Server::parseErrorResponse(int clientfd)
 	{
 		std::map<std::string, std::string>::const_iterator it;
 		std::string allow_method("");
-		it = m_http_config_path_method.find(this->m_requests[clientfd].get_m_uri().get_m_path());
+		it = m_http_config_path_method.find(request.get_m_uri().get_m_path());
 		if (it != m_http_config_path_method.end())
 			allow_method = it->second;
-		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, "", "", this->m_requests[clientfd].getAcceptLanguage(),
-				ft::getMethodString(request.get_m_method()), getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
+		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", request.getAcceptLanguage(),
+				ft::getMethodString(request.get_m_method()), getMimeType("html"), request.getReferer(), 0, 0, 0, allow_method));
 	}
 	return (
-		Server::makeResponseBodyMessage(status_code, this->m_server_name, "", "", this->m_requests[clientfd].getAcceptLanguage(),
-				ft::getMethodString(request.get_m_method()), getMimeType("html"), this->m_requests[clientfd].getReferer())
+		Server::makeResponseBodyMessage(
+			status_code, this->m_server_name, makeErrorPage(status_code), "", request.getAcceptLanguage(),
+			ft::getMethodString(request.get_m_method()), getMimeType("html"), request.getReferer()
+			)
 	);
 }
 

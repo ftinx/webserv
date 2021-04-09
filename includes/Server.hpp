@@ -20,7 +20,7 @@
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
-#define WRITE_LOG 0
+#define WRITE_LOG 1
 
 class Server
 {
