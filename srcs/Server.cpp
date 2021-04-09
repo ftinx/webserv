@@ -1223,27 +1223,27 @@ Server::methodPUT(int clientfd, std::string method)
 	if (ft::isValidFilePath(path) == false)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_CREAT, 0666)) < 0)
- 			return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+ 			return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 201;
 	}
 	else
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
-			return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 		status_code = 200;
 	}
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
 		//close(fd);
-		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+		return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	else
 	{
 		//close(fd);
-		return (Server::makeResponseMessage(status_code, this->m_server_name, req.get_m_reset_path(), "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
 	}
-	return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+	return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
 
 /*============================================================================*/
