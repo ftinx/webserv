@@ -12,8 +12,6 @@
 #include "HttpConfigLocation.hpp"
 
 #define SOCK_SETSIZE 1021
-#define CGI_BUFF 65536
-#define SOCK_BUFF 1000000
 
 enum REQUEST_STATUS
 {
@@ -100,8 +98,7 @@ class Request
 		bool checkMethod();
 		bool parseHeader(std::string);
 		bool checkBlankLine(std::string);
-		bool parseBody(std::string, int, int, bool);
-		void checkChunked(std::string);
+		bool parseBody(std::string&, int, int, bool);
 		std::string getRestPath();
 		std::string getScriptName(std::string path);
 		bool checkCGI();
