@@ -23,6 +23,7 @@ class ServerManager
 		std::string m_software_version;
 		std::string m_mime_include;
 		std::string m_root;
+		std::string m_default_type;
 
 		/* Socket */
 		int m_maxfd;
@@ -48,6 +49,7 @@ class ServerManager
 			size_t location_size,
 			std::string root,
 			std::map<std::string, std::string> mime_types,
+			std::string default_type,
 			int maxfd, fd_set main_fds, fd_set read_fds, fd_set write_fds, fd_set copy_write_fds
 		);
 		void initServers();
