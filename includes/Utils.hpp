@@ -15,6 +15,10 @@
 # include <unistd.h>
 
 # define BUFFER_SIZE 4096
+# define CGI_BUFF 65536
+# define SOCK_BUFF 1000000
+# define RESV_SIZE 150000000
+
 
 enum Method
 {

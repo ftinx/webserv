@@ -113,7 +113,7 @@ class Response
 		Response& setContentType(std::string content_type);
 		Response& setServer(std::string server);
 		Response& makeCgiHttpResponseMessage();
-		Response& setCgiResponse(std::string cgi_response);
+		Response& setCgiResponse(char* cgi_response);
 		Response& setCgiContentLength();
 
 		/* HTML Document Util */

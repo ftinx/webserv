@@ -20,8 +20,6 @@
 #include "Utils.hpp"
 
 #define MAX_SOCK_NUM 1024
-#define CGI_BUFF 65536
-#define SOCK_BUFF 1000000
 #define WRITE_LOG 0
 
 class Server

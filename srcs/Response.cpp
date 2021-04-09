@@ -495,9 +495,9 @@ Response::makeCgiHttpResponseMessage()
 }
 
 Response&
-Response::setCgiResponse(std::string cgi_response)
+Response::setCgiResponse(char* cgi_response)
 {
-	this->m_cgi_response += cgi_response;
+	this->m_cgi_response.append(cgi_response);
 	return (*this);
 }
 

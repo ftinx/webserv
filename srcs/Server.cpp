@@ -382,7 +382,6 @@ Server::readProcess()
 				int ret;
 				int status_code = 0;
 				char buff[CGI_BUFF];
-				static std::string body("");
 
 				std::cout << "BEFORE WAITING" << std::endl;
 				//kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
@@ -395,7 +394,7 @@ Server::readProcess()
 					{
 						std::cout << "RET IS " << ret << std::endl;
 						buff[ret] = '\0';
-						this->m_responses[fd_iter->clientfd].setCgiResponse(std::string(buff));
+						this->m_responses[fd_iter->clientfd].setCgiResponse(buff);
 						try
 						{
 						if (status_code == 0 &&
@@ -418,12 +417,10 @@ Server::readProcess()
 								.setCgiContentLength()
 								.makeCgiHttpResponseMessage();
 						close(fd_iter->sockfd);
-
 						ft::fdClr(fd_iter->sockfd, m_main_fds);
 						ft::fdSet(fd_iter->clientfd, m_write_fds);
 						this->m_fd_table.erase(fd_iter);
 						*m_maxfd = findMaxFd();
-						body = "";
 						return (true);
 					}
 				// }
@@ -444,6 +441,7 @@ Server::readProcess()
 				{
 					close(sockfd);
 					ft::fdClr(sockfd, this->m_main_fds);
+					ft::fdClr(sockfd, this->m_write_fds);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					if (this->m_fd_table.size() <= 0)
@@ -1164,6 +1162,7 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		ft::fdSet(parent_read, m_main_fds);
 		*m_maxfd = findMaxFd();
 		std::cout << "MAX FD: " << *m_maxfd << std::endl;
+		response.get_m_cgi_response().reserve(RESV_SIZE);
 	}
 	(void)clientfd;
 	return (response);

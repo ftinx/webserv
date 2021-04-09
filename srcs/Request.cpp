@@ -413,8 +413,8 @@ Request::getMessage(int fd)
 
 	if (this->m_message == "")
 	{
-		this->m_message.reserve(SOCK_BUFF);
-		this->m_body.reserve(SOCK_BUFF);
+		this->m_message.reserve(RESV_SIZE);
+		this->m_body.reserve(RESV_SIZE);
 		this->m_message = buff;
 		buff = "";
 	}
@@ -423,8 +423,7 @@ Request::getMessage(int fd)
 	if ((ret = read(fd, recvline, SOCK_BUFF - 1)) > 0)
 	{
 		recvline[ret] = '\0';
-		std::string str(recvline);
-		this->m_message.append(str);
+		this->m_message.append(recvline);
 		if (this->m_message.find("\r\n\r\n") >= 0)
 		{
 			if (found_break_line == false)
@@ -572,7 +571,15 @@ Request::parseHeader(std::string line)
 }
 
 bool
-Request::parseBody(std::string line, int i, int size, bool chunked)
+Request::checkBlankLine(std::string str)
+{
+	if (str[0] == '\r')
+		return (true);
+	return (false);
+}
+
+bool
+Request::parseBody(std::string& line, int i, int size, bool chunked)
 {
 	static long int content_length = -1;
 	long int num;
@@ -608,14 +615,6 @@ Request::checkMethod()
 	if (this->m_method == DEFAULT)
 		return (false);
 	return (true);
-}
-
-bool
-Request::checkBlankLine(std::string str)
-{
-	if (str[0] == '\r')
-		return (true);
-	return (false);
 }
 
 std::string
