@@ -530,7 +530,7 @@ Request::parseRequestLine(std::string request_line)
 }
 
 std::string
-iequals(const std::string& str)
+strTolower(const std::string& str)
 {
 	std::string result;
 	for (size_t j = 0; j < str.length(); j++)
