@@ -13,7 +13,7 @@ Response::Response()
 m_server(""), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_index_file(),
 m_root(""), m_cgi_extension(), m_cgi_server_name(""), m_cgi_client_addr(), m_cgi_port(0),
-m_cgi_path(""), m_cgi_response(""), m_pos(0)
+m_cgi_path(""), m_cgi_response(""), m_has_cgi_response(false), m_pos(0)
 {
 }
 
@@ -54,6 +54,7 @@ Response::operator=(Response const &rhs)
 	this->m_cgi_port = rhs.m_cgi_port;
 	this->m_cgi_path = rhs.m_cgi_path;
 	this->m_cgi_response = rhs.m_cgi_response;
+	this->m_has_cgi_response = rhs.m_has_cgi_response;
 
 	/* Server */
 	this->m_pos = rhs.m_pos;
@@ -189,6 +190,12 @@ Response::get_m_cgi_response()
 	return (this->m_cgi_response);
 }
 
+bool
+Response::get_m_has_cgi_response() const
+{
+	return (this->m_has_cgi_response);
+}
+
 int
 Response::get_m_pos()
 {
@@ -274,6 +281,13 @@ Response::set_m_content_length(int content_length)
 {
 	this->m_content_length = content_length;
 	return;
+}
+
+void
+Response::set_m_has_cgi_response(bool has_cgi_response)
+{
+	this->m_has_cgi_response =has_cgi_response;
+	return ;
 }
 
 void

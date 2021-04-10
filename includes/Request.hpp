@@ -48,13 +48,15 @@ class Request
 		std::string m_referer;
 
 		/* pipeline */
-		std::string m_buffer;
-		long int m_chunked_content_length;
 		long int m_parse_content_length;
 		bool m_found_break_line;
 		bool m_chunked;
+		bool m_chunked_finished_read;
 		int m_header_bytes;
 		int m_body_bytes;
+		int m_cut_bytes;
+		bool m_should_peek;
+		bool m_should_read;
 
 	public:
 		Request();
@@ -82,13 +84,15 @@ class Request
 		pid_t get_m_cgi_pid() const;
 		std::string get_m_content_type() const;
 		std::string get_m_referer() const;
-		std::string get_m_buffer() const;
-		long int get_m_chunked_content_length() const;
 		long int get_m_parse_content_length() const;
 		bool get_m_found_break_line() const;
 		bool get_m_chunked() const;
+		bool get_m_chunked_finished_read() const;
 		int get_m_header_bytes() const;
 		int get_m_body_bytes() const;
+		int get_m_cut_bytes() const;
+		bool get_m_should_peek() const;
+		bool get_m_should_read() const;
 
 		/* setter */
 		void set_m_http_version(std::string);
@@ -107,7 +111,7 @@ class Request
 		std::string getContentType();
 		std::string getAcceptLanguage();
 		std::string getReferer();
-		bool isBreakCondition(bool*, int, int, std::string *);
+		bool isBreakCondition(bool*, int, std::string);
 		int getMessage(int);
 		bool parseMessage(bool);
 		bool parseRequestLine(std::string);

@@ -383,46 +383,40 @@ Server::readProcess()
 				int status_code = 0;
 				char buff[CGI_BUFF];
 
-				std::cout << "BEFORE WAITING" << std::endl;
 				//kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
 				//waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, 0);
-				std::cout << "AFTER WAITING" << std::endl;
 				ft::memset(buff, 0, CGI_BUFF);
 				// if (status == 0)
 				// {
-					if( 0 < (ret = read(fd_iter->sockfd, buff, CGI_BUFF - 1)))
+				if( 0 < (ret = read(fd_iter->sockfd, buff, CGI_BUFF - 1)))
+				{
+					buff[ret] = '\0';
+					this->m_responses[fd_iter->clientfd].setCgiResponse(buff);
+					try
 					{
-						std::cout << "RET IS " << ret << std::endl;
-						buff[ret] = '\0';
-						this->m_responses[fd_iter->clientfd].setCgiResponse(buff);
-						try
-						{
 						if (status_code == 0 &&
 							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCode()))
 						{
 							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
 						}
-						}
-						catch (std::exception &e)
-						{
-							std::cout << e.what() << std::endl;
-							return (true);
-						}
 					}
-					std::cout << "READ PROCESS) BODY SIZE: " << this->m_responses[fd_iter->clientfd].get_m_cgi_response().size() << std::endl;
-					if (ret  == 0)
+					catch (std::exception &e)
 					{
-						std::cout << "RET IS 0" << std::endl;
-						this->m_responses[fd_iter->clientfd]
-								.setCgiContentLength()
-								.makeCgiHttpResponseMessage();
-						close(fd_iter->sockfd);
-						ft::fdClr(fd_iter->sockfd, m_main_fds);
-						ft::fdSet(fd_iter->clientfd, m_write_fds);
-						this->m_fd_table.erase(fd_iter);
-						*m_maxfd = findMaxFd();
+						std::cout << e.what() << std::endl;
 						return (true);
 					}
+					ft::fdSet(fd_iter->clientfd, m_write_fds);
+				}
+				if (ret  == 0)
+				{
+					std::cout << "RET IS 0" << std::endl;
+					close(fd_iter->sockfd);
+					ft::fdClr(fd_iter->sockfd, m_main_fds);
+					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					this->m_fd_table.erase(fd_iter);
+					*m_maxfd = findMaxFd();
+					return (true);
+				}
 				// }
 			}
 			else if(fd_iter->type == C_SOCKET)
@@ -433,7 +427,6 @@ Server::readProcess()
 				if ((ret = this->m_requests[sockfd].getMessage(sockfd)) == SUCCESS)
 				{
 					std::cout << "GET MESSAGE SUCCESS " << std::endl;
-
 					resetRequest(&this->m_requests[sockfd]);
 					handleRequest(sockfd);
 					return (true);
@@ -528,9 +521,9 @@ Server::writeProcess()
 				buffsize = std::min(content_length - pos, SOCK_BUFF);
 				if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
 				{
+					this->m_requests[sockfd] = Request();
 					response.set_m_pos(pos + ret);
 					std::cout << "OOOOOOO OK " << pos << std::endl;
-					return (false);
 				}
 				if (ret < 0)
 				{
@@ -558,8 +551,10 @@ Server::writeProcess()
 				{
 					std::cout << "OOOOOOO END " << pos << std::endl;
 					this->m_requests[sockfd] = Request();
-					ft::fdClr(sockfd, this->m_write_fds);
-					response.set_m_pos(0);
+					this->m_responses[sockfd] = Response();
+					ft::fdClr(sockfd, m_write_fds);
+					sleep(1);
+					std::cout << "Zzzzzzz...." << std::endl;
 				}
 				writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
 			}
@@ -585,7 +580,8 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 		acceptSocket();
 		return ;
 	}
-	readProcess();
+	if (readProcess() == true)
+		return;
 	return ;
 }
 
@@ -717,7 +713,6 @@ Server::resetRequest(Request *req)
 		}
 	}
 	/* 인증파트 끝 */
-	std::cout << "RESETREQUEST) BODY SIZE: " << req->get_m_body().size() << std::endl;
 	writeLog("request", Response(), *req, WRITE_LOG);
 }
 

@@ -58,6 +58,7 @@ class Response
 		int m_cgi_port;
 		std::string m_cgi_path;
 		std::string m_cgi_response;
+		bool m_has_cgi_response;
 
 		/* server */
 		int		m_pos;
@@ -88,6 +89,7 @@ class Response
 		std::string get_m_cgi_path() const;
 		std::map<std::string, std::string> get_m_headers() const;
 		std::string &get_m_cgi_response();
+		bool get_m_has_cgi_response() const;
 		int get_m_pos();
 
 		/* setter */
@@ -102,6 +104,7 @@ class Response
 		void set_m_cgi_path(std::string cgi_path);
 		void set_m_cgi_response(std::string cgi_response);
 		void set_m_content_length(int content_length);
+		void set_m_has_cgi_response(bool has_cgi_response);
 		void set_m_pos(int pos);
 
 		/* CGI */

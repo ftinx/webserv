@@ -12,8 +12,9 @@ m_method(DEFAULT), m_uri(), m_headers(), m_body(""),
 m_content_length(0), m_written_bytes(0),
 m_error_code(0),m_reset_path(""), m_location_block(),
 m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
-m_content_type(""), m_referer(""), m_buffer(""), m_chunked_content_length(-1), m_parse_content_length(-1),
-m_found_break_line(false), m_chunked(false), m_header_bytes(0), m_body_bytes(0)
+m_content_type(""), m_referer(""), m_parse_content_length(-1),
+m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
+m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_should_peek(false),m_should_read(false)
 {
 }
 
@@ -45,13 +46,14 @@ Request& Request::operator=(Request const &rhs)
 	this->m_cgi_pid = rhs.get_m_cgi_pid();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
-	this->m_buffer = rhs.get_m_buffer();
-	this->m_chunked_content_length = rhs.get_m_chunked_content_length();
 	this->m_parse_content_length = rhs.get_m_parse_content_length();
 	this->m_found_break_line =  rhs.get_m_found_break_line();
 	this->m_chunked =  rhs.get_m_chunked();
+	this->m_chunked_finished_read =  rhs.get_m_chunked_finished_read();
 	this->m_header_bytes =  rhs.get_m_header_bytes();
 	this->m_body_bytes =  rhs.get_m_body_bytes();
+	this->m_should_peek =  rhs.get_m_should_peek();
+	this->m_should_read =  rhs.get_m_should_read();
 	return (*this);
 }
 
@@ -184,18 +186,6 @@ Request::get_m_referer() const
 	return (this->m_referer);
 }
 
-std::string
-Request::get_m_buffer() const
-{
-	return (this->m_buffer);
-}
-
-long int
-Request::get_m_chunked_content_length() const
-{
-	return(this->m_chunked_content_length);
-}
-
 long int
 Request::get_m_parse_content_length() const
 {
@@ -206,6 +196,12 @@ bool
 Request::get_m_found_break_line() const
 {
 	return (this->m_found_break_line);
+}
+
+bool
+Request::get_m_chunked_finished_read() const
+{
+	return (this->m_chunked_finished_read);
 }
 
 bool
@@ -224,6 +220,24 @@ int
 Request::get_m_body_bytes() const
 {
 	return (this->m_body_bytes);
+}
+
+int
+Request::get_m_cut_bytes() const
+{
+	return (this->m_cut_bytes);
+}
+
+bool
+Request::get_m_should_peek() const
+{
+	return (this->m_should_peek);
+}
+
+bool
+Request::get_m_should_read() const
+{
+	return (this->m_should_read);
 }
 
 /*============================================================================*/
@@ -394,29 +408,42 @@ Request::getAcceptLanguage()
 }
 
 bool
-Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::string *buff)
+Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 {
 	size_t pos;
 	std::string tmp;
+
+	/* chunked case */
 	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
 		*chunked = true;
 	else if ((pos = this->m_message.find("transfer-encoding: chunked")) != std::string::npos)
 		*chunked = true;
+	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) == std::string::npos)
+	{
+		this->m_cut_bytes = buff_bytes;
+		return (false);
+	}
 	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) != std::string::npos)
 	{
 		this->m_message = this->m_message.substr(0, pos + 5);
-		*buff = this->m_message.substr(pos + 5, std::string::npos);
+		this->m_body_bytes = this->m_message.size() - m_header_bytes;
+		this->m_cut_bytes = buff.find("0\r\n\r\n") + 5;
+		this->m_chunked_finished_read = true;
 		std::cout << "CASE 1" << std::endl;
 		return (true);
 	}
+
+	/* content-length case */
+	int content_length;
 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
 	{
 		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
-			m_chunked_content_length = ft::stoi(tmp);
-			m_content_length = m_chunked_content_length;
+			content_length = ft::stoi(tmp);
+			m_content_length = content_length;
+			m_body_bytes = m_content_length;
 		}
 	}
 	else if ((pos = this->m_message.find("content-length:")) != std::string::npos)
@@ -425,23 +452,32 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
 		{
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
-			m_chunked_content_length = ft::stoi(tmp);
-			m_content_length = m_chunked_content_length;
+			content_length = ft::stoi(tmp);
+			m_content_length = content_length;
+			m_body_bytes = m_content_length;
 		}
 	}
-	if (m_chunked_content_length >= 0 && m_chunked_content_length <= body_bytes)
+	if (m_content_length >= 0 && (size_t)(m_content_length + m_header_bytes) <= m_message.size())
 	{
-		this->m_message = this->m_message.substr(0, header_bytes + m_chunked_content_length);
-		*buff = this->m_message.substr(header_bytes + m_chunked_content_length, std::string::npos);
+		/* 받아온 메세지가 content_length보다 길때 */
+		this->m_message = this->m_message.substr(0, m_header_bytes + m_content_length);
+		m_cut_bytes = m_header_bytes + m_content_length;
 		std::cout << "CASE 2" << std::endl;
 		return (true);
 	}
-	else if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos && *chunked == false)
+	else
 	{
-		std::cout << m_message << std::endl;
-		this->m_message = this->m_message.substr(0, pos);
-		*buff = this->m_message.substr(pos, std::string::npos);
+		/* 받아온 메세지가 content_length보다 짧으면 더 읽어야 */
+		return (false);
+	}
+
+
+	/* no body case */
+	if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos && *chunked == false)
+	{
 		std::cout << "CASE 3" << std::endl;
+		this->m_message = this->m_message.substr(0, pos + 4);
+		m_cut_bytes = m_header_bytes;
 		return (true);
 	}
 	return (false);
@@ -450,7 +486,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 int
 Request::getMessage(int fd)
 {
-	int ret;
+	int ret = 0;
 	char *recvline;
 
 
@@ -458,41 +494,59 @@ Request::getMessage(int fd)
 	{
 		this->m_message.reserve(RESV_SIZE);
 		this->m_body.reserve(RESV_SIZE);
-		this->m_message = m_buffer;
-		m_buffer = "";
 	}
 	recvline = (char*)malloc(sizeof(char) * SOCK_BUFF);
 	memset(recvline, 0, SOCK_BUFF);
-	if ((ret = read(fd, recvline, SOCK_BUFF - 1)) > 0)
+	if (m_header_bytes == 0)
+		m_should_peek = true;
+	if (m_should_peek)
 	{
-		recvline[ret] = '\0';
-		this->m_message.append(recvline);
-		if (this->m_message.find("\r\n\r\n") >= 0)
+		if ((ret = recv(fd, recvline, SOCK_BUFF - 1, MSG_PEEK)) > 0)
 		{
-			if (m_found_break_line == false)
+			std::cout << "STEP1) JUST PEEK" <<  std::endl;
+			recvline[ret] = '\0';
+			this->m_message.append(recvline);
+			if (m_header_bytes == 0 && this->m_message.find("\r\n\r\n") >= 0)
 			{
-				m_found_break_line = true;
-				m_body_bytes = this->m_message.size() - (this->m_message.find("\r\n\r\n") + 3);
 				m_header_bytes = this->m_message.find("\r\n\r\n") + 4;
 			}
-			else
-				m_body_bytes += ret;
+			isBreakCondition(&m_chunked, std::strlen(recvline), recvline);
+			free(recvline);
+			m_should_read = true;
+			m_should_peek = false;
+			return (CONTINUE);
 		}
-		if (isBreakCondition(&m_chunked, m_body_bytes, m_header_bytes, &m_buffer))
+		return (CONTINUE);
+	}
+	if (m_should_read)
+	{
+		std::cout << "STEP2) READ" <<  std::endl;
+		if ((ret = read(fd, recvline, m_cut_bytes)) >= 0)
 		{
+			if (m_chunked == true && m_chunked_finished_read == false)
+			{
+				m_should_peek = true;
+				m_should_read = false;
+				std::cout << "CONTINUE READING... " << std::endl;
+				return (CONTINUE);
+			}
+
 			if (this->parseMessage(m_chunked) == false)
 			{
 				free(recvline);
 				return (FAIL);
 			}
-			m_found_break_line = false;
-			m_chunked = false;
-			m_header_bytes = 0;
-			m_body_bytes = 0;
-			return (SUCCESS);
+			if (m_chunked == false || (m_chunked == true && m_chunked_finished_read == true))
+			{
+				m_should_peek = false;
+				m_should_read = false;
+				return (SUCCESS);
+			}
+				m_should_peek = true;
+				m_should_read = false;
+			return (CONTINUE);
 		}
-		free(recvline);
-		return (CONTINUE);
+		return (FAIL);
 	}
 	if (ret <= 0)
 	{
