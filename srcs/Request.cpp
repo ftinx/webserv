@@ -565,7 +565,7 @@ Request::parseHeader(std::string line)
 	}
 	if (strTolower(key_value[0]) == "host")
 		this->m_uri.set_m_host(ft::trim(key_value[1], " "));
-	else if (iequals(key_value[0]) == "port")
+	else if (strTolower(key_value[0]) == "port")
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
 
 	if (this->m_headers.insert(make_pair(iequals(key_value[0]), ft::trim(key_value[1], " "))).second == false
