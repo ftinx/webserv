@@ -179,6 +179,11 @@ HttpConfig::parseConfigFile(std::string &file_path)
 			idx++;
 			continue ;
 		}
+		if (this->m_lines[idx].find_first_of("#") != std::string::npos)
+		{
+			this->m_lines[idx].erase(this->m_lines[idx].find_first_of("#"));
+			this->m_lines[idx] = ft::rtrim(this->m_lines[idx], " ");
+		}
 		if (ft::checkCurlyBracketsDouble(this->m_lines[idx]))
 			throw BracketDoubleErrorException(m_lines[idx], idx);
 		line = ft::split(m_lines[idx], ' ');

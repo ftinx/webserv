@@ -140,6 +140,11 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 			idx++;
 			continue ;
 		}
+		if (lines[idx].find_first_of("#") != std::string::npos)
+		{
+			lines[idx].erase(lines[idx].find_first_of("#"));
+			lines[idx] = ft::rtrim(lines[idx], " ");
+		}
 		if (ft::checkCurlyBracketsDouble(lines[idx]))
 			throw BracketDoubleErrorException(lines[idx], idx);
 		line.clear();
