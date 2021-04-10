@@ -162,6 +162,15 @@ doubleFree(char **str)
 /*******************************  Libft C++  **********************************/
 /*============================================================================*/
 
+std::string
+strTolower(const std::string& str)
+{
+	std::string result;
+	for (size_t j = 0; j < str.length(); j++)
+		result += tolower(str[j]);
+	return (result);
+}
+
 int
 stoi(const std::string &str)
 {
@@ -710,6 +719,41 @@ getErrorMessage(int status_code)
 		default:
 			return (std::string("Undefined Status Code"));
 	}
+}
+
+/*============================================================================*/
+/*******************************  PASRSE CONFIG  ******************************/
+/*============================================================================*/
+
+bool
+checkBlankStr(std::string str)
+{
+	if (str.empty() == false)
+		return (false);
+	return (true);
+}
+
+bool
+checkCommentStr(std::string str)
+{
+	if (str.substr(0, 1) != "#")
+		return (false);
+	return (true);
+}
+
+bool
+checkCurlyBracketsDouble(std::string str)
+{
+	int cnt = 0;
+
+	for (size_t i = 0 ; i < str.size() ; i++)
+	{
+		if (str[i] == '{' || str[i] == '}')
+			cnt++;
+		if (cnt > 1)
+			return (true);
+	}
+	return (false);
 }
 
 }

@@ -65,6 +65,7 @@ namespace ft
 	void doubleFree(char** str);
 
 	/* LIBFT C++ */
+	std::string strTolower(const std::string &str);
 	int stoi(const std::string &str);
 	char* strdup(const std::string &str);
 	std::string ltrim(const std::string &str, const std::string &set);
@@ -106,6 +107,11 @@ namespace ft
 	Method getMethodType(const std::string &str);
 	std::string getMethodString(const Method &method);
 	std::string getErrorMessage(int status_code);
+
+	/* PASRSE CONFIG */
+	bool checkBlankStr(std::string str);
+	bool checkCommentStr(std::string str);
+	bool checkCurlyBracketsDouble(std::string str);
 }
 
 #endif

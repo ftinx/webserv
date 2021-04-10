@@ -87,23 +87,29 @@ HttpConfigServer::get_m_location_block() const
 HttpConfigServer&
 HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string root, size_t &idx)
 {
-	(void) root;
+	std::vector<std::string> line;
 	bool location_block_exist = false;
 
 	while (42)
 	{
-		std::vector<std::string> line;
+		lines[idx] = ft::trim(lines[idx], " ");
+		if (ft::checkBlankStr(lines[idx]) || ft::checkCommentStr(lines[idx]))
+		{
+			idx++;
+			continue ;
+		}
+		if (ft::checkCurlyBracketsDouble(lines[idx]))
+			throw BracketDoubleErrorException(lines[idx], idx);
 		line.clear();
 		line = ft::split(lines[idx], ' ');
-		if (HttpConfigLocation::checkCommentLine(line.back()))
-			line.pop_back();
 		if (line.front().compare("server_name") == 0)
 			this->m_server_name = line.back();
 		else if (line.front().compare("listen") == 0)
 			this->m_listen = stoi(line.back());
 		else if (line.front().compare("default_error_page") == 0)
 		{
-			// HttpConfigLocation::checkFileExist(root, line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
+			if (ft::isValidFilePath(root + line.back()) == false)
+				throw PathErrorException(lines[idx], idx);
 			this->m_default_error_page = line.back();
 		}
 		else if (line.front().compare("content_length") == 0)

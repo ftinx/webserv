@@ -7,35 +7,61 @@
 const char *
 HttpBlockDoesNotExistException::what() const throw()
 {
-	return ("Error: Http block does not exist");
+	return ("[Config] Http block does not exist");
 }
 
 const char *
 ServerBlockDoesNotExistException::what() const throw()
 {
-	return ("Error: Server block does not exist");
+	return ("[Config] Server block does not exist");
 }
 
 const char *
 LocationBlockDoesNotExistException::what() const throw()
 {
-	return ("Error: Location block does not exist");
-}
-
-const char *
-BracketErrorException::what() const throw()
-{
-	return ("Error: Bracket is mismatched or duplicated");
+	return ("[Config] Location block does not exist");
 }
 
 const char *
 MimeTypeErrorException::what() const throw()
 {
-	return ("Error: \"mime.types\" file must be included");
+	return ("[Config] \"mime.types\" file must be included");
 }
+
+const char *
+BracketPairErrorException::what() const throw()
+{
+	return ("[Config] Bracket must be paired");
+}
+
+const char *
+BracketDoubleErrorException::what() const throw()
+{
+	return (this->error_msg.c_str());
+}
+
+BracketDoubleErrorException::BracketDoubleErrorException(std::string line, size_t idx)
+{
+	this->error_msg += std::string("[Config] Bracket is duplicated -> (line:")
+		+ std::to_string(idx + 1)
+		+ std::string(") ")
+		+ line;
+}
+
+BracketDoubleErrorException::~BracketDoubleErrorException() throw() {}
 
 const char *
 PathErrorException::what() const throw()
 {
-	return ("Error: file or folder does not exist");
+	return (this->error_msg.c_str());
 }
+
+PathErrorException::PathErrorException(std::string line, size_t idx)
+{
+	this->error_msg += std::string("[Config] file or folder does not exist -> (line:")
+		+ std::to_string(idx + 1)
+		+ std::string(") ")
+		+ line;
+}
+
+PathErrorException::~PathErrorException() throw() {}

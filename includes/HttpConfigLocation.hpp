@@ -41,16 +41,8 @@ class HttpConfigLocation
 		void set_m_root(std::string root);
 
 		/* utils */
-		static bool checkCommentLine(std::string str);
-		static void checkDirExist(std::string path);
-		static void checkFileExist(std::string root, std::string path);
 
 		/* exceptions */
-		class parseErrorException : public std::exception
-		{
-			public:
-				virtual const char *what() const throw();
-		};
 
 		/* key func. */
 		HttpConfigLocation& parseLocationBlock(std::vector<std::string> lines, std::string root, size_t &idx);
