@@ -529,6 +529,15 @@ Request::parseRequestLine(std::string request_line)
 	return (true);
 }
 
+std::string
+strTolower(const std::string& str)
+{
+	std::string result;
+	for (size_t j = 0; j < str.length(); j++)
+		result += tolower(str[j]);
+	return (result);
+}
+
 bool
 Request::parseHeader(std::string line)
 {
@@ -554,13 +563,13 @@ Request::parseHeader(std::string line)
 		this->m_error_code = 400;
 		return (false);
 	}
-	if (key_value[0] == "Host" || key_value[0] == "host")
+	if (strTolower(key_value[0]) == "host")
 		this->m_uri.set_m_host(ft::trim(key_value[1], " "));
-	else if (key_value[0] == "Port" || key_value[0] == "port")
+	else if (strTolower(key_value[0]) == "port")
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
 
-	if (this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " "))).second == false
-	&& (key_value[0] == "Host" || key_value[0] == "host" ))
+	if (this->m_headers.insert(make_pair(strTolower(key_value[0]), ft::trim(key_value[1], " "))).second == false
+	&& strTolower(key_value[0]) == "host")
 	{
 		this->m_error_code = 400;
 		return (false);
