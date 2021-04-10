@@ -184,7 +184,7 @@ HttpConfig::parseMimeTypes()
 }
 
 void
-HttpConfig::setConfigFileCheckValid(std::string file_path)
+HttpConfig::setConfigFileCheckValid(std::string &file_path)
 {
 	size_t idx = 0;
 	this->m_cnt_trash_lines = 0;
@@ -222,7 +222,7 @@ HttpConfig::setDefaultRootPath()
 }
 
 void
-HttpConfig::parseConfigFile(std::string file_path)
+HttpConfig::parseConfigFile(std::string &file_path)
 {
 	size_t idx = 0;
 	bool server_block_exist = false;

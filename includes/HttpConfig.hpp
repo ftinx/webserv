@@ -52,14 +52,14 @@ class HttpConfig
 
 		/* setter */
 		void parseMimeTypes();
-		void setConfigFileCheckValid(std::string file_path);
+		void setConfigFileCheckValid(std::string &file_path);
 		void setDefaultRootPath();
 		// void setConfigFile();
 		// void setConfigLines();
 		// void checkValidHttpBlock();
 
 		/* key func. */
-		void parseConfigFile(std::string file_path);
+		void parseConfigFile(std::string &file_path);
 
 		/* debug */
 		void printConfigFileInfo();
