@@ -563,7 +563,7 @@ Request::parseHeader(std::string line)
 		this->m_error_code = 400;
 		return (false);
 	}
-	if (iequals(key_value[0]) == "host")
+	if (strTolower(key_value[0]) == "host")
 		this->m_uri.set_m_host(ft::trim(key_value[1], " "));
 	else if (iequals(key_value[0]) == "port")
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
