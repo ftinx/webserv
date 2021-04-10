@@ -356,12 +356,6 @@ Server::handleRequest(int clientfd)
 			break;
 		}
 	}
-	if (this->m_responses[clientfd].get_m_status_code() != 0)
-	{
-		std::cout << "STATUS CODE: " << this->m_responses[clientfd].get_m_status_code() << std::endl;;
-		std::cout << "SET WRITE FD :D" << std::endl;
-		ft::fdSet(clientfd, m_write_fds);
-	}
 	return ;
 }
 
@@ -392,10 +386,11 @@ Server::readProcess()
 				{
 					buff[ret] = '\0';
 					this->m_responses[fd_iter->clientfd].setCgiResponse(buff);
+					m_responses[fd_iter->clientfd].set_m_has_cgi_response(true);
 					try
 					{
 						if (status_code == 0 &&
-							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCode()))
+							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCodeHeader()))
 						{
 							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
 						}
@@ -406,13 +401,14 @@ Server::readProcess()
 						return (true);
 					}
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					return (false);
 				}
-				if (ret  == 0)
+				if (ret == 0)
 				{
 					std::cout << "RET IS 0" << std::endl;
 					close(fd_iter->sockfd);
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
-					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					this->m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					return (true);
@@ -429,6 +425,12 @@ Server::readProcess()
 					std::cout << "GET MESSAGE SUCCESS " << std::endl;
 					resetRequest(&this->m_requests[sockfd]);
 					handleRequest(sockfd);
+					if (this->m_responses[sockfd].get_m_status_code() != 0)
+					{
+						std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
+						std::cout << "SET WRITE FD :D" << std::endl;
+						ft::fdSet(sockfd, m_write_fds);
+					}
 					return (true);
 				}
 				else if (ret == FAIL)
@@ -479,7 +481,6 @@ Server::writeProcess()
 					buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 					return (false);
 				}
-				std::cout << "WRITE PROCESS) ret: " << ret << std::endl;
 				if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
@@ -515,19 +516,55 @@ Server::writeProcess()
 				int buffsize;
 				Response &response = m_responses[sockfd];
 				int pos = response.get_m_pos();
-				const std::string &body = response.get_m_reponse_message();
-				int content_length = body.size();
 
-				buffsize = std::min(content_length - pos, SOCK_BUFF);
-				if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
+				if (response.get_m_has_cgi_response() == true)
 				{
-					this->m_requests[sockfd] = Request();
-					response.set_m_pos(pos + ret);
-					std::cout << "OOOOOOO OK " << pos << std::endl;
+					const std::string &body = response.get_m_cgi_response();
+					int content_length = body.size();
+					buffsize = std::min(content_length - pos, 32768);
+
+					std::string &header = response.get_m_cgi_header();
+					if (header != "")
+					{
+						ret = write(sockfd, header.c_str(), header.size());
+						header = "";
+						std::cout << ".... wrote header" <<std::endl;
+						if (ret > 0)
+							return (false);
+					}
+					else
+					{
+						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
+							return(false);
+						std::string num;
+						ft::itoa(buffsize, num, 16);
+						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
+						ret = write(sockfd, buff.c_str(), buff.size());
+						response.set_m_pos(pos + buffsize);
+						std::cout << ".... wrote body " << buffsize << std::endl;
+						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == true)
+						{
+							ft::fdClr(sockfd, this->m_write_fds);
+						}
+					}
+
+				}
+				else
+				{
+					const std::string &body = response.get_m_reponse_message();
+					int content_length = body.size();
+					buffsize = std::min(content_length - pos, SOCK_BUFF);
+					if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
+					{
+						this->m_requests[sockfd] = Request(); // 안해줘도 되지 않나
+						response.set_m_pos(pos + ret);
+						std::cout << "------ OK " << pos << std::endl;
+						return (false);
+					}
 				}
 				if (ret < 0)
 				{
-					std::cout << "XXXXXXX FAIL" << pos << std::endl;
+					std::cout << "------ FAIL" << pos << std::endl;
 					std::cout << "ERRNO IS " << errno << std::endl;
 					std::cout << "X" << EACCES << std::endl;
 					std::cout << "A" << EAGAIN << std::endl;
@@ -549,14 +586,52 @@ Server::writeProcess()
 				}
 				if (ret <= 0)
 				{
-					std::cout << "OOOOOOO END " << pos << std::endl;
+					std::cout << "------ END " << pos << std::endl;
 					this->m_requests[sockfd] = Request();
 					this->m_responses[sockfd] = Response();
 					ft::fdClr(sockfd, m_write_fds);
-					sleep(1);
-					std::cout << "Zzzzzzz...." << std::endl;
 				}
 				writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
+
+				// buffsize = std::min(content_length - pos, SOCK_BUFF);
+				// if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
+				// {
+				// 	this->m_requests[sockfd] = Request();
+				// 	response.set_m_pos(pos + ret);
+				// 	std::cout << "OOOOOOO OK " << pos << std::endl;
+				// }
+				// if (ret < 0)
+				// {
+				// 	std::cout << "XXXXXXX FAIL" << pos << std::endl;
+				// 	std::cout << "ERRNO IS " << errno << std::endl;
+				// 	std::cout << "X" << EACCES << std::endl;
+				// 	std::cout << "A" << EAGAIN << std::endl;
+				// 	std::cout << "B" << EALREADY << std::endl;
+				// 	std::cout << "C" << EBADF << std::endl;
+				// 	std::cout << "D" << ECONNRESET << std::endl;
+				// 	std::cout << "E" << EFAULT  << std::endl;
+				// 	std::cout << "F" << EINTR << std::endl;
+				// 	std::cout << "G" << EINVAL << std::endl;
+				// 	std::cout << "H" << EISCONN << std::endl;
+				// 	std::cout << "I" << EMSGSIZE << std::endl;
+				// 	std::cout << "J" << ENOBUFS << std::endl;
+				// 	std::cout << "K" << ENOMEM << std::endl;
+				// 	std::cout << "L" << ENOTCONN << std::endl;
+				// 	std::cout << "M" << ENOTSOCK << std::endl;
+				// 	std::cout << "N" << EOPNOTSUPP << std::endl;
+				// 	std::cout << "O" << EPIPE << std::endl;
+				// 	std::cout << "P" << EDESTADDRREQ << std::endl;
+				// }
+				// if (ret <= 0)
+				// {
+				// 	std::cout << "OOOOOOO END " << pos << std::endl;
+				// 	this->m_requests[sockfd] = Request();
+				// 	this->m_responses[sockfd] = Response();
+				// 	ft::fdClr(sockfd, m_write_fds);
+				// 	sleep(1);
+				// 	std::cout << "Zzzzzzz...." << std::endl;
+				// }
+				// writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
 			}
 			return (false);
 		}
@@ -1077,7 +1152,6 @@ Server::makeCgiEnvp(Request req, Response res)
 	while(i != env_map.end())
 	{
 		env[j] = ft::strdup(i->first + "=" + i->second);
-		std::cout << env[j] << std::endl;
 		i++;
 		j++;
 	}
@@ -1130,16 +1204,16 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-	printf("\n=========== cgi argv ============\n");
-	printf("%s\n", argv[0]);
-	printf("\n=========== cgi envp ============\n");
-	for (int i = 0; i<3; i++)
-	{
-		printf("%s\n", envp[i]);
-	}
-	printf("===================================\n\n");
+	// printf("\n=========== cgi argv ============\n");
+	// printf("%s\n", argv[0]);
+	// printf("\n=========== cgi envp ============\n");
+	// for (int i = 0; i<3; i++)
+	// {
+	// 	printf("%s\n", envp[i]);
+	// }
+	// printf("===================================\n\n");
 
-	std::cout << "Execute Cgi >0<"<< req.get_m_path_translated().c_str() << std::endl;
+	std::cout << "Execute Cgi === "<< req.get_m_path_translated().c_str() << std::endl;
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1159,14 +1233,11 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		close(cgi_stdin);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
-		std::cout << "PARENT WRITE FD " << parent_write << std::endl;
-		std::cout << "PARENT READ FD " << parent_read << std::endl;
 		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
 		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		ft::fdSet(parent_write, m_write_fds);
 		ft::fdSet(parent_read, m_main_fds);
 		*m_maxfd = findMaxFd();
-		std::cout << "MAX FD: " << *m_maxfd << std::endl;
 		response.get_m_cgi_response().reserve(RESV_SIZE);
 	}
 	(void)clientfd;

@@ -63,6 +63,7 @@ namespace ft
 	void putnbr_fd(int n, int fd);
 	char* strchr(const char *str, int c);
 	void* memset(void *str, int c, size_t n);
+	void itoa(int value, std::string& buf, int base);
 
 	/* LIBFT C++ */
 	int stoi(const std::string &str);

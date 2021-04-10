@@ -57,8 +57,10 @@ class Response
 		in_addr_t m_cgi_client_addr;
 		int m_cgi_port;
 		std::string m_cgi_path;
+		std::string m_cgi_header;
 		std::string m_cgi_response;
 		bool m_has_cgi_response;
+		bool m_cgi_chunked_read_end;
 
 		/* server */
 		int		m_pos;
@@ -88,8 +90,10 @@ class Response
 		std::string get_m_root() const;
 		std::string get_m_cgi_path() const;
 		std::map<std::string, std::string> get_m_headers() const;
+		std::string &get_m_cgi_header();
 		std::string &get_m_cgi_response();
 		bool get_m_has_cgi_response() const;
+		bool get_m_cgi_chunked_read_end() const;
 		int get_m_pos();
 
 		/* setter */
@@ -102,13 +106,15 @@ class Response
 		void set_m_index_file(std::vector<std::string> index_file);
 		void set_m_root(std::string root);
 		void set_m_cgi_path(std::string cgi_path);
+		void set_m_cgi_header(std::string cgi_header);
 		void set_m_cgi_response(std::string cgi_response);
 		void set_m_content_length(int content_length);
 		void set_m_has_cgi_response(bool has_cgi_response);
+		void set_m_cgi_chunked_read_end(bool cgi_chunked_read_end);
 		void set_m_pos(int pos);
 
 		/* CGI */
-		int findCgiStatusCode();
+		int findCgiStatusCodeHeader();
 
 		/* HTTP Response Util */
 		Response& makeHttpResponseMessage(std::string method = "");

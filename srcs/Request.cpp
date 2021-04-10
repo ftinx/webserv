@@ -505,6 +505,9 @@ Request::getMessage(int fd)
 		{
 			std::cout << "STEP1) JUST PEEK" <<  std::endl;
 			recvline[ret] = '\0';
+			// std::cout <<std::endl << "-----------" << ret << "*****" << std::endl;
+			// std::cout <<recvline << std::endl;
+			// std::cout << "-----------" << std::endl << std::endl;
 			this->m_message.append(recvline);
 			if (m_header_bytes == 0 && this->m_message.find("\r\n\r\n") >= 0)
 			{
@@ -523,11 +526,17 @@ Request::getMessage(int fd)
 		std::cout << "STEP2) READ" <<  std::endl;
 		if ((ret = read(fd, recvline, m_cut_bytes)) >= 0)
 		{
+			recvline[ret] = '\0';
+			// std::cout <<std::endl << "-----------" << ret << "*****" << std::endl;
+			// std::cout <<recvline << std::endl;
+			// std::cout << "-----------" << std::endl << std::endl;
+
 			if (m_chunked == true && m_chunked_finished_read == false)
 			{
 				m_should_peek = true;
 				m_should_read = false;
 				std::cout << "CONTINUE READING... " << std::endl;
+				free(recvline);
 				return (CONTINUE);
 			}
 
@@ -540,12 +549,15 @@ Request::getMessage(int fd)
 			{
 				m_should_peek = false;
 				m_should_read = false;
+				free(recvline);
 				return (SUCCESS);
 			}
-				m_should_peek = true;
-				m_should_read = false;
+			m_should_peek = true;
+			m_should_read = false;
+			free(recvline);
 			return (CONTINUE);
 		}
+		free(recvline);
 		return (FAIL);
 	}
 	if (ret <= 0)
