@@ -569,7 +569,7 @@ Request::parseHeader(std::string line)
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
 
 	if (this->m_headers.insert(make_pair(strTolower(key_value[0]), ft::trim(key_value[1], " "))).second == false
-	&& iequals(key_value[0]) == "host")
+	&& strTolower(key_value[0]) == "host")
 	{
 		this->m_error_code = 400;
 		return (false);
