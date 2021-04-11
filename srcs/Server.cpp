@@ -386,13 +386,13 @@ Server::readProcess()
 				{
 					buff[ret] = '\0';
 					this->m_responses[fd_iter->clientfd].setCgiResponse(buff);
-					m_responses[fd_iter->clientfd].set_m_has_cgi_response(true);
 					try
 					{
 						if (status_code == 0 &&
 							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCodeHeader()))
 						{
 							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
+							m_responses[fd_iter->clientfd].set_m_has_cgi_response(true);
 						}
 					}
 					catch (std::exception &e)
@@ -400,7 +400,7 @@ Server::readProcess()
 						std::cout << e.what() << std::endl;
 						return (true);
 					}
-					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					// ft::fdSet(fd_iter->clientfd, m_write_fds);
 					return (false);
 				}
 				if (ret == 0)
@@ -408,6 +408,7 @@ Server::readProcess()
 					std::cout << "RET IS 0" << std::endl;
 					close(fd_iter->sockfd);
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
+					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					this->m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
@@ -477,7 +478,7 @@ Server::writeProcess()
 				{
 					written_bytes += ret;
 					request.set_m_written_bytes(written_bytes);
-					std::cout << "WRITE PROCESS) BUFF SIZE: " << buffsize << std::endl;
+					std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
 					buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 					return (false);
 				}
@@ -521,7 +522,8 @@ Server::writeProcess()
 				{
 					const std::string &body = response.get_m_cgi_response();
 					int content_length = body.size();
-					buffsize = std::min(content_length - pos, 32768);
+					// buffsize = std::min(content_length - pos, 32768); //chunked writingd
+					buffsize = std::min(content_length - pos, SOCK_BUFF); // mess writig
 
 					std::string &header = response.get_m_cgi_header();
 					if (header != "")
@@ -535,16 +537,23 @@ Server::writeProcess()
 					else
 					{
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
+						{
+							// 짤라서 틈틈히 보내주려면 여기서 클리어 해줘야
 							return(false);
+						}
 						std::string num;
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
 						ret = write(sockfd, buff.c_str(), buff.size());
 						response.set_m_pos(pos + buffsize);
-						std::cout << ".... wrote body " << buffsize << std::endl;
+						std::cout << ".... wrote body " << pos + buffsize << std::endl;
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == true)
 						{
+							std::cout << "------ END " << pos << std::endl;
+							this->m_requests[sockfd] = Request();
+							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
+							return (true);
 						}
 					}
 
