@@ -28,7 +28,6 @@ class HttpConfigServer
 		const std::vector<HttpConfigLocation> get_m_location_block() const;
 
 		/* setter */
-
 		void set_m_root(std::string m_root);
 
 		/* key func. */

@@ -146,9 +146,30 @@ memset(void *str, int c, size_t n)
 	return (str);
 }
 
+void
+doubleFree(char **str)
+{
+	int i(0);
+
+	while(str[i] == 0)
+	{
+		free(str[i++]);
+	}
+	free(str);
+}
+
 /*============================================================================*/
 /*******************************  Libft C++  **********************************/
 /*============================================================================*/
+
+std::string
+strTolower(const std::string& str)
+{
+	std::string result;
+	for (size_t j = 0; j < str.length(); j++)
+		result += tolower(str[j]);
+	return (result);
+}
 
 int
 stoi(const std::string &str)
@@ -361,18 +382,6 @@ iNetNtoA(unsigned int addr)
 /*******************************  TIME  ***************************************/
 /*============================================================================*/
 
-void
-doubleFree(char **str)
-{
-	int i(0);
-
-	while(str[i] == 0)
-	{
-		free(str[i++]);
-	}
-	free(str);
-}
-
 std::string
 getDateTimestamp(int hour, int minute, int second)
 {
@@ -495,8 +504,27 @@ decode(const std::string &input)
 }
 
 /*============================================================================*/
-/*******************************  ETC  ****************************************/
+/*******************************  FILE  ***************************************/
 /*============================================================================*/
+
+std::string
+fileToString(const std::string &file_path)
+{
+	int fd;
+	int bytes;
+	char buffer[BUFFER_SIZE];
+	std::string ret("");
+
+	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
+		throw std::exception();
+	ft::memset(reinterpret_cast<void *>(buffer), 0, BUFFER_SIZE);
+	while ((bytes = read(fd, reinterpret_cast<void *>(buffer), BUFFER_SIZE - 1)) > 0)
+		ret += std::string(buffer, bytes);
+	if (bytes < 0)
+		throw std::exception();
+	close(fd);
+	return (ret);
+}
 
 bool
 isValidFilePath(const std::string &path)
@@ -522,24 +550,44 @@ isValidDirPath(const std::string &path)
 	return (false); // 폴더가 아님
 }
 
-std::string
-fileToString(const std::string &file_path)
+bool
+checkValidFileExtension(const std::string &file_name, const std::string &ext)
 {
-	int fd;
-	int bytes;
-	char buffer[BUFFER_SIZE];
-	std::string ret("");
+	std::vector<std::string> tmp;
+	std::string extension;
 
-	if ((fd = open(file_path.c_str(), O_RDONLY)) < 0)
-		throw std::exception();
-	ft::memset(reinterpret_cast<void *>(buffer), 0, BUFFER_SIZE);
-	while ((bytes = read(fd, reinterpret_cast<void *>(buffer), BUFFER_SIZE - 1)) > 0)
-		ret += std::string(buffer, bytes);
-	if (bytes < 0)
-		throw std::exception();
-	close(fd);
-	return (ret);
+	if (file_name.find_last_of(".") == std::string::npos)
+		return (false);
+	tmp = ft::split(file_name, '.');
+	extension = tmp.back();
+	if (ext.compare(extension) == 0)
+		return (true);
+	return (false);
 }
+
+bool
+checkValidFileExtension(const std::string &file_name, const std::vector<std::string> &ext_list)
+{
+	std::vector<std::string>::const_iterator it;
+	std::string extension;
+	size_t pos;
+
+	if ((pos = file_name.find_last_of(".")) == std::string::npos)
+		return (false);
+	extension = file_name.substr(pos, std::string::npos);
+	if ((pos = extension.find_first_of("/")) != std::string::npos)
+		extension = extension.substr(0, pos);
+	for (it = ext_list.begin() ; it != ext_list.end() ; it++)
+	{
+		if (*it == extension)
+			return (true);
+	}
+	return (false);
+}
+
+/*============================================================================*/
+/*******************************  ETC  ****************************************/
+/*============================================================================*/
 
 Method
 getMethodType(const std::string &str)
@@ -579,41 +627,6 @@ getMethodString(const Method &method)
 	else if (method == TRACE)
 		return ("TRACE");
 	return ("DEFAULT");
-}
-
-bool
-checkValidFileExtension(const std::string &file_name, const std::string &ext)
-{
-	std::vector<std::string> tmp;
-	std::string extension;
-
-	if (file_name.find_last_of(".") == std::string::npos)
-		return (false);
-	tmp = ft::split(file_name, '.');
-	extension = tmp.back();
-	if (ext.compare(extension) == 0)
-		return (true);
-	return (false);
-}
-
-bool
-checkValidFileExtension(const std::string &file_name, const std::vector<std::string> &ext_list)
-{
-	std::vector<std::string>::const_iterator it;
-	std::string extension;
-	size_t pos;
-
-	if ((pos = file_name.find_last_of(".")) == std::string::npos)
-		return (false);
-	extension = file_name.substr(pos, std::string::npos);
-	if ((pos = extension.find_first_of("/")) != std::string::npos)
-		extension = extension.substr(0, pos);
-	for (it = ext_list.begin() ; it != ext_list.end() ; it++)
-	{
-		if (*it == extension)
-			return (true);
-	}
-	return (false);
 }
 
 std::string
@@ -706,6 +719,41 @@ getErrorMessage(int status_code)
 		default:
 			return (std::string("Undefined Status Code"));
 	}
+}
+
+/*============================================================================*/
+/*******************************  PASRSE CONFIG  ******************************/
+/*============================================================================*/
+
+bool
+checkBlankStr(std::string str)
+{
+	if (str.empty() == false)
+		return (false);
+	return (true);
+}
+
+bool
+checkCommentStr(std::string str)
+{
+	if (str.substr(0, 1) != "#")
+		return (false);
+	return (true);
+}
+
+bool
+checkCurlyBracketsDouble(std::string str)
+{
+	int cnt = 0;
+
+	for (size_t i = 0 ; i < str.size() ; i++)
+	{
+		if (str[i] == '{' || str[i] == '}')
+			cnt++;
+		if (cnt > 1)
+			return (true);
+	}
+	return (false);
 }
 
 }
