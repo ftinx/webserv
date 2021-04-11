@@ -504,7 +504,7 @@ Request::getMessage(int fd)
 	}
 	else
 	{
-		std::cout << "shold peek false" << std::endl;
+		std::cout << "sholud peek false" << std::endl;
 	}
 	if (m_should_peek)
 	{
@@ -524,11 +524,15 @@ Request::getMessage(int fd)
 			free(recvline);
 			m_should_read = true;
 			m_should_peek = false;
-			std::cout << "CONTINUE READING... " << std::endl;
+			std::cout << "--- PEEK: finished peeking, continue reading" << std::endl;
 			return (CONTINUE);
 		}
-		free(recvline);
-		return (FAIL);
+		if (ret <= 0)
+		{
+			std::cout << "--- PEEK: ret <= 0 " << std::endl;
+			free(recvline);
+			return (FAIL);
+		}
 	}
 	if (m_should_read)
 	{
@@ -544,13 +548,16 @@ Request::getMessage(int fd)
 			{
 				m_should_peek = true;
 				m_should_read = false;
-				std::cout << "CONTINUE PEEKING... " << std::endl;
+				std::cout << "--- READ: finished reading, continue peeking" << std::endl;
 				free(recvline);
 				return (CONTINUE);
 			}
-
+			/* 메세지 다 읽었을 때 파싱 시작 */
 			if (this->parseMessage(m_chunked) == false)
 			{
+				std::cout << "--- READ: Parse message fail" << std::endl;
+				std::cout << m_message << std::endl;
+				std::cout << "----------------------------" << std::endl;
 				free(recvline);
 				return (FAIL);
 			}
@@ -559,6 +566,7 @@ Request::getMessage(int fd)
 				m_should_peek = false;
 				m_should_read = false;
 				free(recvline);
+				std::cout << "--- READ: Parse message success" << std::endl;
 				return (SUCCESS);
 			}
 			m_should_peek = true;
@@ -566,11 +574,10 @@ Request::getMessage(int fd)
 			free(recvline);
 			return (CONTINUE);
 		}
-		free(recvline);
-		return (FAIL);
 	}
 	if (ret <= 0)
 	{
+		std::cout << "--- READ: ret <= 0 " << std::endl;
 		free(recvline);
 		return (FAIL);
 	}
