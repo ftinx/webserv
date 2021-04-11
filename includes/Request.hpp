@@ -57,6 +57,7 @@ class Request
 		int m_cut_bytes;
 		bool m_should_peek;
 		bool m_should_read;
+		bool m_got_all_msg;
 
 	public:
 		Request();
@@ -93,6 +94,7 @@ class Request
 		int get_m_cut_bytes() const;
 		bool get_m_should_peek() const;
 		bool get_m_should_read() const;
+		bool get_m_got_all_msg() const;
 
 		/* setter */
 		void set_m_http_version(std::string);

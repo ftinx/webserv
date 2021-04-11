@@ -14,7 +14,7 @@ m_error_code(0),m_reset_path(""), m_location_block(),
 m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
-m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_should_peek(false),m_should_read(false)
+m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_should_peek(false),m_should_read(false), m_got_all_msg(false)
 {
 }
 
@@ -54,6 +54,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_body_bytes =  rhs.get_m_body_bytes();
 	this->m_should_peek =  rhs.get_m_should_peek();
 	this->m_should_read =  rhs.get_m_should_read();
+	this->m_got_all_msg = rhs.get_m_got_all_msg();
 	return (*this);
 }
 
@@ -238,6 +239,12 @@ bool
 Request::get_m_should_read() const
 {
 	return (this->m_should_read);
+}
+
+bool
+Request::get_m_got_all_msg() const
+{
+	return (this->m_got_all_msg);
 }
 
 /*============================================================================*/
@@ -434,7 +441,7 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 	}
 
 	/* content-length case */
-	int content_length;
+	int content_length = 0;
 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
 	{
 		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
@@ -457,7 +464,7 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 			m_body_bytes = m_content_length;
 		}
 	}
-	if (m_content_length >= 0 && (size_t)(m_content_length + m_header_bytes) <= m_message.size())
+	if (*chunked == false && m_content_length >= 0 && (size_t)(m_content_length + m_header_bytes) <= m_message.size())
 	{
 		/* 받아온 메세지가 content_length보다 길때 */
 		this->m_message = this->m_message.substr(0, m_header_bytes + m_content_length);
@@ -510,17 +517,17 @@ Request::getMessage(int fd)
 	{
 		if ((ret = recv(fd, recvline, SOCK_BUFF - 1, MSG_PEEK)) > 0)
 		{
-			std::cout << "STEP1) JUST PEEK" <<  std::endl;
+			std::cout << "--- PEEK " <<  std::endl;
 			recvline[ret] = '\0';
-			// std::cout <<std::endl << "-----------" << ret << "*****" << std::endl;
-			// std::cout <<recvline << std::endl;
-			// std::cout << "-----------" << std::endl << std::endl;
+			std::cout <<std::endl << "----- PEEK ------" << ret << "*****" << std::endl;
+			std::cout <<recvline << std::endl;
+			std::cout << "---------------" << std::endl << std::endl;
 			this->m_message.append(recvline);
 			if (m_header_bytes == 0 && this->m_message.find("\r\n\r\n") >= 0)
 			{
 				m_header_bytes = this->m_message.find("\r\n\r\n") + 4;
 			}
-			isBreakCondition(&m_chunked, std::strlen(recvline), recvline);
+			m_got_all_msg = isBreakCondition(&m_chunked, std::strlen(recvline), recvline);
 			free(recvline);
 			m_should_read = true;
 			m_should_peek = false;
@@ -536,7 +543,7 @@ Request::getMessage(int fd)
 	}
 	if (m_should_read)
 	{
-		std::cout << "STEP2) READ" <<  std::endl;
+		std::cout << "--- READ "  <<  std::endl;
 		if ((ret = read(fd, recvline, m_cut_bytes)) > 0)
 		{
 			recvline[ret] = '\0';
@@ -544,7 +551,8 @@ Request::getMessage(int fd)
 			// std::cout <<recvline << std::endl;
 			// std::cout << "-----------" << std::endl << std::endl;
 
-			if (m_chunked == true && m_chunked_finished_read == false)
+			/* 여기에 어떻게 추가를 해줘야 하지 않을까... 청크드가 아니더라도 잘려들어왔을 때 지나가게끔 */
+			if ((m_chunked == true && m_chunked_finished_read == false) || m_got_all_msg == false)
 			{
 				m_should_peek = true;
 				m_should_read = false;

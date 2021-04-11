@@ -438,6 +438,8 @@ Server::readProcess()
 				{
 					std::cout << "GET MESSAGE FAIL" << std::endl;
 					close(sockfd);
+					this->m_requests[sockfd] = Request();
+					this->m_responses[sockfd] = Response();
 					ft::fdClr(sockfd, this->m_main_fds);
 					ft::fdClr(sockfd, this->m_write_fds);
 					this->m_fd_table.erase(fd_iter);
