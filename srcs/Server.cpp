@@ -436,6 +436,7 @@ Server::readProcess()
 				}
 				else if (ret == FAIL)
 				{
+					std::cout << "GET MESSAGE FAIL" << std::endl;
 					close(sockfd);
 					ft::fdClr(sockfd, this->m_main_fds);
 					ft::fdClr(sockfd, this->m_write_fds);
@@ -500,7 +501,6 @@ Server::writeProcess()
 					std::cout << "M" << EPIPE << std::endl;
 					return (false);
 				}
-				std::cout << "WRITE PROCESS) WRITTEN BYTES SIZE: " << written_bytes << std::endl;
 				if (ret == 0)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);

@@ -498,7 +498,14 @@ Request::getMessage(int fd)
 	recvline = (char*)malloc(sizeof(char) * SOCK_BUFF);
 	memset(recvline, 0, SOCK_BUFF);
 	if (m_header_bytes == 0)
+	{
+		std::cout << "should peek true" << std::endl;
 		m_should_peek = true;
+	}
+	else
+	{
+		std::cout << "shold peek false" << std::endl;
+	}
 	if (m_should_peek)
 	{
 		if ((ret = recv(fd, recvline, SOCK_BUFF - 1, MSG_PEEK)) > 0)
@@ -517,14 +524,16 @@ Request::getMessage(int fd)
 			free(recvline);
 			m_should_read = true;
 			m_should_peek = false;
+			std::cout << "CONTINUE READING... " << std::endl;
 			return (CONTINUE);
 		}
-		return (CONTINUE);
+		free(recvline);
+		return (FAIL);
 	}
 	if (m_should_read)
 	{
 		std::cout << "STEP2) READ" <<  std::endl;
-		if ((ret = read(fd, recvline, m_cut_bytes)) >= 0)
+		if ((ret = read(fd, recvline, m_cut_bytes)) > 0)
 		{
 			recvline[ret] = '\0';
 			// std::cout <<std::endl << "-----------" << ret << "*****" << std::endl;
@@ -535,7 +544,7 @@ Request::getMessage(int fd)
 			{
 				m_should_peek = true;
 				m_should_read = false;
-				std::cout << "CONTINUE READING... " << std::endl;
+				std::cout << "CONTINUE PEEKING... " << std::endl;
 				free(recvline);
 				return (CONTINUE);
 			}
