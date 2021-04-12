@@ -1,23 +1,36 @@
 #!/bin/bash
 
-clear
-echo -e "\033[47;30m* WELCOME TO FTINX :) *\033[0m"
-echo ""
-
-for config_file_list in `ls config`
+flag=1
+while [ ${flag} -eq 1 ]
 do
-        let I=I+1
-        echo "$I) $config_file_list"
+        clear
+        echo -e "\033[47;30m* WELCOME TO FTINX :) *\033[0m"
+        echo ""
+        I=0
+        for config_file_list in `ls config`
+        do
+                let I=I+1
+                echo "$I) $config_file_list"
+        done
+        echo -e "\033[40;33mIf you do not enter any number, the default server runs\033[0m"
+        echo ""
+        echo -n "SELECT CONFIG FILE : "
+        if [[ $# == 1 ]];then
+                selected_file_num="$1"
+        else
+                read selected_file_num
+        fi
+        # 인자가 입력된 경우 config 파일 숫자를 대체
+
+        for_check=${selected_file_num//[1-"$I"]/}
+        if [[ $for_check ]];then
+                flag=1
+        else
+                flag=0
+        fi
+        # 인자가 범위를 벗어나면 루프에 빠짐
 done
-echo -e "\033[40;33mIf you do not enter any number, the default server runs\033[0m"
-echo ""
-echo -n "SELECT CONFIG FILE : "
-if [[ $# == 1 ]];then
-        selected_file_num="$1"
-else
-        read selected_file_num
-fi
-# 인자가 입력된 경우 config 파일 숫자를 대체
+
 if [[ $selected_file_num == "" ]];then
         file_name="default.conf"
 else
@@ -38,7 +51,7 @@ echo ""
 make >& make.log
 # make 하며 내용을 make.log에 저장
 if [[ -z `grep "error" make.log` ]];then
-        echo "\033[47;30m* COMPILE SUCCESS *\033[0m"
+        echo -e "\033[47;30m* COMPILE SUCCESS *\033[0m"
 else
         echo -e "\033[41;30m* COMPILE ERROR *\033[0m"
         echo -e "\033[41;30m* -----------cat make.log----------- *\033[0m"

@@ -19,7 +19,6 @@
 # define SOCK_BUFF 1000000
 # define RESV_SIZE 150000000
 
-
 enum Method
 {
 	DEFAULT,
@@ -64,8 +63,10 @@ namespace ft
 	char* strchr(const char *str, int c);
 	void* memset(void *str, int c, size_t n);
 	void itoa(int value, std::string& buf, int base);
+	void doubleFree(char** str);
 
 	/* LIBFT C++ */
+	std::string strTolower(const std::string &str);
 	int stoi(const std::string &str);
 	char* strdup(const std::string &str);
 	std::string ltrim(const std::string &str, const std::string &set);
@@ -96,16 +97,22 @@ namespace ft
 	std::string encode(const std::string &input);
 	std::string decode(const std::string &input);
 
-	/* ETC */
-	void doubleFree(char** str);
+	/* FILE */
+	std::string fileToString(const std::string &file_path);
 	bool isValidFilePath(const std::string &path);
 	bool isValidDirPath(const std::string &path);
-	std::string fileToString(const std::string &file_path);
-	Method getMethodType(const std::string &str);
-	std::string getMethodString(const Method &method);
 	bool checkValidFileExtension(const std::string &file_name, const std::string &ext);
 	bool checkValidFileExtension(const std::string &file_name, const std::vector<std::string> &ext_list);
+
+	/* ETC */
+	Method getMethodType(const std::string &str);
+	std::string getMethodString(const Method &method);
 	std::string getErrorMessage(int status_code);
+
+	/* PASRSE CONFIG */
+	bool checkBlankStr(std::string str);
+	bool checkCommentStr(std::string str);
+	bool checkCurlyBracketsDouble(std::string str);
 }
 
 #endif

@@ -9,7 +9,7 @@ HttpConfig::HttpConfig()
 	m_name("ftinx"),
 	m_version("0.1"),
 	m_include(""),
-	m_default_type(""),
+	m_default_type("application/octet-stream"),
 	m_root(""),
 	m_server_block(),
 	m_mime_types()
@@ -102,25 +102,6 @@ HttpConfig::get_m_mime_types() const
 /*============================================================================*/
 
 bool
-HttpConfig::checkStartHttp()
-{
-	std::vector<std::string> first_line;
-
-	first_line = ft::split(m_lines[0], " ");
-	if (first_line[0].compare("http"))
-		return (false);
-	return (true);
-}
-
-bool
-HttpConfig::checkBlankLine(std::string str)
-{
-	if (str.empty() == false)
-		return (false);
-	return (true);
-}
-
-bool
 HttpConfig::checkCurlyBracketsFaired()
 {
 	std::stack<char> stack;
@@ -144,21 +125,6 @@ HttpConfig::checkCurlyBracketsFaired()
 	return (true);
 }
 
-bool
-HttpConfig::checkCurlyBracketsDouble(std::string str)
-{
-	int cnt = 0;
-
-	for (size_t i = 0 ; i < str.size() ; i++)
-	{
-		if (str[i] == '{' || str[i] == '}')
-			cnt++;
-		if (cnt > 1)
-			return (true);
-	}
-	return (false);
-}
-
 void
 HttpConfig::parseMimeTypes()
 {
@@ -167,7 +133,7 @@ HttpConfig::parseMimeTypes()
 
 	for (std::vector<std::string>::const_iterator it = lines.begin() ; it != lines.end() ; ++it)
 	{
-		if (checkBlankLine(*it) || it->find("{") != std::string::npos || it->find("}") != std::string::npos)
+		if (ft::checkBlankStr(*it) || it->find("{") != std::string::npos || it->find("}") != std::string::npos)
 			continue ;
 		std::vector<std::string> tmp = ft::split(ft::rtrim(ft::ltrim(*it, " "), ";"), " ");
 		std::string value = tmp.front();
@@ -184,35 +150,6 @@ HttpConfig::parseMimeTypes()
 }
 
 void
-HttpConfig::setConfigFileCheckValid(std::string file_path)
-{
-	size_t idx = 0;
-	this->m_cnt_trash_lines = 0;
-	this->m_file_path = file_path;
-	this->m_config_file = ft::fileToString(m_file_path);
-	this->m_lines = ft::split(this->m_config_file, '\n');
-
-	while (idx < this->m_lines.size())
-	{
-		this->m_lines[idx] = ft::trim(this->m_lines[idx], " ");
-		if (checkCurlyBracketsDouble(this->m_lines[idx]))
-			throw BracketErrorException();
-		if (checkBlankLine(this->m_lines[idx]) ||
-			HttpConfigLocation::checkCommentLine(this->m_lines[idx]))
-		{
-			this->m_lines.erase(this->m_lines.begin() + idx);
-			this->m_cnt_trash_lines++;
-			continue ;
-		}
-		idx++;
-	}
-	if (checkStartHttp() == false)
-		throw HttpBlockDoesNotExistException();
-	if (checkCurlyBracketsFaired() == false)
-		throw BracketErrorException();
-}
-
-void
 HttpConfig::setDefaultRootPath()
 {
 	char path[1024];
@@ -222,46 +159,68 @@ HttpConfig::setDefaultRootPath()
 }
 
 void
-HttpConfig::parseConfigFile(std::string file_path)
+HttpConfig::parseConfigFile(std::string &file_path)
 {
 	size_t idx = 0;
+	std::vector<std::string> line;
+	bool http_block_exist = false;
 	bool server_block_exist = false;
+	this->m_config_file = ft::fileToString(file_path);
+	this->m_lines = ft::split(this->m_config_file, '\n');
 
 	setDefaultRootPath();
-	setConfigFileCheckValid(file_path);
+	if (HttpConfig::checkCurlyBracketsFaired() == false)
+		throw BracketPairErrorException();
 	while (idx < this->m_lines.size())
 	{
-		std::vector<std::string> line;
-		line.clear();
-		line = ft::split(m_lines[idx], ' ');
-		if (HttpConfigLocation::checkCommentLine(line.back()))
-			line.pop_back();
-		if (line.front().compare("software_name") == 0)
-			this->m_name = line.back();
-		else if (line.front().compare("software_version") == 0)
-			this->m_version = line.back();
-		else if (line.front().compare("include") == 0)
+		this->m_lines[idx] = ft::trim(this->m_lines[idx], " ");
+		if (ft::checkBlankStr(this->m_lines[idx]) || ft::checkCommentStr(this->m_lines[idx]))
 		{
-			this->m_include = line.back();
-			if (ft::checkValidFileExtension(this->m_include, "types"))
-				parseMimeTypes();
-		}
-		else if (line.front().compare("default_type") == 0)
-			this->m_default_type =  line.back();
-		else if (line.front().compare("root") == 0)
-		{
-			HttpConfigLocation::checkDirExist(line.back()); // 유효성 체크, 유연한 테스트를 위해 주석처리
-			this->m_root = line.back();
-		}
-		else if (line.front().compare("server") == 0)
-		{
-			server_block_exist = true;
-			HttpConfigServer server = HttpConfigServer();
-			this->m_server_block.push_back(server.parseServerBlock(this->m_lines, this->m_root, idx));
+			idx++;
 			continue ;
 		}
-		else if (line.front().compare("}") == 0)
-			break ;
+		if (this->m_lines[idx].find_first_of("#") != std::string::npos)
+		{
+			this->m_lines[idx].erase(this->m_lines[idx].find_first_of("#"));
+			this->m_lines[idx] = ft::rtrim(this->m_lines[idx], " ");
+		}
+		if (ft::checkCurlyBracketsDouble(this->m_lines[idx]))
+			throw BracketDoubleErrorException(m_lines[idx], idx);
+		line = ft::split(m_lines[idx], ' ');
+		if (http_block_exist == false && line.front().compare("http") == 0)
+			http_block_exist = true;
+		else
+		{
+			if (http_block_exist == false)
+				throw HttpBlockDoesNotExistException();
+			if (line.front().compare("software_name") == 0)
+				this->m_name = line.back();
+			else if (line.front().compare("software_version") == 0)
+				this->m_version = line.back();
+			else if (line.front().compare("include") == 0)
+			{
+				this->m_include = line.back();
+				if (ft::checkValidFileExtension(this->m_include, "types"))
+					parseMimeTypes();
+			}
+			else if (line.front().compare("default_type") == 0)
+				this->m_default_type =  line.back();
+			else if (line.front().compare("root") == 0)
+			{
+				if (ft::isValidDirPath(line.back()) == false)
+					throw PathErrorException(m_lines[idx], idx);
+				this->m_root = line.back();
+			}
+			else if (line.front().compare("server") == 0)
+			{
+				server_block_exist = true;
+				HttpConfigServer server = HttpConfigServer();
+				this->m_server_block.push_back(server.parseServerBlock(this->m_lines, this->m_root, idx));
+				continue ;
+			}
+			else if (line.front().compare("}") == 0)
+				break ;
+		}
 		idx++;
 	}
 	if (server_block_exist == false)
@@ -277,9 +236,9 @@ HttpConfig::printConfigFileInfo()
 
 	std::cout << dash << std::endl
 		<< "config file infomation" << std::endl
-		<< "path(relative) : " << this->m_file_path << std::endl
+		// << "path(relative) : " << this->m_file_path << std::endl
 		<< "size: " << this->m_config_file.size() << " bytes, "
-		<< this->m_lines.size() + this->m_cnt_trash_lines << " lines" << std::endl
+		// << this->m_lines.size() + this->m_cnt_trash_lines << " lines" << std::endl
 		<< dash << std::endl
 		<< std::endl;
 

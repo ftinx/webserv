@@ -785,7 +785,7 @@ Server::resetRequest(Request *req)
 	if (block.get_m_auth_basic().empty() == false) // 인증이 필요한 블럭일 때
 	{
 		std::map<std::string, std::string> headers = req->get_m_headers();
-		std::map<std::string, std::string>::const_iterator header_it = headers.find("Authorization");
+		std::map<std::string, std::string>::const_iterator header_it = headers.find("authorization");
 		if (header_it == headers.end()) // 인증 헤더가 없으면 401 에러
 		{
 			req->set_m_error_code(401);
@@ -1299,7 +1299,7 @@ Server::methodPOST(int clientfd, std::string method)
 Response
 Server::methodPUT(int clientfd, std::string method)
 {
-	Request req = this->m_requests[clientfd];
+	Request &req(this->m_requests[clientfd]);
 	std::string path = req.get_m_reset_path();
 
 	int fd;
@@ -1339,7 +1339,8 @@ Server::methodPUT(int clientfd, std::string method)
 Response
 Server::methodDELETE(int clientfd, std::string method)
 {
-	std::string path = m_requests[clientfd].get_m_reset_path();
+	Request &req(this->m_requests[clientfd]);
+	std::string path = req.get_m_reset_path();
 
 	if (ft::isValidFilePath(path))
 	{

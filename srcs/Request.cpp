@@ -687,13 +687,13 @@ Request::parseHeader(std::string line)
 		this->m_error_code = 400;
 		return (false);
 	}
-	if (key_value[0] == "Host" || key_value[0] == "host")
+	if (ft::strTolower(key_value[0]) == "host")
 		this->m_uri.set_m_host(ft::trim(key_value[1], " "));
-	else if (key_value[0] == "Port" || key_value[0] == "port")
+	else if (ft::strTolower(key_value[0]) == "port")
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
 
-	if (this->m_headers.insert(make_pair(key_value[0], ft::trim(key_value[1], " "))).second == false
-	&& (key_value[0] == "Host" || key_value[0] == "host" ))
+	if (this->m_headers.insert(make_pair(ft::strTolower(key_value[0]), ft::trim(key_value[1], " "))).second == false
+	&& ft::strTolower(key_value[0]) == "host")
 	{
 		this->m_error_code = 400;
 		return (false);

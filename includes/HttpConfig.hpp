@@ -14,10 +14,8 @@
 class HttpConfig
 {
 	private:
-		std::string m_file_path;
 		std::string m_config_file; // config file -> string
 		std::vector<std::string> m_lines; // m_config_file -> split lines(\n)
-		int m_cnt_trash_lines; // for debug
 
 		std::string m_name;
 		std::string m_version;
@@ -29,11 +27,9 @@ class HttpConfig
 
 	private:
 		/* utils */
-		bool checkStartHttp(); // m_lines의 시작이 "http" 인지 여부 확인
-		bool checkBlankLine(std::string str);
 		bool checkCurlyBracketsFaired(); // 중괄호의 갯수와 열고 닫음에 에러가 없는지 확인
-		bool checkCurlyBracketsDouble(std::string str);
-
+		void parseMimeTypes();
+		void setDefaultRootPath();
 
 	public:
 		HttpConfig();
@@ -51,15 +47,9 @@ class HttpConfig
 		std::map<std::string, std::string> get_m_mime_types() const;
 
 		/* setter */
-		void parseMimeTypes();
-		void setConfigFileCheckValid(std::string file_path);
-		void setDefaultRootPath();
-		// void setConfigFile();
-		// void setConfigLines();
-		// void checkValidHttpBlock();
 
 		/* key func. */
-		void parseConfigFile(std::string file_path);
+		void parseConfigFile(std::string &file_path);
 
 		/* debug */
 		void printConfigFileInfo();

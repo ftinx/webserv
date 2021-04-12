@@ -23,23 +23,38 @@ class LocationBlockDoesNotExistException : public std::exception
 		virtual const char* what() const throw();
 };
 
-class BracketErrorException : public std::exception
-{
-	public:
-		virtual const char* what() const throw();
-};
-
 class MimeTypeErrorException : public std::exception
 {
 	public:
 		virtual const char* what() const throw();
 };
 
-class PathErrorException : public std::exception
+class BracketPairErrorException : public std::exception
 {
 	public:
 		virtual const char* what() const throw();
 };
 
+class BracketDoubleErrorException : public std::exception
+{
+	private:
+		std::string error_msg;
+		BracketDoubleErrorException();
+	public:
+		BracketDoubleErrorException(std::string line, size_t idx);
+		virtual ~BracketDoubleErrorException() throw();
+		virtual const char* what() const throw();
+};
+
+class PathErrorException : public std::exception
+{
+	private:
+		std::string error_msg;
+		PathErrorException();
+	public:
+		PathErrorException(std::string line, size_t idx);
+		virtual ~PathErrorException() throw();
+		virtual const char* what() const throw();
+};
 
 #endif
