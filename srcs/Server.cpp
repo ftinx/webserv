@@ -1136,31 +1136,30 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	/*
 	** cgi
 	*/
-	// map["AUTH_TYPE"] = "basic"; //auth 인증 type ex=> cookie
-	// map["CONTENT_LENGTH"] = std::to_string(req.get_m_content_length());
-	// map["CONTENT_TYPE"] = getMimeType("html");
-	// map["GATEWAY_INTERFACE"] = "Cgi/1.1";
+	map["AUTH_TYPE"] = "BASIC"; //auth 인증 type ex=> cookie
+	map["CONTENT_LENGTH"] = std::to_string(req.get_m_content_length());
+	map["CONTENT_TYPE"] = getMimeType("html");
+	map["GATEWAY_INTERFACE"] = "CGI/1.1";
 	map["PATH_INFO"] = req.get_m_uri().get_m_path();					// 기본 cgi 필수요소
-	// map["PATH_TRANSLATED"] = req.get_m_path_translated();	// 기본 cgi 필수요소
-	// map["QUERY_STRING"] = req.get_m_uri().get_m_query_string();
-	// map["REMOTE_ADDR"] = req.get_m_uri().get_m_host();
-	// map["REMOTE_IDENT"] = this->m_auth_pw; //auth user name 인증이 활성화된경우에만 저장 password
-	// map["REMOTE_USER"] = this->m_auth_id; // username
+	map["PATH_TRANSLATED"] = req.get_m_path_translated();	// 기본 cgi 필수요소
+	map["QUERY_STRING"] = req.get_m_uri().get_m_query_string();
+	map["REMOTE_ADDR"] = req.get_m_uri().get_m_host();
+	map["REMOTE_IDENT"] = this->m_auth_pw; //auth user name 인증이 활성화된경우에만 저장 password
+	map["REMOTE_USER"] = this->m_auth_id; // username
 	map["REQUEST_METHOD"] = req.getMethod();					// 기본 cgi 필수요소
-	// map["REQUEST_URI"] = req.get_m_uri().get_m_path();
-	// map["SCRIPT_NAME"] = req.get_m_reset_path();
-	// map["SERVER_NAME"] = this->m_server_name.substr(11);
-	// map["SERVER_PORT"] = std::to_string(this->m_port);
+	map["REQUEST_URI"] = req.get_m_uri().get_m_path();
+	map["SCRIPT_NAME"] = req.get_m_reset_path();
+	map["SERVER_NAME"] = this->m_server_name.substr(11);
+	map["SERVER_PORT"] = std::to_string(this->m_port);
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();		// 기본 cgi 필수요소
-	// map["SERVER_SOFTWARE"] = this->m_server_name;
+	map["SERVER_SOFTWARE"] = this->m_server_name;
 
 	/* cgi */
 	map["HTTP_X_SECRET_HEADER_FOR_TEST"] = '1';				// 기본 cgi 필수요소
 
 	/* php */
-	map["REDIRECT_STATUS"] = '1';
-	// map["SCRIPT_FILENAME"] = "/Users/holee/Desktop/webserv/php-mac/bin/php-cgi";
-
+	map["REDIRECT_STATUS"] = "200";
+	map["SCRIPT_FILENAME"] = "/Users/holee/Desktop/Webserv/YoupiBanane/youpi.php";
 	return (map);
 }
 
@@ -1230,14 +1229,14 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-	// printf("\n=========== cgi argv ============\n");
-	// printf("%s\n", argv[0]);
-	// printf("\n=========== cgi envp ============\n");
-	// for (int i = 0; i<20; i++)
-	// {
-	// 	printf("%s\n", envp[i]);
-	// }
-	// printf("===================================\n\n");
+	printf("\n=========== cgi argv ============\n");
+	printf("%s\n", argv[0]);
+	printf("\n=========== cgi envp ============\n");
+	for (int i = 0; i<20; i++)
+	{
+		printf("%s\n", envp[i]);
+	}
+	printf("===================================\n\n");
 
 // /Users/holee/Desktop/webserv/YoupiBanane/youpi.php
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
