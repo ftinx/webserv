@@ -1247,6 +1247,8 @@ Server::executeCgi(Request req, Response res, int clientfd)
 			if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 				throw (Server::CgiException());
 		}
+		ft::doubleFree(argv);
+		ft::doubleFree(envp);
 		exit(EXIT_SUCCESS);
 	}
 	else  // parent process
