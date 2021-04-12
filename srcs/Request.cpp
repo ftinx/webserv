@@ -12,7 +12,9 @@ m_method(DEFAULT), m_uri(), m_headers(), m_body(""),
 m_content_length(0), m_written_bytes(0),
 m_error_code(0),m_reset_path(""), m_location_block(),
 m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
-m_content_type(""), m_referer("")
+m_content_type(""), m_referer(""), m_parse_content_length(-1),
+m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
+m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_should_peek(false),m_should_read(false), m_got_all_msg(false)
 {
 }
 
@@ -44,6 +46,15 @@ Request& Request::operator=(Request const &rhs)
 	this->m_cgi_pid = rhs.get_m_cgi_pid();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
+	this->m_parse_content_length = rhs.get_m_parse_content_length();
+	this->m_found_break_line =  rhs.get_m_found_break_line();
+	this->m_chunked =  rhs.get_m_chunked();
+	this->m_chunked_finished_read =  rhs.get_m_chunked_finished_read();
+	this->m_header_bytes =  rhs.get_m_header_bytes();
+	this->m_body_bytes =  rhs.get_m_body_bytes();
+	this->m_should_peek =  rhs.get_m_should_peek();
+	this->m_should_read =  rhs.get_m_should_read();
+	this->m_got_all_msg = rhs.get_m_got_all_msg();
 	return (*this);
 }
 
@@ -174,6 +185,66 @@ std::string
 Request::get_m_referer() const
 {
 	return (this->m_referer);
+}
+
+long int
+Request::get_m_parse_content_length() const
+{
+	return (this->m_parse_content_length);
+}
+
+bool
+Request::get_m_found_break_line() const
+{
+	return (this->m_found_break_line);
+}
+
+bool
+Request::get_m_chunked_finished_read() const
+{
+	return (this->m_chunked_finished_read);
+}
+
+bool
+Request::get_m_chunked() const
+{
+	return (this->m_chunked);
+}
+
+int
+Request::get_m_header_bytes() const
+{
+	return (this->m_header_bytes);
+}
+
+int
+Request::get_m_body_bytes() const
+{
+	return (this->m_body_bytes);
+}
+
+int
+Request::get_m_cut_bytes() const
+{
+	return (this->m_cut_bytes);
+}
+
+bool
+Request::get_m_should_peek() const
+{
+	return (this->m_should_peek);
+}
+
+bool
+Request::get_m_should_read() const
+{
+	return (this->m_should_read);
+}
+
+bool
+Request::get_m_got_all_msg() const
+{
+	return (this->m_got_all_msg);
 }
 
 /*============================================================================*/
@@ -344,23 +415,33 @@ Request::getAcceptLanguage()
 }
 
 bool
-Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::string *buff)
+Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 {
-	static int content_length = -1;
 	size_t pos;
 	std::string tmp;
 
+	/* chunked case */
 	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
 		*chunked = true;
 	else if ((pos = this->m_message.find("transfer-encoding: chunked")) != std::string::npos)
 		*chunked = true;
+	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) == std::string::npos)
+	{
+		this->m_cut_bytes = buff_bytes;
+		return (false);
+	}
 	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) != std::string::npos)
 	{
 		this->m_message = this->m_message.substr(0, pos + 5);
-		*buff = this->m_message.substr(pos + 5, std::string::npos);
+		this->m_body_bytes = this->m_message.size() - m_header_bytes;
+		this->m_cut_bytes = buff.find("0\r\n\r\n") + 5;
+		this->m_chunked_finished_read = true;
 		std::cout << "CASE 1" << std::endl;
 		return (true);
 	}
+
+	/* content-length case */
+	int content_length = 0;
 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
 	{
 		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
@@ -369,6 +450,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
 			content_length = ft::stoi(tmp);
 			m_content_length = content_length;
+			m_body_bytes = m_content_length;
 		}
 	}
 	else if ((pos = this->m_message.find("content-length:")) != std::string::npos)
@@ -379,21 +461,30 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 			tmp = ft::trim(tmp.substr(0, pos), " \r");
 			content_length = ft::stoi(tmp);
 			m_content_length = content_length;
+			m_body_bytes = m_content_length;
 		}
 	}
-	if (content_length >= 0 && content_length <= body_bytes)
+	if (*chunked == false && m_content_length >= 0 && (size_t)(m_content_length + m_header_bytes) <= m_message.size())
 	{
-		this->m_message = this->m_message.substr(0, header_bytes + content_length);
-		*buff = this->m_message.substr(header_bytes + content_length, std::string::npos);
+		/* 받아온 메세지가 content_length보다 길때 */
+		this->m_message = this->m_message.substr(0, m_header_bytes + m_content_length);
+		m_cut_bytes = m_header_bytes + m_content_length;
 		std::cout << "CASE 2" << std::endl;
 		return (true);
 	}
-	else if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos && *chunked == false)
+	else
 	{
-		std::cout << m_message << std::endl;
-		this->m_message = this->m_message.substr(0, pos);
-		*buff = this->m_message.substr(pos, std::string::npos);
+		/* 받아온 메세지가 content_length보다 짧으면 더 읽어야 */
+		return (false);
+	}
+
+
+	/* no body case */
+	if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos && *chunked == false)
+	{
 		std::cout << "CASE 3" << std::endl;
+		this->m_message = this->m_message.substr(0, pos + 4);
+		m_cut_bytes = m_header_bytes;
 		return (true);
 	}
 	return (false);
@@ -402,12 +493,7 @@ Request::isBreakCondition(bool *chunked, int body_bytes, int header_bytes, std::
 int
 Request::getMessage(int fd)
 {
-	static std::string buff("");
-	static bool found_break_line = false;
-	static bool chunked = false;
-	int ret;
-	static int header_bytes = 0;
-	static int body_bytes = 0;
+	int ret = 0;
 	char *recvline;
 
 
@@ -415,44 +501,91 @@ Request::getMessage(int fd)
 	{
 		this->m_message.reserve(RESV_SIZE);
 		this->m_body.reserve(RESV_SIZE);
-		this->m_message = buff;
-		buff = "";
 	}
 	recvline = (char*)malloc(sizeof(char) * SOCK_BUFF);
 	memset(recvline, 0, SOCK_BUFF);
-	if ((ret = read(fd, recvline, SOCK_BUFF - 1)) > 0)
+	if (m_header_bytes == 0)
 	{
-		recvline[ret] = '\0';
-		this->m_message.append(recvline);
-		if (this->m_message.find("\r\n\r\n") >= 0)
+		std::cout << "should peek true" << std::endl;
+		m_should_peek = true;
+	}
+	else
+	{
+		std::cout << "sholud peek false" << std::endl;
+	}
+	if (m_should_peek)
+	{
+		if ((ret = recv(fd, recvline, SOCK_BUFF - 1, MSG_PEEK)) > 0)
 		{
-			if (found_break_line == false)
+			std::cout << "--- PEEK " <<  std::endl;
+			recvline[ret] = '\0';
+			std::cout <<std::endl << "----- PEEK ------" << ret << "*****" << std::endl;
+			std::cout <<recvline << std::endl;
+			std::cout << "---------------" << std::endl << std::endl;
+			this->m_message.append(recvline);
+			if (m_header_bytes == 0 && this->m_message.find("\r\n\r\n") >= 0)
 			{
-				found_break_line = true;
-				body_bytes = this->m_message.size() - (this->m_message.find("\r\n\r\n") + 3);
-				header_bytes = this->m_message.find("\r\n\r\n") + 4;
+				m_header_bytes = this->m_message.find("\r\n\r\n") + 4;
 			}
-			else
-				body_bytes += ret;
+			m_got_all_msg = isBreakCondition(&m_chunked, std::strlen(recvline), recvline);
+			free(recvline);
+			m_should_read = true;
+			m_should_peek = false;
+			std::cout << "--- PEEK: finished peeking, continue reading" << std::endl;
+			return (CONTINUE);
 		}
-		if (isBreakCondition(&chunked, body_bytes, header_bytes, &buff))
+		if (ret <= 0)
 		{
-			if (this->parseMessage(chunked) == false)
+			std::cout << "--- PEEK: ret <= 0 " << std::endl;
+			free(recvline);
+			return (FAIL);
+		}
+	}
+	if (m_should_read)
+	{
+		std::cout << "--- READ "  <<  std::endl;
+		if ((ret = read(fd, recvline, m_cut_bytes)) > 0)
+		{
+			recvline[ret] = '\0';
+			// std::cout <<std::endl << "-----------" << ret << "*****" << std::endl;
+			// std::cout <<recvline << std::endl;
+			// std::cout << "-----------" << std::endl << std::endl;
+
+			/* 여기에 어떻게 추가를 해줘야 하지 않을까... 청크드가 아니더라도 잘려들어왔을 때 지나가게끔 */
+			if ((m_chunked == true && m_chunked_finished_read == false) || m_got_all_msg == false)
 			{
+				m_should_peek = true;
+				m_should_read = false;
+				std::cout << "--- READ: finished reading, continue peeking" << std::endl;
+				free(recvline);
+				return (CONTINUE);
+			}
+			/* 메세지 다 읽었을 때 파싱 시작 */
+			if (this->parseMessage(m_chunked) == false)
+			{
+				std::cout << "--- READ: Parse message fail" << std::endl;
+				std::cout << m_message << std::endl;
+				std::cout << "----------------------------" << std::endl;
 				free(recvline);
 				return (FAIL);
 			}
-			found_break_line = false;
-			chunked = false;
-			header_bytes = 0;
-			body_bytes = 0;
-			return (SUCCESS);
+			if (m_chunked == false || (m_chunked == true && m_chunked_finished_read == true))
+			{
+				m_should_peek = false;
+				m_should_read = false;
+				free(recvline);
+				std::cout << "--- READ: Parse message success" << std::endl;
+				return (SUCCESS);
+			}
+			m_should_peek = true;
+			m_should_read = false;
+			free(recvline);
+			return (CONTINUE);
 		}
-		free(recvline);
-		return (CONTINUE);
 	}
 	if (ret <= 0)
 	{
+		std::cout << "--- READ: ret <= 0 " << std::endl;
 		free(recvline);
 		return (FAIL);
 	}
@@ -579,7 +712,6 @@ Request::checkBlankLine(std::string str)
 bool
 Request::parseBody(std::string& line, int i, int size, bool chunked)
 {
-	static long int content_length = -1;
 	long int num;
 	std::string newline;
 
@@ -594,15 +726,15 @@ Request::parseBody(std::string& line, int i, int size, bool chunked)
 	/* else chunked == true */
 	newline = ft::rtrim(line, "\r");
 	num = std::strtol(newline.c_str(), 0, 16);
-	if (content_length != -1 && newline != "0")
+	if (m_parse_content_length != -1 && newline != "0")
 	{
-		this->m_body += newline.substr(0, content_length);
-		content_length = -1;
+		this->m_body += newline.substr(0, m_parse_content_length);
+		m_parse_content_length = -1;
 	}
-	else if (num != 0 && content_length == -1)
+	else if (num != 0 && m_parse_content_length == -1)
 	{
-		content_length = num;
-		m_content_length += content_length;
+		m_parse_content_length = num;
+		m_content_length += m_parse_content_length;
 	}
 	return (true);
 }

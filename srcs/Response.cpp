@@ -13,7 +13,7 @@ Response::Response()
 m_server(""), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_index_file(),
 m_root(""), m_cgi_extension(), m_cgi_server_name(""), m_cgi_client_addr(), m_cgi_port(0),
-m_cgi_path(""), m_cgi_response("")
+m_cgi_path(""), m_cgi_header(""), m_cgi_response(""), m_has_cgi_response(false), m_cgi_chunked_read_end(false), m_pos(0)
 {
 }
 
@@ -53,7 +53,13 @@ Response::operator=(Response const &rhs)
 	this->m_cgi_server_name = rhs.m_cgi_server_name;
 	this->m_cgi_port = rhs.m_cgi_port;
 	this->m_cgi_path = rhs.m_cgi_path;
+	this->m_cgi_header = rhs.m_cgi_header;
 	this->m_cgi_response = rhs.m_cgi_response;
+	this->m_has_cgi_response = rhs.m_has_cgi_response;
+	this->m_cgi_chunked_read_end = rhs.m_cgi_chunked_read_end;
+
+	/* Server */
+	this->m_pos = rhs.m_pos;
 	return (*this);
 }
 
@@ -181,9 +187,33 @@ Response::get_m_headers() const
 }
 
 std::string&
+Response::get_m_cgi_header()
+{
+	return (this->m_cgi_header);
+}
+
+std::string&
 Response::get_m_cgi_response()
 {
 	return (this->m_cgi_response);
+}
+
+bool
+Response::get_m_has_cgi_response() const
+{
+	return (this->m_has_cgi_response);
+}
+
+bool
+Response::get_m_cgi_chunked_read_end() const
+{
+	return (this->m_cgi_chunked_read_end);
+}
+
+int
+Response::get_m_pos()
+{
+	return (this->m_pos);
 }
 
 /*============================================================================*/
@@ -254,6 +284,13 @@ Response::set_m_cgi_path(std::string cgi_path)
 }
 
 void
+Response::set_m_cgi_header(std::string cgi_header)
+{
+	this->m_cgi_header = cgi_header;
+	return ;
+}
+
+void
 Response::set_m_cgi_response(std::string cgi_response)
 {
 	this->m_cgi_response = cgi_response;
@@ -267,6 +304,27 @@ Response::set_m_content_length(int content_length)
 	return;
 }
 
+void
+Response::set_m_has_cgi_response(bool has_cgi_response)
+{
+	this->m_has_cgi_response =has_cgi_response;
+	return ;
+}
+
+void
+Response::set_m_cgi_chunked_read_end(bool cgi_chunked_read_end)
+{
+	this->m_cgi_chunked_read_end =cgi_chunked_read_end;
+	return ;
+}
+
+void
+Response::set_m_pos(int pos)
+{
+	this->m_pos = pos;
+	return ;
+}
+
 /*============================================================================*/
 /******************************  Exception  ***********************************/
 /*============================================================================*/
@@ -275,10 +333,27 @@ Response::set_m_content_length(int content_length)
 /*********************************  Util  *************************************/
 /*============================================================================*/
 
+// int
+// Response::findCgiStatusCode()
+// {
+// 	size_t pos;
+// 	int ret;
+// 	char *buff = (char *)this->m_cgi_response.c_str();
+
+// 	if ((pos = this->m_cgi_response.find("Status: ")) == std::string::npos
+// 		&& (pos = this->m_cgi_response.find("status: ")) == std::string::npos)
+// 		return (0);
+// 	ret = std::stoi(std::string(&buff[pos + std::strlen("Status: ")]));
+// 	if (ret >= 100 && ret < 600)
+// 		return (ret);
+// 	return (0);
+// }
+
 int
-Response::findCgiStatusCode()
+Response::findCgiStatusCodeHeader()
 {
 	size_t pos;
+	size_t pos2;
 	int ret;
 	char *buff = (char *)this->m_cgi_response.c_str();
 
@@ -286,10 +361,20 @@ Response::findCgiStatusCode()
 		&& (pos = this->m_cgi_response.find("status: ")) == std::string::npos)
 		return (0);
 	ret = std::stoi(std::string(&buff[pos + std::strlen("Status: ")]));
+	if ((pos = this->m_cgi_response.find("\r\n")) == std::string::npos)
+		return (0);
+	if ((pos2 = this->m_cgi_response.find("\r\n\r\n")) == std::string::npos)
+		return (0);
+	this->m_cgi_header = "HTTP/1.1 " + std::to_string(ret) + " OK" + "\r\n"
+		+ "Transfer-Encoding: chunked" + "\r\n"
+		+ this->m_cgi_response.substr(pos + 2 , pos2 - pos - 2) + "\r\n\r\n";
+	this->m_cgi_response = this->m_cgi_response.substr(pos2 + 4, std::string::npos);
+	this->m_has_cgi_response = true;
 	if (ret >= 100 && ret < 600)
 		return (ret);
 	return (0);
 }
+
 
 
 Response &

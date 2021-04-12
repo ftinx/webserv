@@ -147,6 +147,18 @@ memset(void *str, int c, size_t n)
 }
 
 void
+itoa(int value, std::string& buf, int base)
+{
+	int i = 30;
+
+	buf = "";
+	if (value == 0)
+		buf = "0";
+	for(; value && i ; --i, value /= base)
+		buf = "0123456789abcdef"[value % base] + buf;
+}
+
+void
 doubleFree(char **str)
 {
 	int i(0);
