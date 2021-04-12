@@ -368,7 +368,8 @@ Response::findCgiStatusCodeHeader()
 	this->m_cgi_header = "HTTP/1.1 " + std::to_string(ret) + " OK" + "\r\n"
 		+ "Transfer-Encoding: chunked" + "\r\n"
 		+ this->m_cgi_response.substr(pos + 2 , pos2 - pos - 2) + "\r\n\r\n";
-	this->m_cgi_response = this->m_cgi_response.substr(pos2 + 4, std::string::npos);
+	this->m_cgi_response.erase(0, pos2 + 4);
+	// this->m_cgi_response = this->m_cgi_response.substr(pos2 + 4, std::string::npos);
 	this->m_has_cgi_response = true;
 	if (ret >= 100 && ret < 600)
 		return (ret);
