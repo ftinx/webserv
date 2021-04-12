@@ -1170,7 +1170,7 @@ Server::makeCgiEnvp(Request req, Response res)
 	j = 0;
 	while(i != env_map.end())
 	{
-		env[j] = ft::strdup(i->first + "=" + i->second);
+		env[j] = ft::strdup((i->first + "=" + i->second).c_str());
 		i++;
 		j++;
 	}
@@ -1247,6 +1247,8 @@ Server::executeCgi(Request req, Response res, int clientfd)
 			if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 				throw (Server::CgiException());
 		}
+		ft::doubleFree(argv);
+		ft::doubleFree(envp);
 		exit(EXIT_SUCCESS);
 	}
 	else  // parent process
