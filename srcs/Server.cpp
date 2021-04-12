@@ -35,7 +35,7 @@ char *bin2hex(const unsigned char *input, size_t len)
 /*============================================================================*/
 
 Server::Server()
-: m_fd_table()
+: m_auth_id(""), m_auth_pw(""), m_fd_table()
 {}
 
 Server::Server(Server const &other)
@@ -53,6 +53,8 @@ Server& Server::operator=(Server const &rhs)
 	this->m_content_length = rhs.m_content_length;
 	this->m_location_size = rhs.m_location_size;
 	this->m_root = rhs.m_root;
+	this->m_auth_id = rhs.m_auth_id;
+	this->m_auth_pw = rhs.m_auth_pw;
 
 	/* Parse */
 	this->m_head_location = rhs.m_head_location;
@@ -794,7 +796,8 @@ Server::resetRequest(Request *req)
 		std::vector<std::string> auth_value = ft::split((*header_it).second, ' ');
 		if (checkAuth(auth_value.back(), block.get_m_auth_basic(), block.get_m_root() + std::string("/") + block.get_m_auth_basic_user_file()) == false) // 인증 실패 시 403 에러
 		{
-			req->set_m_error_code(404);
+			std::cout << "--=-==---=-=-="<<block.get_m_root() + std::string("/") + block.get_m_auth_basic_user_file()<<std::endl;
+			req->set_m_error_code(403);
 			return ;
 		}
 	}
@@ -895,7 +898,12 @@ Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, s
 		idpwd_server.erase(idpwd_server.begin());
 		std::string pwd_server = idpwd_server.front();
 		if ((id_server.compare(id_client) == 0) && (pwd_server.compare(pwd_client) == 0))
+		{
+			std::cout << "=-=-=-=-=-=-=-=-=-"<<this->m_auth_id << this->m_auth_pw << std::endl;
+			this->m_auth_id = id_client;
+			this->m_auth_pw = pwd_client;
 			return (true);
+		}
 	}
 	return (false);
 }
@@ -1126,26 +1134,33 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	Uri uri = req.get_m_uri();
 
 	/*
-	** auth 관련 AUTH_TYPE REMOTE_USER REMOTE_IDENT
+	** cgi
 	*/
-	map["REQUEST_METHOD"] = req.getMethod();
-	map["SERVER_PROTOCOL"] = req.get_m_http_version();
-	map["PATH_INFO"] = req.get_m_path_info();
-	map["PATH_TRANSLATED"] = req.get_m_path_translated();
-	map["HTTP_X_SECRET_HEADER_FOR_TEST"] = '1';
-	// map["SCRIPT_NAME"] = req.get_m_script_name();
+	map["AUTH_TYPE"] = "basic"; //auth 인증 type ex=> cookie
+	map["CONTENT_LENGTH"] = std::to_string(req.get_m_content_length());
+	map["CONTENT_TYPE"] = getMimeType("html");
+	map["GATEWAY_INTERFACE"] = "Cgi/1.1";
+	map["PATH_INFO"] = req.get_m_uri().get_m_path();					// 기본 cgi 필수요소
+	map["PATH_TRANSLATED"] = req.get_m_path_translated();	// 기본 cgi 필수요소
+	map["QUERY_STRING"] = req.get_m_uri().get_m_query_string();
+	map["REMOTE_ADDR"] = req.get_m_uri().get_m_host();
+	map["REMOTE_IDENT"] = this->m_auth_pw; //auth user name 인증이 활성화된경우에만 저장 password
+	map["REMOTE_USER"] = this->m_auth_id; // username
+	map["REQUEST_METHOD"] = req.getMethod();					// 기본 cgi 필수요소
+	map["REQUEST_URI"] = req.get_m_uri().get_m_path();
+	map["SCRIPT_NAME"] = req.get_m_reset_path();
+	map["SERVER_NAME"] = this->m_server_name.substr(11);
+	map["SERVER_PORT"] = std::to_string(this->m_port);
+	map["SERVER_PROTOCOL"] = req.get_m_http_version();		// 기본 cgi 필수요소
+	map["SERVER_SOFTWARE"] = this->m_server_name;
 
-	// map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
-	// map["SERVER_NAME"] = res.get_m_cgi_server_name();
-	// map["GATEWAY_INTERFACE"] = "Cgi/1.1";
-	// map["SERVER_PORT"] = std::to_string(res.get_m_cgi_port());
+	/* cgi */
+	map["HTTP_X_SECRET_HEADER_FOR_TEST"] = '1';				// 기본 cgi 필수요소
 
-	// map["REDIRECT_STATUS"] = "";
-	// map["SCRIPT_FILENAME"] = "";
-	// map["QUERY_STRING"] = uri.get_m_query_string();
-	// map["REMOTE_ADDR"] = ft::iNetNtoA(res.get_m_cgi_client_addr());
-	// map["CONTENT_TYPE"] = req.getContentType();
-	// map["CONTENT_LENGTH"] = req.getContentLength();
+	/* php */
+	// map["REDIRECT_STATUS"] = "1";
+	// map["SCRIPT_FILENAME"] = "/Users/holee/Desktop/webserv/php-mac/bin/php-cgi";
+
 	return (map);
 }
 
@@ -1215,14 +1230,14 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	fcntl(parent_read, F_SETFL, O_NONBLOCK);
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
-	// printf("\n=========== cgi argv ============\n");
-	// printf("%s\n", argv[0]);
-	// printf("\n=========== cgi envp ============\n");
-	// for (int i = 0; i<3; i++)
-	// {
-	// 	printf("%s\n", envp[i]);
-	// }
-	// printf("===================================\n\n");
+	printf("\n=========== cgi argv ============\n");
+	printf("%s\n", argv[0]);
+	printf("\n=========== cgi envp ============\n");
+	for (int i = 0; i<17; i++)
+	{
+		printf("%s\n", envp[i]);
+	}
+	printf("===================================\n\n");
 
 	std::cout << "Execute Cgi === "<< req.get_m_path_translated().c_str() << std::endl;
 	pid = fork();
