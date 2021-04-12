@@ -477,9 +477,9 @@ Server::writeProcess()
 				int content_length = request.get_m_content_length();
 				int written_bytes = request.get_m_written_bytes();
 				int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
-				int ret;
+				int ret = 0;
 
-				if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				if (buffsize > 0 && (ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
 				{
 					written_bytes += ret;
 					request.set_m_written_bytes(written_bytes);
@@ -503,15 +503,16 @@ Server::writeProcess()
 					std::cout << "K" << ENOSPC << std::endl;
 					std::cout << "L" << EPERM  << std::endl;
 					std::cout << "M" << EPIPE << std::endl;
-					return (false);
 				}
-				if (ret == 0)
+				if (ret <= 0)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					return (true);
+					if (ret == 0)
+						return (true);
+					return (false);
 				}
 			}
 			else if(fd_iter->type == C_SOCKET)

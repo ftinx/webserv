@@ -519,9 +519,9 @@ Request::getMessage(int fd)
 		{
 			std::cout << "--- PEEK " <<  std::endl;
 			recvline[ret] = '\0';
-			std::cout <<std::endl << "----- PEEK ------" << ret << "*****" << std::endl;
-			std::cout <<recvline << std::endl;
-			std::cout << "---------------" << std::endl << std::endl;
+			// std::cout <<std::endl << "----- PEEK ------" << ret << "*****" << std::endl;
+			// std::cout <<recvline << std::endl;
+			// std::cout << "---------------" << std::endl << std::endl;
 			this->m_message.append(recvline);
 			if (m_header_bytes == 0 && this->m_message.find("\r\n\r\n") >= 0)
 			{
@@ -531,7 +531,7 @@ Request::getMessage(int fd)
 			free(recvline);
 			m_should_read = true;
 			m_should_peek = false;
-			std::cout << "--- PEEK: finished peeking, continue reading" << std::endl;
+			// std::cout << "--- PEEK: finished peeking, continue reading" << std::endl;
 			return (CONTINUE);
 		}
 		if (ret <= 0)
@@ -556,7 +556,7 @@ Request::getMessage(int fd)
 			{
 				m_should_peek = true;
 				m_should_read = false;
-				std::cout << "--- READ: finished reading, continue peeking" << std::endl;
+				// std::cout << "--- READ: finished reading, continue peeking" << std::endl;
 				free(recvline);
 				return (CONTINUE);
 			}
