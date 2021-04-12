@@ -62,6 +62,7 @@ namespace ft
 	void putnbr_fd(int n, int fd);
 	char* strchr(const char *str, int c);
 	void* memset(void *str, int c, size_t n);
+	void itoa(int value, std::string& buf, int base);
 	void doubleFree(char** str);
 
 	/* LIBFT C++ */
