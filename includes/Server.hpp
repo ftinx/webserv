@@ -34,6 +34,8 @@ class Server
 		size_t m_location_size;
 		std::string m_root;
 		std::string m_default_type;
+		std::string m_auth_id;
+		std::string m_auth_pw;
 
 		/* Parse */
 		std::vector<HttpConfigLocation> m_head_location;
