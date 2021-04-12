@@ -1170,7 +1170,7 @@ Server::makeCgiEnvp(Request req, Response res)
 	j = 0;
 	while(i != env_map.end())
 	{
-		env[j] = ft::strdup((i->first + "=" + i->second).c_str());
+		env[j] = ft::strdup(i->first + "=" + i->second);
 		i++;
 		j++;
 	}
