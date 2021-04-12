@@ -1051,7 +1051,7 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	Uri uri = req.get_m_uri();
 
 	/*
-	** auth 관련 AUTH_TYPE REMOTE_USER REMOTE_IDENT
+	** cgi
 	*/
 	map["AUTH_TYPE"] = "basic"; //auth 인증 type ex=> cookie
 	map["CONTENT_LENGTH"] = std::to_string(req.get_m_content_length());
@@ -1071,7 +1071,7 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();		// 기본 cgi 필수요소
 	map["SERVER_SOFTWARE"] = this->m_server_name;
 
-	/* */
+	/* cgi */
 	map["HTTP_X_SECRET_HEADER_FOR_TEST"] = '1';				// 기본 cgi 필수요소
 
 	/* php */
