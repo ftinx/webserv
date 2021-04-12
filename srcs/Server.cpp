@@ -1054,22 +1054,22 @@ Server::makeCgiEnvpMap(Request req, Response res)
 	** auth 관련 AUTH_TYPE REMOTE_USER REMOTE_IDENT
 	*/
 	map["AUTH_TYPE"] = "basic"; //auth 인증 type ex=> cookie
-	map["CONTENT_LENGTH"] = "3";
-	map["CONTENT_TYPE"] = "text/html";
+	map["CONTENT_LENGTH"] = std::to_string(req.get_m_content_length());
+	map["CONTENT_TYPE"] = getMimeType("html");
 	map["GATEWAY_INTERFACE"] = "Cgi/1.1";
 	map["PATH_INFO"] = req.get_m_uri().get_m_path();					// 기본 cgi 필수요소
 	map["PATH_TRANSLATED"] = req.get_m_path_translated();	// 기본 cgi 필수요소
 	map["QUERY_STRING"] = req.get_m_uri().get_m_query_string();
-	map["REMOTE_ADDR"] = "127.0.0.1";
+	map["REMOTE_ADDR"] = req.get_m_uri().get_m_host();
 	map["REMOTE_IDENT"] = this->m_auth_pw; //auth user name 인증이 활성화된경우에만 저장 password
 	map["REMOTE_USER"] = this->m_auth_id; // username
 	map["REQUEST_METHOD"] = req.getMethod();					// 기본 cgi 필수요소
 	map["REQUEST_URI"] = req.get_m_uri().get_m_path();
-	map["SCRIPT_NAME"] = "/Users/holee/Desktop/webserv/YoupiBanane/youpi.bla";
-	map["SERVER_NAME"] = this->m_server_name;
+	map["SCRIPT_NAME"] = req.get_m_reset_path();
+	map["SERVER_NAME"] = this->m_server_name.substr(11);
 	map["SERVER_PORT"] = std::to_string(this->m_port);
 	map["SERVER_PROTOCOL"] = req.get_m_http_version();		// 기본 cgi 필수요소
-	map["SERVER_SOFTWARE"] = std::string("ftinx/1.0");
+	map["SERVER_SOFTWARE"] = this->m_server_name;
 
 	/* */
 	map["HTTP_X_SECRET_HEADER_FOR_TEST"] = '1';				// 기본 cgi 필수요소
