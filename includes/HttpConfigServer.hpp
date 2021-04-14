@@ -13,6 +13,7 @@ class HttpConfigServer
 		std::string m_default_error_page;
 		int m_content_length;
 		std::vector<HttpConfigLocation> m_location_block;
+		std::vector<std::string> m_redirect;
 
 	public:
 		HttpConfigServer();
@@ -26,6 +27,7 @@ class HttpConfigServer
 		std::string get_m_default_error_page() const;
 		int get_m_content_length() const;
 		const std::vector<HttpConfigLocation> get_m_location_block() const;
+		std::vector<std::string> get_m_redirect() const;
 
 		/* setter */
 		void set_m_root(std::string m_root);
