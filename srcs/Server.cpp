@@ -317,6 +317,7 @@ void
 Server::handleRequest(int clientfd)
 {
 	Method method = this->m_requests[clientfd].get_m_method();
+	ft::console_log("HANDLE REQUEST | method : " + std::to_string(method));
 
 	this->m_responses[clientfd] = Response();
 	if (this->m_requests[clientfd].get_m_error_code())
@@ -327,7 +328,6 @@ Server::handleRequest(int clientfd)
 		switch(method)
 		{
 		case GET:
-			ft::console_log("HANDLE REQUEST GET!");
 			this->m_responses[clientfd] = this->methodGET(clientfd);
 			break;
 		case HEAD:
@@ -361,6 +361,7 @@ Server::handleRequest(int clientfd)
 	}
 	return ;
 }
+
 
 bool
 Server::readProcess()
@@ -433,6 +434,16 @@ Server::readProcess()
 						executeCgi(request, response, fd_iter->sockfd);
 					}
 					ft::console_log("RESET REQUEST | reset path: " + request.get_m_reset_path());
+					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
+					{
+						handleRequest(fd_iter->sockfd);
+						if (this->m_responses[sockfd].get_m_status_code() != 0)
+						{
+							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
+							std::cout << "SET WRITE FD :D" << std::endl;
+							ft::fdSet(sockfd, m_write_fds);
+						}
+					}
 				}
 				else if (header_status == FAIL)
 				{

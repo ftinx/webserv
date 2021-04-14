@@ -734,6 +734,7 @@ Request::parseRequestLine(std::string request_line)
 	this->m_method = ft::getMethodType(pieces[0]);
 	this->m_uri.set_m_uri(pieces[1]);
 	this->m_http_version = pieces[2];
+	ft::console_log("PARSE REQUEST LINE | method: "+ std::to_string(m_method));
 
 	if (this->m_uri.get_m_uri().size() > 8000)
 	{
