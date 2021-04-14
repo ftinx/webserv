@@ -561,7 +561,6 @@ Request::getHeader(int fd)
 				throw (HeaderIsTooLargeException::exception());
 			}
 			m_should_read = true;
-			std::cout << "adsadsadsadsads" << this->get_m_cut_bytes() << std::endl;
 		}
 		/* ret <= 0 아직 고려 안함 */
 	}
@@ -574,12 +573,14 @@ Request::getHeader(int fd)
 			m_should_read = false;
 			parseRawHeader();
 			free(buff);
+			ft::console_log("GETHEADER | return SUCCESS");
 			return (SUCCESS);
 		}
 		else if (ret <= 0)
 		{
 			free(buff);
 			m_should_read = false;
+			ft::console_log("GETHEADER | return FAIL");
 			return (FAIL);
 		}
 		else if (ret < m_cut_bytes) // 헤더 덜 받아서 또 read 해야
@@ -589,6 +590,7 @@ Request::getHeader(int fd)
 		}
 	}
 	free(buff);
+	ft::console_log("GETHEADER | return CONTINUE");
 	return (CONTINUE); // 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때
 }
 
@@ -763,7 +765,6 @@ Request::parseHeader(std::string line)
 
 	size_t pos = line.find_first_of(":");
 
-	std::cout <<"...." <<  line <<std::endl;
 	if (pos == std::string::npos)
 	{
 		this->m_error_code = 400;
@@ -824,10 +825,9 @@ Request::parseRawHeader()
 			return(false);
 		}
 	}
-	ft::console_log("PATH: " + m_uri.get_m_path());
-	ft::console_log("VERSION: " + m_http_version);
-	ft::console_log("RAW HEADER: " + m_raw_header);
-	printHeaders();
+	ft::console_log("PARSE HEADER | path: " + m_uri.get_m_path());
+	ft::console_log("PARSE HEADER | version: " + m_http_version);
+	ft::console_log("PARSE HEADER | raw header: \n" + m_raw_header);
 	return (false);
 }
 

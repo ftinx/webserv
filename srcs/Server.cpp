@@ -327,6 +327,7 @@ Server::handleRequest(int clientfd)
 		switch(method)
 		{
 		case GET:
+			ft::console_log("HANDLE REQUEST GET!");
 			this->m_responses[clientfd] = this->methodGET(clientfd);
 			break;
 		case HEAD:
@@ -431,8 +432,7 @@ Server::readProcess()
 					{
 						executeCgi(request, response, fd_iter->sockfd);
 					}
-					// ft::console_log("REsET: " + request.get_m_reset_path());
-					// ft::console_log("content length: " + std::to_string(request.get_m_content_length()));
+					ft::console_log("RESET REQUEST | reset path: " + request.get_m_reset_path());
 				}
 				else if (header_status == FAIL)
 				{
@@ -461,6 +461,16 @@ Server::readProcess()
 						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), fd_iter->sockfd));
 						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), fd_iter->sockfd));
 						*m_maxfd = findMaxFd();
+					}
+					else if (body_status == SUCCESS)
+					{
+						handleRequest(fd_iter->sockfd);
+						if (this->m_responses[sockfd].get_m_status_code() != 0)
+						{
+							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
+							std::cout << "SET WRITE FD :D" << std::endl;
+							ft::fdSet(sockfd, m_write_fds);
+						}
 					}
 					ft::console_log("body " + request.get_m_body());
 					ft::console_log("m_check_cgi " + std::to_string(request.get_m_check_cgi()));
