@@ -43,6 +43,8 @@ class Request
 		std::string m_path_info;
 		std::string m_script_name;
 		pid_t m_cgi_pid;
+		int m_cgi_stdin;
+		int m_cgi_stdout;
 
 		/* HTTP Header */
 		std::string m_content_type;
@@ -86,6 +88,8 @@ class Request
 		std::string get_m_path_info() const;
 		std::string get_m_script_name() const;
 		pid_t get_m_cgi_pid() const;
+		int get_m_cgi_stdin() const;
+		int get_m_cgi_stdout() const;
 		std::string get_m_content_type() const;
 		std::string get_m_referer() const;
 		long int get_m_parse_content_length() const;
@@ -106,6 +110,8 @@ class Request
 		void set_m_check_cgi(bool);
 		void set_m_method(Method);
 		void set_m_cgi_pid(pid_t);
+		void set_m_cgi_stdin(int);
+		void set_m_cgi_stdout(int);
 		void set_m_body(std::string);
 		void set_m_written_bytes(int);
 		void set_m_error_code(int);

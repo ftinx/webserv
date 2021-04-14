@@ -11,7 +11,8 @@ Request::Request()
 m_method(DEFAULT), m_uri(), m_raw_header(""), m_headers(), m_body(""),
 m_content_length(-1), m_written_bytes(0),
 m_error_code(0),m_reset_path(""), m_location_block(),
-m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
+m_path_translated(""), m_path_info(""), m_script_name(""),
+m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
 m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_chunked_bytes(0), m_should_peek(false),m_should_read(false), m_got_all_msg(false)
@@ -45,6 +46,8 @@ Request& Request::operator=(Request const &rhs)
 	this->m_path_info = rhs.get_m_path_info();
 	this->m_script_name = rhs.get_m_script_name();
 	this->m_cgi_pid = rhs.get_m_cgi_pid();
+	this->m_cgi_stdin = rhs.get_m_cgi_stdin();
+	this->m_cgi_stdout = rhs.get_m_cgi_stdout();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
 	this->m_parse_content_length = rhs.get_m_parse_content_length();
@@ -181,6 +184,18 @@ pid_t
 Request::get_m_cgi_pid() const
 {
 	return (this->m_cgi_pid);
+}
+
+int
+Request::get_m_cgi_stdin() const
+{
+	return (this->m_cgi_stdin);
+}
+
+int
+Request::get_m_cgi_stdout() const
+{
+	return (this->m_cgi_stdout);
 }
 
 std::string
@@ -323,6 +338,18 @@ void
 Request::set_m_cgi_pid(pid_t cgi_pid)
 {
 	this->m_cgi_pid = cgi_pid;
+}
+
+void
+Request::set_m_cgi_stdin(int cgi_stdin)
+{
+	this->m_cgi_stdin = cgi_stdin;
+}
+
+void
+Request::set_m_cgi_stdout(int cgi_stdout)
+{
+	this->m_cgi_stdout = cgi_stdout;
 }
 
 void

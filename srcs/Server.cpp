@@ -427,8 +427,10 @@ Server::readProcess()
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
-					// if (request.get_m_check_cgi() == true)
-					// 	executeCgi();
+					if (request.get_m_check_cgi() == true)
+					{
+						executeCgi(request, response, fd_iter->sockfd);
+					}
 					// ft::console_log("REsET: " + request.get_m_reset_path());
 					// ft::console_log("content length: " + std::to_string(request.get_m_content_length()));
 				}
@@ -451,6 +453,14 @@ Server::readProcess()
 						m_fd_table.erase(fd_iter);
 						*m_maxfd = findMaxFd();
 						return (false);
+					}
+					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
+					{
+						ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
+						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
+						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), fd_iter->sockfd));
+						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), fd_iter->sockfd));
+						*m_maxfd = findMaxFd();
 					}
 					ft::console_log("body " + request.get_m_body());
 					ft::console_log("m_check_cgi " + std::to_string(request.get_m_check_cgi()));
@@ -1196,7 +1206,7 @@ Server::makeCgiArgv(Request req)
 }
 
 Response
-Server::executeCgi(Request req, Response res, int clientfd)
+Server::executeCgi(Request &req, Response &res, int clientfd)
 {
 	/* Setting execve parameters */
 	char** envp = Server::makeCgiEnvp(req, res);
@@ -1260,14 +1270,16 @@ Server::executeCgi(Request req, Response res, int clientfd)
 	{
 		close(cgi_stdout);
 		close(cgi_stdin);
+		req.set_m_cgi_stdin(parent_read);
+		req.set_m_cgi_stdout(parent_write);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
-		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
-		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
-		ft::fdSet(parent_write, m_write_fds);
-		ft::fdSet(parent_read, m_main_fds);
-		*m_maxfd = findMaxFd();
-		response.get_m_cgi_response().reserve(RESV_SIZE);
+		// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
+		// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
+		// ft::fdSet(parent_write, m_write_fds);
+		// ft::fdSet(parent_read, m_main_fds);
+		// *m_maxfd = findMaxFd();
+		// response.get_m_cgi_response().reserve(RESV_SIZE);
 	}
 	(void)clientfd;
 	return (response);
