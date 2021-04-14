@@ -1075,6 +1075,12 @@ Server::methodGET(int clientfd, std::string method)
 	std::string final_path;
 	std::string extension;
 
+	if (location_block.get_m_return().empty() == false) // location return 처리 (301)
+	{
+		int status_code = std::stoi(location_block.get_m_return().front());
+		std::string path = location_block.get_m_return().back();
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType(""), req.getReferer(), 0, 0, 0, "", "", path));
+	}
 	if (ft::isValidDirPath(abs_path)) // 폴더라면
 	{
 		if (abs_path.find("/", abs_path.length() - 1) == std::string::npos)

@@ -18,6 +18,7 @@ class HttpConfigLocation
 		std::vector<std::string> m_auth_basic;
 		std::string m_auth_basic_user_file;
 		int m_limit_body_size;
+		std::vector<std::string> m_return;
 
 	public:
 		HttpConfigLocation();
@@ -36,6 +37,7 @@ class HttpConfigLocation
 		std::vector<std::string> get_m_auth_basic() const;
 		std::string get_m_auth_basic_user_file() const;
 		int get_m_limit_body_size() const;
+		std::vector<std::string> get_m_return() const;
 
 		/* setter */
 		void set_m_root(std::string root);
