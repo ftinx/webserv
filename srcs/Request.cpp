@@ -15,7 +15,8 @@ m_path_translated(""), m_path_info(""), m_script_name(""),
 m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
-m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_chunked_bytes(0), m_should_peek(false),m_should_read(false), m_got_all_msg(false)
+m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_chunked_bytes(0),
+m_should_peek(false),m_should_read(false), m_got_all_msg(false)
 {
 }
 
@@ -56,6 +57,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_chunked_finished_read =  rhs.get_m_chunked_finished_read();
 	this->m_header_bytes =  rhs.get_m_header_bytes();
 	this->m_body_bytes =  rhs.get_m_body_bytes();
+	this->m_cut_bytes = rhs.get_m_cut_bytes();
 	this->m_chunked_bytes =  rhs.get_m_chunked_bytes();
 	this->m_should_peek =  rhs.get_m_should_peek();
 	this->m_should_read =  rhs.get_m_should_read();
@@ -223,15 +225,15 @@ Request::get_m_found_break_line() const
 }
 
 bool
-Request::get_m_chunked_finished_read() const
-{
-	return (this->m_chunked_finished_read);
-}
-
-bool
 Request::get_m_chunked() const
 {
 	return (this->m_chunked);
+}
+
+bool
+Request::get_m_chunked_finished_read() const
+{
+	return (this->m_chunked_finished_read);
 }
 
 int

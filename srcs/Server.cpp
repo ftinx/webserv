@@ -316,8 +316,11 @@ Server::acceptSocket()
 void
 Server::handleRequest(int clientfd)
 {
-	Method method = this->m_requests[clientfd].get_m_method();
+	Request &request = this->m_requests[clientfd];
+	Method method = request.get_m_method();
+	ft::console_log("HANDLE REQUEST | fd: "+ std::to_string(clientfd));
 	ft::console_log("HANDLE REQUEST | method : " + std::to_string(method));
+	ft::console_log("HANDLE REQUEST | uri: "+ this->m_requests[clientfd].get_m_reset_path());
 
 	this->m_responses[clientfd] = Response();
 	if (this->m_requests[clientfd].get_m_error_code())
@@ -373,8 +376,8 @@ Server::readProcess()
 		int sockfd = fd_iter->sockfd;
 		if (ft::fdIsSet(sockfd, this->m_read_fds))
 		{
-			Request &request = this->m_requests[fd_iter->clientfd];
-			Response &response = this->m_responses[fd_iter->clientfd];
+			Request &request = this->m_requests[sockfd];
+			Response &response = this->m_responses[sockfd];
 			int ret;
 			int status_code = 0;
 
@@ -431,12 +434,14 @@ Server::readProcess()
 					resetRequest(&request);
 					if (request.get_m_check_cgi() == true)
 					{
-						executeCgi(request, response, fd_iter->sockfd);
+						executeCgi(request, response, sockfd);
 					}
-					ft::console_log("RESET REQUEST | reset path: " + request.get_m_reset_path());
 					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
-						handleRequest(fd_iter->sockfd);
+						ft::console_log("ONLY HEADER | method: "+ std::to_string(request.get_m_method()));
+						ft::console_log("ONLY HEADER | uri: "+ request.get_m_reset_path());
+						ft::console_log("ONLY HEADER | fd: "+ std::to_string(sockfd));
+						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
 							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
@@ -447,8 +452,9 @@ Server::readProcess()
 				}
 				else if (header_status == FAIL)
 				{
-					close(fd_iter->sockfd);
-					ft::fdClr(fd_iter->sockfd, m_main_fds);
+					ft::console_log("GET HEADER | FAIL");
+					close(sockfd);
+					ft::fdClr(sockfd, m_main_fds);
 					m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					return (false);
@@ -459,8 +465,9 @@ Server::readProcess()
 					body_status = request.getBody(sockfd);
 					if (body_status == FAIL)
 					{
-						close(fd_iter->sockfd);
-						ft::fdClr(fd_iter->sockfd, m_main_fds);
+						ft::console_log("GET BODY | FAIL");
+						close(sockfd);
+						ft::fdClr(sockfd, m_main_fds);
 						m_fd_table.erase(fd_iter);
 						*m_maxfd = findMaxFd();
 						return (false);
@@ -469,13 +476,13 @@ Server::readProcess()
 					{
 						ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
-						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), fd_iter->sockfd));
-						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), fd_iter->sockfd));
+						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
+						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
 						*m_maxfd = findMaxFd();
 					}
 					else if (body_status == SUCCESS)
 					{
-						handleRequest(fd_iter->sockfd);
+						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
 							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
@@ -820,6 +827,8 @@ Server::resetRequest(Request *req)
 		return ;
 	}
 	req->set_m_check_cgi(ft::checkValidFileExtension(path_out, block.get_m_cgi()));
+
+
 	/* 인증파트 */
 	if (block.get_m_auth_basic().empty() == false) // 인증이 필요한 블럭일 때
 	{

@@ -78,9 +78,9 @@ class Request
 		Uri get_m_uri() const;
 		std::string get_m_raw_header() const;
 		std::map<std::string, std::string> get_m_headers() const ;
+		std::string get_m_body() const;
 		int get_m_content_length() const;
 		int get_m_written_bytes() const;
-		std::string get_m_body() const;
 		int	get_m_error_code() const;
 		std::string get_m_reset_path() const;
 		HttpConfigLocation get_m_location_block() const;
