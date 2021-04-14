@@ -423,9 +423,12 @@ Server::readProcess()
 			else if(fd_iter->type == C_SOCKET)
 			{
 				int header_status = request.getHeader(sockfd);
+				int body_status = -1;
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
+					// if (request.get_m_check_cgi() == true)
+					// 	executeCgi();
 					// ft::console_log("REsET: " + request.get_m_reset_path());
 					// ft::console_log("content length: " + std::to_string(request.get_m_content_length()));
 				}
@@ -439,7 +442,18 @@ Server::readProcess()
 				}
 				else if (header_status == CONTINUE && request.get_m_raw_header() != "") //body 읽어야 함
 				{
-					ft::console_log("header " + std::to_string(request.get_m_content_length()));
+					ft::console_log("content length " + std::to_string(request.get_m_content_length()));
+					body_status = request.getBody(sockfd);
+					if (body_status == FAIL)
+					{
+						close(fd_iter->sockfd);
+						ft::fdClr(fd_iter->sockfd, m_main_fds);
+						m_fd_table.erase(fd_iter);
+						*m_maxfd = findMaxFd();
+						return (false);
+					}
+					ft::console_log("body " + request.get_m_body());
+					ft::console_log("m_check_cgi " + std::to_string(request.get_m_check_cgi()));
 				}
 			}
 			return (false);
@@ -774,6 +788,7 @@ Server::resetRequest(Request *req)
 		req->set_m_error_code(413);
 		return ;
 	}
+	req->set_m_check_cgi(ft::checkValidFileExtension(path_out, block.get_m_cgi()));
 	/* 인증파트 */
 	if (block.get_m_auth_basic().empty() == false) // 인증이 필요한 블럭일 때
 	{

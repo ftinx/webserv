@@ -193,7 +193,7 @@ ServerManager::runServers()
 					if (max_server_socket < this->m_server[i]->get_m_server_socket())
 						max_server_socket = this->m_server[i]->get_m_server_socket();
 				}
-				for (int i=max_server_socket; i<=this->m_maxfd; i++)
+				for (int i=max_server_socket + 1; i<=this->m_maxfd; i++)
 				{
 					if (ft::fdIsSet(i, &this->m_main_fds) || ft::fdIsSet(i, &this->m_write_fds))
 					{

@@ -56,6 +56,7 @@ class Request
 		int m_header_bytes;
 		int m_body_bytes;
 		int m_cut_bytes;
+		int m_chunked_bytes;
 		bool m_should_peek;
 		bool m_should_read;
 		bool m_got_all_msg;
@@ -94,6 +95,7 @@ class Request
 		int get_m_header_bytes() const;
 		int get_m_body_bytes() const;
 		int get_m_cut_bytes() const;
+		int get_m_chunked_bytes() const;
 		bool get_m_should_peek() const;
 		bool get_m_should_read() const;
 		bool get_m_got_all_msg() const;
@@ -118,6 +120,7 @@ class Request
 		std::string getReferer();
 		bool isBreakCondition(bool*, int, std::string);
 		int getHeader(int);
+		int getBody(int);
 		bool parseMessage(bool);
 		bool parseRequestLine(std::string);
 		bool checkMethod();

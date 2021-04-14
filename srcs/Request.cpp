@@ -9,12 +9,12 @@
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_raw_header(""), m_headers(), m_body(""),
-m_content_length(0), m_written_bytes(0),
+m_content_length(-1), m_written_bytes(0),
 m_error_code(0),m_reset_path(""), m_location_block(),
 m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
-m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_should_peek(false),m_should_read(false), m_got_all_msg(false)
+m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_chunked_bytes(0), m_should_peek(false),m_should_read(false), m_got_all_msg(false)
 {
 }
 
@@ -53,6 +53,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_chunked_finished_read =  rhs.get_m_chunked_finished_read();
 	this->m_header_bytes =  rhs.get_m_header_bytes();
 	this->m_body_bytes =  rhs.get_m_body_bytes();
+	this->m_chunked_bytes =  rhs.get_m_chunked_bytes();
 	this->m_should_peek =  rhs.get_m_should_peek();
 	this->m_should_read =  rhs.get_m_should_read();
 	this->m_got_all_msg = rhs.get_m_got_all_msg();
@@ -234,6 +235,12 @@ int
 Request::get_m_cut_bytes() const
 {
 	return (this->m_cut_bytes);
+}
+
+int
+Request::get_m_chunked_bytes() const
+{
+	return (this->m_chunked_bytes);
 }
 
 bool
@@ -558,6 +565,103 @@ Request::getHeader(int fd)
 	return (CONTINUE); // 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때
 }
 
+int
+Request::getBody(int fd)
+{
+	int ret;
+	char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
+
+	ft::memset(buff, 0, SOCK_BUFF);
+	if (m_content_length >= 0)
+	{
+		ret = read(fd, buff, m_content_length);
+		if (ret == m_content_length)
+		{
+			m_body.append(buff);
+			free(buff);
+			return (SUCCESS);
+		}
+		else if (ret <= 0 && m_content_length != 0)
+		{
+			free(buff);
+			return (FAIL);
+		}
+		else // body 읽어올 게 더 남았을 때
+		{
+			m_body.append(buff);
+			m_content_length -= ret;
+			free(buff);
+			return (CONTINUE);
+		}
+	}
+	else if (m_chunked == true)
+	{
+		ft::console_log(m_raw_header);
+		if (m_should_read == false && m_raw_header != "") // 얼마나 읽을지 훔쳐보기
+		{
+			size_t pos;
+			ret = recv(fd, buff, 100, MSG_PEEK);
+
+			if (ret <= 0)
+			{
+				free(buff);
+				return (FAIL);
+			}
+			std::string str(buff);
+			pos = str.find("\r\n");
+			long num;
+			char *temp;
+			std::string numbuf = str.substr(0, pos);
+			num = std::strtol(numbuf.c_str(), &temp, 16);
+			if (*temp) // 숫자 아닌 게 들어옴
+			{
+				// throw
+				free(buff);
+				return (FAIL);
+			}
+			m_cut_bytes = num + numbuf.size() + 4;
+			ft::console_log("m_cut_bytes: "+ std::to_string(m_cut_bytes));
+			ft::console_log("m_chunked_bytes: "+ std::to_string(num));
+			m_chunked_bytes = num;
+			m_should_read = true;
+			free(buff);
+			return (CONTINUE);
+		}
+		else if (m_should_read == true &&  m_raw_header != "")// 위에서 설정한 만큼 읽어오기
+		{
+			ret = read(fd, buff, m_cut_bytes);
+			if (ret == m_cut_bytes)
+			{
+				m_should_read = false;
+				buff[m_cut_bytes - 2] ='\0';
+				m_body += std::string(&(buff[m_cut_bytes - m_chunked_bytes - 2]));
+				free(buff);
+				ft::console_log("CHHNKED BODY(success): "+ m_body);
+				return (SUCCESS);
+			}
+			else if (ret > 0)
+			{
+				buff[m_cut_bytes - 2] ='\0';
+				m_body += std::string(&(buff[m_cut_bytes - m_chunked_bytes - 2]));
+				m_should_read = true;
+				m_cut_bytes -= ret;
+				free(buff);
+				ft::console_log("CHHNKED BODY(continue): "+ m_body);
+				return (CONTINUE);
+			}
+			else if (ret <= 0)
+			{
+				free(buff);
+				return (FAIL);
+			}
+			return (FAIL);
+		}
+	}
+	// content length 없고, chunked도 아닌 오로지 헤더만 들어온 요청
+	ft::console_log("only header");
+	return (CONTINUE);
+}
+
 bool
 Request::parseMessage(bool chunked)
 {
@@ -693,11 +797,9 @@ Request::parseRawHeader()
 			return(false);
 		}
 	}
-	ft::console_log("Method: " + m_uri.get_m_path());
-	// std::cout << "METHOD: " << m_method << std::endl;
-	std::cout << "PATH: " << m_uri.get_m_path() << std::endl;
-	std::cout << "VERSION: " << m_http_version << std::endl;
-	std::cout << "RAW HEADER: " << m_raw_header << std::endl;
+	ft::console_log("PATH: " + m_uri.get_m_path());
+	ft::console_log("VERSION: " + m_http_version);
+	ft::console_log("RAW HEADER: " + m_raw_header);
 	printHeaders();
 	return (false);
 }
