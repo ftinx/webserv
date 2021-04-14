@@ -92,6 +92,7 @@ namespace ft
 	/* TIME */
 	std::string getDateTimestamp(int hour, int minute, int second);
 	int compareTimestampToCurrent(std::string timestamp);
+	std::string compareDetailTimestampToCurrent(std::string timestamp);
 
 	/* BASE64 */
 	std::string encode(const std::string &input);
@@ -108,6 +109,7 @@ namespace ft
 	Method getMethodType(const std::string &str);
 	std::string getMethodString(const Method &method);
 	std::string getErrorMessage(int status_code);
+	void console_log(std::string str);
 
 	/* PASRSE CONFIG */
 	bool checkBlankStr(std::string str);

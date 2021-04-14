@@ -3,6 +3,13 @@
 
 # include <iostream>
 
+/* parse request exception */
+class HeaderIsTooLargeException : public std::exception
+{
+	public:
+		virtual const char * what() const throw();
+};
+
 /* parse config exception */
 
 class HttpBlockDoesNotExistException : public std::exception

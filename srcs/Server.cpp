@@ -371,29 +371,31 @@ Server::readProcess()
 		int sockfd = fd_iter->sockfd;
 		if (ft::fdIsSet(sockfd, this->m_read_fds))
 		{
+			Request &request = this->m_requests[fd_iter->clientfd];
+			Response &response = this->m_responses[fd_iter->clientfd];
+			int ret;
+			int status_code = 0;
+
 			if (fd_iter->type == CGI_PIPE)
 			{
 				std::cout << "::3::"<<std::endl;
 				// int status;
-				int ret;
-				int status_code = 0;
 				char buff[CGI_BUFF];
-
-				//kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
-				//waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, 0);
+				//kill(request.get_m_cgi_pid(), SIGTERM);
+				//waitpid(request.get_m_cgi_pid(), &status, 0);
 				ft::memset(buff, 0, CGI_BUFF);
 				// if (status == 0)
 				// {
 				if( 0 < (ret = read(fd_iter->sockfd, buff, CGI_BUFF - 1)))
 				{
 					buff[ret] = '\0';
-					this->m_responses[fd_iter->clientfd].setCgiResponse(buff);
+					response.setCgiResponse(buff);
 					try
 					{
 						if (status_code == 0 &&
-							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCodeHeader()))
+							(status_code = response.findCgiStatusCodeHeader()))
 						{
-							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
+							response.set_m_status_code(status_code);
 							m_responses[fd_iter->clientfd].set_m_has_cgi_response(true);
 						}
 					}
@@ -411,7 +413,7 @@ Server::readProcess()
 					close(fd_iter->sockfd);
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
-					this->m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
+					response.set_m_cgi_chunked_read_end(true);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					return (true);
@@ -420,37 +422,25 @@ Server::readProcess()
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
-				int ret;
-
-				std::cout << "::1:: " << sockfd << " ::" <<std::endl;
-				if ((ret = this->m_requests[sockfd].getMessage(sockfd)) == SUCCESS)
+				int header_status = request.getHeader(sockfd);
+				if (header_status == SUCCESS)
 				{
-					std::cout << "GET MESSAGE SUCCESS " << std::endl;
-					resetRequest(&this->m_requests[sockfd]);
-					handleRequest(sockfd);
-					if (this->m_responses[sockfd].get_m_status_code() != 0)
-					{
-						std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
-						std::cout << "SET WRITE FD :D" << std::endl;
-						ft::fdSet(sockfd, m_write_fds);
-					}
-					return (true);
+					resetRequest(&request);
+					// ft::console_log("REsET: " + request.get_m_reset_path());
+					// ft::console_log("content length: " + std::to_string(request.get_m_content_length()));
 				}
-				else if (ret == FAIL)
+				else if (header_status == FAIL)
 				{
-					std::cout << "GET MESSAGE FAIL" << std::endl;
-					close(sockfd);
-					this->m_requests[sockfd] = Request();
-					this->m_responses[sockfd] = Response();
-					ft::fdClr(sockfd, this->m_main_fds);
-					ft::fdClr(sockfd, this->m_write_fds);
-					this->m_fd_table.erase(fd_iter);
+					close(fd_iter->sockfd);
+					ft::fdClr(fd_iter->sockfd, m_main_fds);
+					m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					if (this->m_fd_table.size() <= 0)
-						return (false);
-					return (true);
+					return (false);
 				}
-				return (true);
+				else if (header_status == CONTINUE && request.get_m_raw_header() != "") //body 읽어야 함
+				{
+					ft::console_log("header " + std::to_string(request.get_m_content_length()));
+				}
 			}
 			return (false);
 		}

@@ -29,6 +29,7 @@ class Request
 		bool m_check_cgi;
 		Method m_method;
 		Uri m_uri;
+		std::string m_raw_header;
 		std::map<std::string, std::string> m_headers;
 		std::string m_body;
 		int m_content_length;
@@ -72,6 +73,7 @@ class Request
 		bool get_m_check_cgi() const;
 		Method get_m_method() const;
 		Uri get_m_uri() const;
+		std::string get_m_raw_header() const;
 		std::map<std::string, std::string> get_m_headers() const ;
 		int get_m_content_length() const;
 		int get_m_written_bytes() const;
@@ -107,6 +109,7 @@ class Request
 		void set_m_error_code(int);
 		void set_m_reset_path(std::string);
 		void set_m_location_block(HttpConfigLocation);
+		void set_m_cut_bytes(int);
 
 		std::string getMethod();
 		std::string getContentLength();
@@ -114,12 +117,13 @@ class Request
 		std::string getAcceptLanguage();
 		std::string getReferer();
 		bool isBreakCondition(bool*, int, std::string);
-		int getMessage(int);
+		int getHeader(int);
 		bool parseMessage(bool);
 		bool parseRequestLine(std::string);
 		bool checkMethod();
 		bool parseHeader(std::string);
 		bool checkBlankLine(std::string);
+		bool parseRawHeader();
 		bool parseBody(std::string&, int, int, bool);
 		std::string getRestPath();
 		std::string getScriptName(std::string path);

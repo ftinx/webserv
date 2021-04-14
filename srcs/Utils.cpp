@@ -423,6 +423,22 @@ compareTimestampToCurrent(std::string timestamp)
 	return (current_timeval.tv_sec - timestamp_timeval.tv_sec);
 }
 
+std::string
+compareDetailTimestampToCurrent(std::string timestamp)
+{
+	struct timeval current_timeval;
+	struct timeval timestamp_timeval;
+	struct tm timestamp_tm;
+	std::string result = "";
+
+	gettimeofday(&current_timeval, NULL);
+	strptime(timestamp.c_str(), "%a, %d %b %Y %H:%M:%S %Z", &timestamp_tm);
+	timestamp_timeval.tv_sec = mktime(&timestamp_tm);
+	result = std::to_string(current_timeval.tv_sec - timestamp_timeval.tv_sec);
+	result += std::to_string(current_timeval.tv_usec - timestamp_timeval.tv_usec);
+	return (result);
+}
+
 /*============================================================================*/
 /*******************************  BASE64  *************************************/
 /*============================================================================*/
@@ -731,6 +747,28 @@ getErrorMessage(int status_code)
 		default:
 			return (std::string("Undefined Status Code"));
 	}
+}
+
+void
+console_log(std::string str)
+{
+	// static std::string end_loop_server = "";
+	// int fd;
+	// std::string current_time = compareDetailTimestampToCurrent("Wed, 14 Apr 2021 15:22:00 KST");
+	std::string current_time = ft::getDateTimestamp(0, 0, 0);
+	std::string log;
+	log = "[" + current_time + "] " + str;
+	// if ((fd = open("console_log", O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
+	// 	throw std::exception();
+	// ft::putendl_fd(log.c_str(), fd);
+	// if (str == "end loop server")
+	// {
+	// 	ft::putendl_fd((current_time + " - " + end_loop_server).c_str(), fd);
+	// 	end_loop_server = log;
+	// }
+	std::cout << "[" << current_time << "] " << str << std::endl;
+	// close(fd);
+	return ;
 }
 
 /*============================================================================*/

@@ -8,7 +8,7 @@
 
 Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
-m_method(DEFAULT), m_uri(), m_headers(), m_body(""),
+m_method(DEFAULT), m_uri(), m_raw_header(""), m_headers(), m_body(""),
 m_content_length(0), m_written_bytes(0),
 m_error_code(0),m_reset_path(""), m_location_block(),
 m_path_translated(""), m_path_info(""), m_script_name(""), m_cgi_pid(),
@@ -33,6 +33,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_check_cgi = rhs.get_m_check_cgi();
 	this->m_method = rhs.get_m_method();
 	this->m_uri = rhs.get_m_uri();
+	this->m_raw_header = rhs.get_m_raw_header();
 	this->m_headers = rhs.get_m_headers();
 	this->m_body = rhs.get_m_body();
 	this->m_content_length = rhs.get_m_content_length();
@@ -107,6 +108,12 @@ Uri
 Request::get_m_uri() const
 {
 	return (this->m_uri);
+}
+
+std::string
+Request::get_m_raw_header() const
+{
+	return (this->m_raw_header);
 }
 
 std::map<std::string, std::string>
@@ -306,9 +313,15 @@ Request::set_m_location_block(HttpConfigLocation block)
 }
 
 void
-Request::set_m_cgi_pid(pid_t pid)
+Request::set_m_cgi_pid(pid_t cgi_pid)
 {
-	this->m_cgi_pid = pid;
+	this->m_cgi_pid = cgi_pid;
+}
+
+void
+Request::set_m_cut_bytes(int cut_bytes)
+{
+	this->m_cut_bytes = cut_bytes;
 }
 
 /*============================================================================*/
@@ -491,108 +504,58 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 }
 
 int
-Request::getMessage(int fd)
+Request::getHeader(int fd)
 {
-	int ret = 0;
-	char *recvline;
+	int ret;
+	char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
 
-
-	if (this->m_message == "")
+	ft::memset(buff, 0, SOCK_BUFF);
+	if (m_should_read == false && this->m_raw_header == "")
 	{
-		this->m_message.reserve(RESV_SIZE);
-		this->m_body.reserve(RESV_SIZE);
-	}
-	recvline = (char*)malloc(sizeof(char) * SOCK_BUFF);
-	memset(recvline, 0, SOCK_BUFF);
-	if (m_header_bytes == 0)
-	{
-		std::cout << "should peek true" << std::endl;
-		m_should_peek = true;
-	}
-	else
-	{
-		std::cout << "sholud peek false" << std::endl;
-	}
-	if (m_should_peek)
-	{
-		if ((ret = recv(fd, recvline, SOCK_BUFF - 1, MSG_PEEK)) > 0)
+		if ((ret = recv(fd, buff, SOCK_BUFF - 1, MSG_PEEK)) > 0)
 		{
-			std::cout << "--- PEEK " <<  std::endl;
-			recvline[ret] = '\0';
-			// std::cout <<std::endl << "----- PEEK ------" << ret << "*****" << std::endl;
-			// std::cout <<recvline << std::endl;
-			// std::cout << "---------------" << std::endl << std::endl;
-			this->m_message.append(recvline);
-			if (m_header_bytes == 0 && this->m_message.find("\r\n\r\n") >= 0)
+			std::string str(buff);
+			size_t pos;
+			if ((pos = str.find("\r\n\r\n")) != std::string::npos)
 			{
-				m_header_bytes = this->m_message.find("\r\n\r\n") + 4;
+				this->set_m_cut_bytes(pos + 4);
 			}
-			m_got_all_msg = isBreakCondition(&m_chunked, std::strlen(recvline), recvline);
-			free(recvline);
+			else
+			{
+				free(buff);
+				m_should_read = false;
+				throw (HeaderIsTooLargeException::exception());
+			}
 			m_should_read = true;
-			m_should_peek = false;
-			// std::cout << "--- PEEK: finished peeking, continue reading" << std::endl;
-			return (CONTINUE);
+			std::cout << "adsadsadsadsads" << this->get_m_cut_bytes() << std::endl;
 		}
-		if (ret <= 0)
+		/* ret <= 0 아직 고려 안함 */
+	}
+	else if (m_should_read && m_raw_header == "")
+	{
+		ret = read(fd, buff, m_cut_bytes);
+		if (ret == m_cut_bytes) // 헤더 다 받았을 때
 		{
-			std::cout << "--- PEEK: ret <= 0 " << std::endl;
-			free(recvline);
+			m_raw_header.append(buff);
+			m_should_read = false;
+			parseRawHeader();
+			free(buff);
+			return (SUCCESS);
+		}
+		else if (ret <= 0)
+		{
+			free(buff);
+			m_should_read = false;
 			return (FAIL);
 		}
-	}
-	if (m_should_read)
-	{
-		std::cout << "--- READ "  <<  std::endl;
-		if ((ret = read(fd, recvline, m_cut_bytes)) > 0)
+		else if (ret < m_cut_bytes) // 헤더 덜 받아서 또 read 해야
 		{
-			recvline[ret] = '\0';
-			// std::cout <<std::endl << "-----------" << ret << "*****" << std::endl;
-			// std::cout <<recvline << std::endl;
-			// std::cout << "-----------" << std::endl << std::endl;
-
-			/* 여기에 어떻게 추가를 해줘야 하지 않을까... 청크드가 아니더라도 잘려들어왔을 때 지나가게끔 */
-			if ((m_chunked == true && m_chunked_finished_read == false) || m_got_all_msg == false)
-			{
-				m_should_peek = true;
-				m_should_read = false;
-				// std::cout << "--- READ: finished reading, continue peeking" << std::endl;
-				free(recvline);
-				return (CONTINUE);
-			}
-			/* 메세지 다 읽었을 때 파싱 시작 */
-			if (this->parseMessage(m_chunked) == false)
-			{
-				std::cout << "--- READ: Parse message fail" << std::endl;
-				std::cout << m_message << std::endl;
-				std::cout << "----------------------------" << std::endl;
-				free(recvline);
-				return (FAIL);
-			}
-			if (m_chunked == false || (m_chunked == true && m_chunked_finished_read == true))
-			{
-				m_should_peek = false;
-				m_should_read = false;
-				free(recvline);
-				std::cout << "--- READ: Parse message success" << std::endl;
-				return (SUCCESS);
-			}
-			m_should_peek = true;
-			m_should_read = false;
-			free(recvline);
-			return (CONTINUE);
+			m_raw_header.append(buff);
+			m_cut_bytes -= ret;
 		}
 	}
-	if (ret <= 0)
-	{
-		std::cout << "--- READ: ret <= 0 " << std::endl;
-		free(recvline);
-		return (FAIL);
-	}
-	// std::cout << "\033[43;31m**** request message *****\033[0m" << std::endl;
-	// std::cout << m_message << std::endl;
-	std::cout << "GETMESSAGE) BODY SIZE: " << m_body.size() << std::endl;
-	return (FAIL);
+	free(buff);
+	return (CONTINUE); // 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때
 }
 
 bool
@@ -669,6 +632,7 @@ Request::parseHeader(std::string line)
 
 	size_t pos = line.find_first_of(":");
 
+	std::cout <<"...." <<  line <<std::endl;
 	if (pos == std::string::npos)
 	{
 		this->m_error_code = 400;
@@ -691,7 +655,10 @@ Request::parseHeader(std::string line)
 		this->m_uri.set_m_host(ft::trim(key_value[1], " "));
 	else if (ft::strTolower(key_value[0]) == "port")
 		this->m_uri.set_m_port(ft::trim(key_value[1], " "));
-
+	if (ft::strTolower(key_value[0]) == "content-length")
+		this->m_content_length = ft::stoi(ft::trim(key_value[1], " "));
+	if ((ft::strTolower(key_value[0]) == "transfer-encoding") && (ft::trim(key_value[1], " ") == "chunked"))
+		this->m_chunked = true;
 	if (this->m_headers.insert(make_pair(ft::strTolower(key_value[0]), ft::trim(key_value[1], " "))).second == false
 	&& ft::strTolower(key_value[0]) == "host")
 	{
@@ -706,6 +673,32 @@ Request::checkBlankLine(std::string str)
 {
 	if (str[0] == '\r')
 		return (true);
+	return (false);
+}
+
+bool
+Request::parseRawHeader()
+{
+	// size_t pos;
+	std::vector<std::string> lines = ft::split(m_raw_header, std::string("\r\n"));
+	std::vector<std::string>::const_iterator it;
+
+	if (parseRequestLine(lines[0]) == false)
+		return (false);
+	for (it = lines.begin() + 1; it != lines.end(); ++it)
+	{
+		if (parseHeader(*it) == false)
+		{
+			std::cout << "Error" << m_error_code << std::endl;
+			return(false);
+		}
+	}
+	ft::console_log("Method: " + m_uri.get_m_path());
+	// std::cout << "METHOD: " << m_method << std::endl;
+	std::cout << "PATH: " << m_uri.get_m_path() << std::endl;
+	std::cout << "VERSION: " << m_http_version << std::endl;
+	std::cout << "RAW HEADER: " << m_raw_header << std::endl;
+	printHeaders();
 	return (false);
 }
 
