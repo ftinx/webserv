@@ -797,7 +797,6 @@ Server::resetRequest(Request *req)
 		std::vector<std::string> auth_value = ft::split((*header_it).second, ' ');
 		if (checkAuth(auth_value.back(), block.get_m_auth_basic(), block.get_m_root() + std::string("/") + block.get_m_auth_basic_user_file()) == false) // 인증 실패 시 403 에러
 		{
-			std::cout << "--=-==---=-=-="<<block.get_m_root() + std::string("/") + block.get_m_auth_basic_user_file()<<std::endl;
 			req->set_m_error_code(403);
 			return ;
 		}
@@ -885,7 +884,6 @@ Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, s
 	// 인증파일 존재하지 않으면 에러
 	if (ft::isValidFilePath(auth_file_path) == false)
 		return (false);
-
 	// .htpasswd 파일 순회하며 client id, pwd와 비교, 일치하면 인증성공
 	std::vector<std::string> idpwds = ft::split(ft::fileToString(auth_file_path), '\n');
 	std::vector<std::string>::const_iterator idpwds_it;
@@ -900,7 +898,6 @@ Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, s
 		std::string pwd_server = idpwd_server.front();
 		if ((id_server.compare(id_client) == 0) && (pwd_server.compare(pwd_client) == 0))
 		{
-			std::cout << "=-=-=-=-=-=-=-=-=-"<<this->m_auth_id << this->m_auth_pw << std::endl;
 			this->m_auth_id = id_client;
 			this->m_auth_pw = pwd_client;
 			return (true);
