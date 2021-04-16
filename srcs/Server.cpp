@@ -1551,7 +1551,7 @@ Server::makeErrorPage(int status_code)
 
 	if (this->m_server_block.get_m_default_error_page().empty() == false)
 	{
-		std::string path(this->m_root + this->m_server_block.get_m_default_error_page());
+		std::string path(this->m_root + std::string("/") + this->m_server_block.get_m_default_error_page());
 		if (ft::isValidFilePath(path))
 			return (ft::fileToString(path));
 	}

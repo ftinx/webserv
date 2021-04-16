@@ -122,7 +122,7 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 			this->m_listen = stoi(line.back());
 		else if (line.front().compare("default_error_page") == 0)
 		{
-			if (ft::isValidFilePath(root + line.back()) == false)
+			if (ft::isValidFilePath(root + std::string("/") + line.back()) == false)
 				throw PathErrorException(lines[idx], idx);
 			this->m_default_error_page = line.back();
 		}
