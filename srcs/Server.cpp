@@ -383,7 +383,7 @@ Server::readProcess()
 			{
 				// Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
-				ft::console_log("::3::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
 				// int status;
 				char buff[CGI_BUFF];
 				//kill(request.get_m_cgi_pid(), SIGTERM);
@@ -430,6 +430,7 @@ Server::readProcess()
 				Response &response = this->m_responses[sockfd];
 				int header_status = request.getHeader(sockfd);
 				int body_status = -1;
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::");
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
@@ -515,7 +516,7 @@ Server::writeProcess()
 		{
 			if (fd_iter->type == CGI_PIPE)
 			{
-				ft::console_log("::2::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::");
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
@@ -525,7 +526,7 @@ Server::writeProcess()
 				int buffsize = std::min(CGI_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
 				size_t ret = 0;
 
-				if ((ret = write(sockfd, body.c_str(), buffsize)) > 0)
+				if ((ret = write(sockfd, body.c_str(), buffsize)) >= 0)
 				{
 					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(ret));
 					ft::console_log("CGI body length: " + std::to_string(ret));
@@ -556,10 +557,12 @@ Server::writeProcess()
 				}
 				if (ret <= 0)
 				{
-					ft::fdClr(sockfd, this->m_write_fds);
+					if (ret < 0)
+						ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
+					sleep(5);
 					if (ret == 0)
 						return (true);
 					return (false);
@@ -576,7 +579,7 @@ Server::writeProcess()
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
-				std::cout << "::4::"<<std::endl;
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::4::");
 				int ret;
 				int buffsize;
 				Response &response = m_responses[sockfd];
@@ -666,46 +669,6 @@ Server::writeProcess()
 					ft::fdClr(sockfd, m_write_fds);
 				}
 				writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
-
-				// buffsize = std::min(content_length - pos, SOCK_BUFF);
-				// if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
-				// {
-				// 	this->m_requests[sockfd] = Request();
-				// 	response.set_m_pos(pos + ret);
-				// 	std::cout << "OOOOOOO OK " << pos << std::endl;
-				// }
-				// if (ret < 0)
-				// {
-				// 	std::cout << "XXXXXXX FAIL" << pos << std::endl;
-				// 	std::cout << "ERRNO IS " << errno << std::endl;
-				// 	std::cout << "X" << EACCES << std::endl;
-				// 	std::cout << "A" << EAGAIN << std::endl;
-				// 	std::cout << "B" << EALREADY << std::endl;
-				// 	std::cout << "C" << EBADF << std::endl;
-				// 	std::cout << "D" << ECONNRESET << std::endl;
-				// 	std::cout << "E" << EFAULT  << std::endl;
-				// 	std::cout << "F" << EINTR << std::endl;
-				// 	std::cout << "G" << EINVAL << std::endl;
-				// 	std::cout << "H" << EISCONN << std::endl;
-				// 	std::cout << "I" << EMSGSIZE << std::endl;
-				// 	std::cout << "J" << ENOBUFS << std::endl;
-				// 	std::cout << "K" << ENOMEM << std::endl;
-				// 	std::cout << "L" << ENOTCONN << std::endl;
-				// 	std::cout << "M" << ENOTSOCK << std::endl;
-				// 	std::cout << "N" << EOPNOTSUPP << std::endl;
-				// 	std::cout << "O" << EPIPE << std::endl;
-				// 	std::cout << "P" << EDESTADDRREQ << std::endl;
-				// }
-				// if (ret <= 0)
-				// {
-				// 	std::cout << "OOOOOOO END " << pos << std::endl;
-				// 	this->m_requests[sockfd] = Request();
-				// 	this->m_responses[sockfd] = Response();
-				// 	ft::fdClr(sockfd, m_write_fds);
-				// 	sleep(1);
-				// 	std::cout << "Zzzzzzz...." << std::endl;
-				// }
-				// writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
 			}
 			return (false);
 		}
@@ -1653,7 +1616,7 @@ Server::parseErrorResponse(int clientfd)
 	}
 	return (
 		Server::makeResponseBodyMessage(
-			status_code, this->m_server_name, makeErrorPage(status_code), "", request.getAcceptLanguage(),
+			status_code, this->m_server_name, "", "", request.getAcceptLanguage(),
 			ft::getMethodString(request.get_m_method()), getMimeType("html"), request.getReferer()
 			)
 	);

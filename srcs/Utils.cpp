@@ -774,7 +774,7 @@ console_log(std::string str)
 {
 	// static std::string end_loop_server = "";
 	// int fd;
-	std::string current_time = compareDetailTimestampToCurrent("Fri, 16 Apr 2021 18:57:54 KST");
+	std::string current_time = compareDetailTimestampToCurrent("Fri, 16 Apr 2021 19:36:00 KST");
 	// std::string current_time = ft::getDateTimestamp(0, 0, 0);
 	std::string log;
 	log = "[" + current_time + "] " + str;

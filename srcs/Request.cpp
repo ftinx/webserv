@@ -656,7 +656,6 @@ Request::getBody(int fd)
 			for (it = lines.begin(); it != lines.end() - i; ++it)
 			{
 				num = std::strtol((*it).c_str(), &temp, 16);
-				ft::console_log("++++++ strol: " + std::to_string(num));
 				if (*temp)
 				{
 					free(buff);
@@ -678,6 +677,7 @@ Request::getBody(int fd)
 				m_body += *it;
 				m_cut_bytes += num + numlen + 2;
 			}
+			m_body += str;
 			ft::console_log("m_cut_bytes: "+ std::to_string(m_cut_bytes));
 			ft::console_log("m_chunked_bytes: "+ std::to_string(num));
 			m_should_read = true;
