@@ -1229,7 +1229,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	Response response(res);
 
-	int fds1[2], fds2[2];
+	int fds2[2];
 	pid_t pid;
 
 	if (envp == NULL)
@@ -1239,13 +1239,16 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		ft::doubleFree(envp);
 		throw (Server::CgiException());
 	}
-	else if (pipe(fds1) < 0 || pipe(fds2) < 0)
+	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
+	/* 최적화 open close 해줘야함. */
+	// int parent_write = fds2[1];
+	// int cgi_stdin = fds2[0];
 	int parent_write = fds2[1];
-	int parent_read = fds1[0];
 	int cgi_stdin = fds2[0];
-	int cgi_stdout = fds1[1];
+	int parent_read = open("/tmp/.tmptext", O_RDONLY);
+	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT, 0666);
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
@@ -1261,7 +1264,6 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	{
 		req.set_m_cgi_pid(pid);
 		close(parent_write);
-		close(parent_read);
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
 			throw (Server::CgiException());
 		if (extension.compare("php") == 0)
@@ -1283,7 +1285,6 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	}
 	else  // parent process
 	{
-		close(cgi_stdout);
 		close(cgi_stdin);
 		req.set_m_cgi_stdin(parent_read);
 		req.set_m_cgi_stdout(parent_write);
