@@ -418,7 +418,8 @@ Server::readProcess()
 					close(fd_iter->sockfd);
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
-					response.set_m_cgi_chunked_read_end(true);
+					// response.set_m_cgi_chunked_read_end(true);
+					sleep(10);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					return (true);
@@ -480,9 +481,9 @@ Server::readProcess()
 						ft::console_log("----- set cgi fds -----");
 						ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
-						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
-						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdout(), sockfd));
-						*m_maxfd = findMaxFd();
+						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
+						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdout(), sockfd));
+						// *m_maxfd = findMaxFd();
 					}
 					else if (body_status == SUCCESS)
 					{
@@ -520,24 +521,33 @@ Server::writeProcess()
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
-				// int content_length = request.get_m_content_length();
+				// int content_length = body.size();
 				// int written_bytes = request.get_m_written_bytes();
 				// int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 				int buffsize = std::min(CGI_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
 				size_t ret = 0;
 
-				if ((ret = write(sockfd, body.c_str(), buffsize)) >= 0)
+				if ((ret = write(sockfd, body.c_str(), buffsize)) > 0)
 				{
 					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(ret));
 					ft::console_log("CGI body length: " + std::to_string(ret));
 					if (ret == body.size())
 					{
 						request.clearBody();
-						ft::fdClr(sockfd, m_write_fds);
+						//ft::fdClr(sockfd, m_write_fds);
 					}
 					else
 						request.set_m_body(body.substr(ret));
 				}
+				// if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				// {
+				// 	written_bytes += ret;
+				// 	request.set_m_written_bytes(written_bytes);
+				// 	std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
+				// 	buffsize = std::min(CGI_BUFF, content_length - written_bytes);
+				// 	ft::fdClr(sockfd, m_write_fds);
+				// 	return (false);
+				// }
 				else if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
@@ -557,24 +567,18 @@ Server::writeProcess()
 				}
 				if (ret <= 0)
 				{
-					if (ret < 0)
-						ft::fdClr(sockfd, this->m_write_fds);
+					ft::console_log("-------::2:: write ret 0 -----");
+					sleep(5);
+					m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
+					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					sleep(5);
 					if (ret == 0)
 						return (true);
 					return (false);
 				}
-				// if (buffsize > 0 && (ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
-				// {
-				// 	written_bytes += ret;
-				// 	request.set_m_written_bytes(written_bytes);
-				// 	std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
-				// 	buffsize = std::min(CGI_BUFF, content_length - written_bytes);
-				// 	return (false);
-				// }
+
 
 			}
 			else if(fd_iter->type == C_SOCKET)
@@ -1285,11 +1289,11 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		req.set_m_cgi_stdout(parent_write);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
-		// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
-		// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		// ft::fdSet(parent_write, m_write_fds);
 		// ft::fdSet(parent_read, m_main_fds);
-		// *m_maxfd = findMaxFd();
+		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
+		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
+		*m_maxfd = findMaxFd();
 		// response.get_m_cgi_response().reserve(RESV_SIZE);
 	}
 	(void)clientfd;
