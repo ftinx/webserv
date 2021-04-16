@@ -376,14 +376,14 @@ Server::readProcess()
 		int sockfd = fd_iter->sockfd;
 		if (ft::fdIsSet(sockfd, this->m_read_fds))
 		{
-			Request &request = this->m_requests[sockfd];
-			Response &response = this->m_responses[sockfd];
 			int ret;
 			int status_code = 0;
 
 			if (fd_iter->type == CGI_PIPE)
 			{
-				std::cout << "::3::"<<std::endl;
+				// Request &request = this->m_requests[fd_iter->clientfd];
+				Response &response = this->m_responses[fd_iter->clientfd];
+				ft::console_log("::3::");
 				// int status;
 				char buff[CGI_BUFF];
 				//kill(request.get_m_cgi_pid(), SIGTERM);
@@ -391,7 +391,7 @@ Server::readProcess()
 				ft::memset(buff, 0, CGI_BUFF);
 				// if (status == 0)
 				// {
-				if( 0 < (ret = read(fd_iter->sockfd, buff, CGI_BUFF - 1)))
+				if( 0 < (ret = read(sockfd, buff, CGI_BUFF - 1)))
 				{
 					buff[ret] = '\0';
 					response.setCgiResponse(buff);
@@ -401,7 +401,7 @@ Server::readProcess()
 							(status_code = response.findCgiStatusCodeHeader()))
 						{
 							response.set_m_status_code(status_code);
-							m_responses[fd_iter->clientfd].set_m_has_cgi_response(true);
+							response.set_m_has_cgi_response(true);
 						}
 					}
 					catch (std::exception &e)
@@ -427,14 +427,18 @@ Server::readProcess()
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
+				Request &request = this->m_requests[sockfd];
+				Response &response = this->m_responses[sockfd];
 				int header_status = request.getHeader(sockfd);
 				int body_status = -1;
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
-					if (request.get_m_check_cgi() == true)
+					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
 					{
-						executeCgi(request, response, sockfd);
+						/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
+						if (request.checkCGI() == true)
+							executeCgi(request, response, sockfd);
 					}
 					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
@@ -461,7 +465,6 @@ Server::readProcess()
 				}
 				else if (header_status == CONTINUE && request.get_m_raw_header() != "") //body 읽어야 함
 				{
-					ft::console_log("content length " + std::to_string(request.get_m_content_length()));
 					body_status = request.getBody(sockfd);
 					if (body_status == FAIL)
 					{
@@ -474,14 +477,16 @@ Server::readProcess()
 					}
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
+						ft::console_log("----- set cgi fds -----");
 						ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
 						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
-						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
+						m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdout(), sockfd));
 						*m_maxfd = findMaxFd();
 					}
 					else if (body_status == SUCCESS)
 					{
+						ft::console_log("----- handle request -----");
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
@@ -490,7 +495,6 @@ Server::readProcess()
 							ft::fdSet(sockfd, m_write_fds);
 						}
 					}
-					ft::console_log("body " + request.get_m_body());
 					ft::console_log("m_check_cgi " + std::to_string(request.get_m_check_cgi()));
 				}
 			}
@@ -512,24 +516,29 @@ Server::writeProcess()
 		{
 			if (fd_iter->type == CGI_PIPE)
 			{
-				std::cout << "::2::"<<std::endl;
+				ft::console_log("::2::");
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
-				int content_length = request.get_m_content_length();
-				int written_bytes = request.get_m_written_bytes();
-				int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
-				int ret = 0;
+				// int content_length = request.get_m_content_length();
+				// int written_bytes = request.get_m_written_bytes();
+				// int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
+				int buffsize = std::min(CGI_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
+				size_t ret = 0;
 
-				if (buffsize > 0 && (ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				if ((ret = write(sockfd, body.c_str(), buffsize)) > 0)
 				{
-					written_bytes += ret;
-					request.set_m_written_bytes(written_bytes);
-					std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
-					buffsize = std::min(CGI_BUFF, content_length - written_bytes);
-					return (false);
+					ft::console_log("CGI body length: " + std::to_string(ret));
+					ft::console_log("CGI body: " + body);
+					if (ret == body.size())
+					{
+						request.clearBody();
+						ft::fdClr(sockfd, m_write_fds);
+					}
+					else
+						request.set_m_body(body.substr(ret));
 				}
-				if (ret < 0)
+				else if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
 					std::cout << "A" << EAGAIN << std::endl;
@@ -556,6 +565,15 @@ Server::writeProcess()
 						return (true);
 					return (false);
 				}
+				// if (buffsize > 0 && (ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				// {
+				// 	written_bytes += ret;
+				// 	request.set_m_written_bytes(written_bytes);
+				// 	std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
+				// 	buffsize = std::min(CGI_BUFF, content_length - written_bytes);
+				// 	return (false);
+				// }
+
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -567,34 +585,36 @@ Server::writeProcess()
 
 				if (response.get_m_has_cgi_response() == true)
 				{
-					const std::string &body = response.get_m_cgi_response();
-					int content_length = body.size();
-					// buffsize = std::min(content_length - pos, 32768); //chunked writingd
-					buffsize = std::min(content_length - pos, SOCK_BUFF); // mess writig
-
 					std::string &header = response.get_m_cgi_header();
 					if (header != "")
 					{
+						ft::console_log("---- write cgi response header ----");
 						ret = write(sockfd, header.c_str(), header.size());
+						ft::console_log("finish header: " + header);
 						header = "";
-						std::cout << ".... wrote header" <<std::endl;
+						ft::console_log(".... wrote header");
 						if (ret > 0)
 							return (false);
 					}
 					else
 					{
+						const std::string &body = response.get_m_cgi_response();
+						int content_length = body.size();
+						// buffsize = std::min(content_length - pos, 32768); //chunked writingd
+						buffsize = std::min(content_length - pos, SOCK_BUFF); // mess writig
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
 						{
-							// 짤라서 틈틈히 보내주려면 여기서 클리어 해줘야
+							ft::fdClr(sockfd, this->m_write_fds);
 							return(false);
 						}
 						std::string num;
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
 						ret = write(sockfd, buff.c_str(), buff.size());
+						ft::console_log("finish body: " + buff);
 						response.set_m_pos(pos + buffsize);
 						std::cout << ".... wrote body " << pos + buffsize << std::endl;
-						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == true)
+						if (buffsize == 0)
 						{
 							std::cout << "------ END " << pos << std::endl;
 							this->m_requests[sockfd] = Request();
@@ -1334,21 +1354,21 @@ Server::methodPOST(int clientfd, std::string method)
 	Response response;
 	Request request(m_requests[clientfd]);
 
-	if (request.checkCGI() == true)
-	{
-		try
-		{
-			response = executeCgi(request, response, clientfd);
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << e.what() << std::endl;
-		}
-	}
-	else
-	{
+	// if (request.checkCGI() == true)
+	// {
+	// 	try
+	// 	{
+	// 		response = executeCgi(request, response, clientfd);
+	// 	}
+	// 	catch(const std::exception& e)
+	// 	{
+	// 		std::cerr << e.what() << std::endl;
+	// 	}
+	// }
+	// else
+	// {
 		response = postBody(request, response);
-	}
+	// }
 	return (response);
 }
 
@@ -1630,7 +1650,7 @@ Server::parseErrorResponse(int clientfd)
 		it = m_http_config_path_method.find(request.get_m_uri().get_m_path());
 		if (it != m_http_config_path_method.end())
 			allow_method = it->second;
-		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", request.getAcceptLanguage(),
+		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, "", "", request.getAcceptLanguage(),
 				ft::getMethodString(request.get_m_method()), getMimeType("html"), request.getReferer(), 0, 0, 0, allow_method));
 	}
 	return (

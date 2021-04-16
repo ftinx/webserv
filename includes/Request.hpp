@@ -138,6 +138,7 @@ class Request
 		std::string getScriptName(std::string path);
 		bool checkCGI();
 		void printHeaders() const;
+		void clearBody();
 };
 
 std::ostream& operator<<(std::ostream &os, const Request &ref);

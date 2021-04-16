@@ -555,14 +555,18 @@ Request::getHeader(int fd)
 			if ((pos = str.find("\r\n\r\n")) != std::string::npos)
 			{
 				this->set_m_cut_bytes(pos + 4);
+				m_should_read = true;
+				free(buff);
+				return (CONTINUE);
 			}
 			else
 			{
-				free(buff);
 				m_should_read = false;
-				throw (HeaderIsTooLargeException::exception());
+				if (ret == SOCK_BUFF - 1)
+					throw (HeaderIsTooLargeException());
+				free(buff);
+				return (CONTINUE);
 			}
-			m_should_read = true;
 		}
 		/* ret <= 0 아직 고려 안함 */
 	}
@@ -630,45 +634,89 @@ Request::getBody(int fd)
 		ft::console_log(m_raw_header);
 		if (m_should_read == false && m_raw_header != "") // 얼마나 읽을지 훔쳐보기
 		{
-			size_t pos;
-			ret = recv(fd, buff, 100, MSG_PEEK);
-
+			ft::console_log("------ chunked peek ------");
+			ret = recv(fd, buff, SOCK_BUFF - 1, MSG_PEEK);
 			if (ret <= 0)
 			{
 				free(buff);
 				return (FAIL);
 			}
+
 			std::string str(buff);
-			pos = str.find("\r\n");
+			std::string crlf("\r\n");
+			std::vector<std::string> lines = ft::split2(str, crlf);
+			std::vector<std::string>::const_iterator it;
+			size_t it_size = lines.size();
 			long num;
 			char *temp;
-			std::string numbuf = str.substr(0, pos);
-			num = std::strtol(numbuf.c_str(), &temp, 16);
-			if (*temp) // 숫자 아닌 게 들어옴
+			int numlen;
+
+			size_t i = it_size % 2;
+			m_cut_bytes = 0;
+			for (it = lines.begin(); it != lines.end() - i; ++it)
 			{
-				// throw
-				free(buff);
-				return (FAIL);
+				num = std::strtol((*it).c_str(), &temp, 16);
+				if (*temp)
+				{
+					free(buff);
+					return (FAIL);
+				}
+				numlen = (*it).size() + 2;
+				it++;
+				if ((*it).size() != static_cast<size_t>(num) && it != lines.end() - 1) // 숫자에 안맞게 메세지 온 비정상적인 경우
+				{
+					free(buff);
+					return (FAIL);
+				}
+				else if ((*it).size() != static_cast<size_t>(num) && it == lines.end() - i - 1) // 마지막 메세지의 문자가 짤려서 왔을 때
+				{
+					free(buff);
+					m_should_read = true;
+					return (CONTINUE);
+				}
+				m_body += *it;
+				m_cut_bytes += num + numlen + 2;
 			}
-			m_cut_bytes = num + numbuf.size() + 4;
 			ft::console_log("m_cut_bytes: "+ std::to_string(m_cut_bytes));
 			ft::console_log("m_chunked_bytes: "+ std::to_string(num));
-			m_chunked_bytes = num;
 			m_should_read = true;
 			free(buff);
 			return (CONTINUE);
 		}
 		else if (m_should_read == true &&  m_raw_header != "")// 위에서 설정한 만큼 읽어오기
 		{
+			/*
+			** CGI 의 SUCCESS 는 chunked 를 다 읽었을 때
+			** 일반 요청의 SUCCESS는 0/r/n/r/n 까지 다 읽었을 때
+			*/
+			static int myname = 0;
+			ft::console_log("------ chunked read ------");
 			ret = read(fd, buff, m_cut_bytes);
-			if (ret == m_cut_bytes)
+			myname += ret;
+			ft::console_log("=============================================="+std::to_string(myname));
+			if (ret == m_cut_bytes && m_check_cgi == true)
 			{
 				m_should_read = false;
 				buff[m_cut_bytes - 2] ='\0';
-				m_body += std::string(&(buff[m_cut_bytes - m_chunked_bytes - 2]));
+				ft::console_log("CHHNKED BODY(success): ");
 				free(buff);
-				ft::console_log("CHHNKED BODY(success): "+ m_body);
 				return (SUCCESS);
+			}
+			else if (ret == m_cut_bytes && m_check_cgi == false)
+			{
+				printf("------m_cut_bytes %d -----\n", m_cut_bytes);
+				buff[m_cut_bytes - 2] ='\0';
+				if (strlen(buff) >= 3 && strncmp(buff + strlen(buff) - 3, "0\r\n", 3) == 0) /* chunked 메세지의 마지막을 탐지 0\r\n\r\n */
+				{
+					ft::console_log("CHUNKED BODY(success): ");
+					m_should_read = false;
+					free(buff);
+					return (SUCCESS);
+				}
+				ft::console_log("CHUNKED BODY(continue): ");
+				m_should_read = false;
+				free(buff);
+				return (CONTINUE);
 			}
 			else if (ret > 0)
 			{
@@ -676,8 +724,8 @@ Request::getBody(int fd)
 				m_body += std::string(&(buff[m_cut_bytes - m_chunked_bytes - 2]));
 				m_should_read = true;
 				m_cut_bytes -= ret;
+				ft::console_log("CHHNKED BODY(continue): ");
 				free(buff);
-				ft::console_log("CHHNKED BODY(continue): "+ m_body);
 				return (CONTINUE);
 			}
 			else if (ret <= 0)
@@ -961,4 +1009,11 @@ std::ostream& operator<<(std::ostream &os, Request const& ref)
 	<< "> port: " << uri.get_m_port() << std::endl
 	<< "> path: " << uri.get_m_path() << std::endl
 	<< "> body: " << ref.get_m_body() << std::endl);
+}
+
+void
+Request::clearBody()
+{
+	this->m_body.clear();
+	return ;
 }

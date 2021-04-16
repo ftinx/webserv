@@ -280,6 +280,26 @@ split(const std::string &str, const std::string &set)
 	return (ret);
 }
 
+std::vector<std::string>
+split2(const std::string &str, const std::string &set)
+{
+	std::size_t start = 0;
+	std::size_t pos_set = 0;
+	std::vector<std::string> ret;
+
+	while (start < str.length())
+	{
+		if (start == std::string::npos)
+			break ;
+		pos_set = str.find(set, start);
+		if (pos_set == std::string::npos)
+			pos_set = str.length();
+		ret.push_back(str.substr(start, (pos_set - start)));
+		start = pos_set + set.size();
+	}
+	return (ret);
+}
+
 /*============================================================================*/
 /*******************************  FD SET  *************************************/
 /*============================================================================*/
@@ -753,14 +773,14 @@ void
 console_log(std::string str)
 {
 	// static std::string end_loop_server = "";
-	// int fd;
+	int fd;
 	// std::string current_time = compareDetailTimestampToCurrent("Wed, 14 Apr 2021 15:22:00 KST");
 	std::string current_time = ft::getDateTimestamp(0, 0, 0);
 	std::string log;
 	log = "[" + current_time + "] " + str;
-	// if ((fd = open("console_log", O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
-	// 	throw std::exception();
-	// ft::putendl_fd(log.c_str(), fd);
+	if ((fd = open("console_log", O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
+		throw std::exception();
+	ft::putendl_fd(log.c_str(), fd);
 	// if (str == "end loop server")
 	// {
 	// 	ft::putendl_fd((current_time + " - " + end_loop_server).c_str(), fd);

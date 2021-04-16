@@ -74,6 +74,7 @@ namespace ft
 	std::string trim(const std::string &str, const std::string &set);
 	std::vector<std::string> split(const std::string &str, const char &set);
 	std::vector<std::string> split(const std::string &str, const std::string &set);
+	std::vector<std::string> split2(const std::string &str, const std::string &set);
 
 	/* FD SET */
 	void fdZero(fd_set *fds);
