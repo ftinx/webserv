@@ -12,7 +12,7 @@ if [[ $password == "" ]];then
         password="1234"
 fi
 
-cat config/.ftinx_sample.conf | sed -e 's=PWD='"$PWD"'=g' -e 's=AUTHID='"$USER"'=g' > config/"$USER".conf
+cat config/.sample.conf | sed -e 's=PWD='"$PWD"'=g' -e 's=AUTHID='"$USER"'=g' > config/"$USER".conf
 
 clear
 echo -e "\033[47;30m* AUTH FILE HAS BEEN CREATED SUCCESSFULLY *\033[0m"
