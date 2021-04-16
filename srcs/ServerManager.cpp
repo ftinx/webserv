@@ -187,26 +187,6 @@ ServerManager::runServers()
 				return ;
 			case 0:
 				std::cerr << "timeout" << std::endl;
-				// int max_server_socket;
-				// for (size_t i = 0; i < this->m_server_size; i++) {
-				// 	if (max_server_socket < this->m_server[i]->get_m_server_socket())
-				// 		max_server_socket = this->m_server[i]->get_m_server_socket();
-				// }
-				// for (int i=max_server_socket + 1; i<=this->m_maxfd; i++)
-				// {
-				// 	if (ft::fdIsSet(i, &this->m_main_fds) || ft::fdIsSet(i, &this->m_write_fds))
-				// 	{
-				// 		close(i);
-				// 	}
-				// }
-				// FD_ZERO(&this->m_main_fds);
-				// FD_ZERO(&this->m_write_fds);
-				// this->m_maxfd = 0;
-				// for (size_t i = 0; i < this->m_server_size; i++) {
-				// 	FD_SET(this->m_server[i]->get_m_server_socket(), &this->m_main_fds);
-				// 	if (this->m_maxfd < this->m_server[i]->get_m_server_socket())
-				// 		this->m_maxfd = this->m_server[i]->get_m_server_socket();
-				// }
 			default:
 				for (size_t i = 0; i < this->m_server_size; i++) {
 					this->m_server[i]->getRequest(&this->m_main_fds, &this->m_read_fds,
