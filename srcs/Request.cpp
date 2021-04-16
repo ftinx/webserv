@@ -612,6 +612,7 @@ Request::getBody(int fd)
 		ret = read(fd, buff, m_content_length);
 		if (ret == m_content_length)
 		{
+			ft::console_log("++++++ READ PROCESS(SOCK): " + std::to_string(ret));
 			m_body.append(buff);
 			free(buff);
 			return (SUCCESS);
@@ -631,7 +632,6 @@ Request::getBody(int fd)
 	}
 	else if (m_chunked == true)
 	{
-		ft::console_log(m_raw_header);
 		if (m_should_read == false && m_raw_header != "") // 얼마나 읽을지 훔쳐보기
 		{
 			ft::console_log("------ chunked peek ------");
@@ -656,6 +656,7 @@ Request::getBody(int fd)
 			for (it = lines.begin(); it != lines.end() - i; ++it)
 			{
 				num = std::strtol((*it).c_str(), &temp, 16);
+				ft::console_log("++++++ strol: " + std::to_string(num));
 				if (*temp)
 				{
 					free(buff);

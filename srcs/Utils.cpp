@@ -773,14 +773,14 @@ void
 console_log(std::string str)
 {
 	// static std::string end_loop_server = "";
-	int fd;
-	// std::string current_time = compareDetailTimestampToCurrent("Wed, 14 Apr 2021 15:22:00 KST");
-	std::string current_time = ft::getDateTimestamp(0, 0, 0);
+	// int fd;
+	std::string current_time = compareDetailTimestampToCurrent("Fri, 16 Apr 2021 18:57:54 KST");
+	// std::string current_time = ft::getDateTimestamp(0, 0, 0);
 	std::string log;
 	log = "[" + current_time + "] " + str;
-	if ((fd = open("console_log", O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
-		throw std::exception();
-	ft::putendl_fd(log.c_str(), fd);
+	// if ((fd = open("console_log", O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
+	// 	throw std::exception();
+	// ft::putendl_fd(log.c_str(), fd);
 	// if (str == "end loop server")
 	// {
 	// 	ft::putendl_fd((current_time + " - " + end_loop_server).c_str(), fd);

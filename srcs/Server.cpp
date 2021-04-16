@@ -393,7 +393,7 @@ Server::readProcess()
 				// {
 				if( 0 < (ret = read(sockfd, buff, CGI_BUFF - 1)))
 				{
-					buff[ret] = '\0';
+					ft::console_log("++++++ READ PROCESS(pipe): " + std::to_string(ret));
 					response.setCgiResponse(buff);
 					try
 					{
@@ -409,7 +409,7 @@ Server::readProcess()
 						std::cout << e.what() << std::endl;
 						return (true);
 					}
-					// ft::fdSet(fd_iter->clientfd, m_write_fds);
+					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					return (false);
 				}
 				if (ret == 0)
@@ -423,7 +423,6 @@ Server::readProcess()
 					*m_maxfd = findMaxFd();
 					return (true);
 				}
-				// }
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -528,8 +527,8 @@ Server::writeProcess()
 
 				if ((ret = write(sockfd, body.c_str(), buffsize)) > 0)
 				{
+					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(ret));
 					ft::console_log("CGI body length: " + std::to_string(ret));
-					ft::console_log("CGI body: " + body);
 					if (ret == body.size())
 					{
 						request.clearBody();
@@ -592,7 +591,6 @@ Server::writeProcess()
 						ret = write(sockfd, header.c_str(), header.size());
 						ft::console_log("finish header: " + header);
 						header = "";
-						ft::console_log(".... wrote header");
 						if (ret > 0)
 							return (false);
 					}
@@ -611,9 +609,9 @@ Server::writeProcess()
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
 						ret = write(sockfd, buff.c_str(), buff.size());
-						ft::console_log("finish body: " + buff);
+						ft::console_log("++++++ WRITE PROCESS(sock): " + std::to_string(ret));
+						ft::console_log("finish body: \n");
 						response.set_m_pos(pos + buffsize);
-						std::cout << ".... wrote body " << pos + buffsize << std::endl;
 						if (buffsize == 0)
 						{
 							std::cout << "------ END " << pos << std::endl;
