@@ -186,7 +186,7 @@ ServerManager::runServers()
 				std::cout << errno << std::endl;
 				return ;
 			case 0:
-				std::cout << "---Timeout Reset---" << std::endl;
+				std::cerr << "timeout" << std::endl;
 			default:
 				for (size_t i = 0; i < this->m_server_size; i++) {
 					this->m_server[i]->getRequest(&this->m_main_fds, &this->m_read_fds,
