@@ -3,6 +3,8 @@
 #include <bitset>
 #include <iostream>
 
+int check_fd = open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666);
+
 char *bin2hex(const unsigned char *input, size_t len)
 {
     char *result;
@@ -381,15 +383,17 @@ Server::readProcess()
 
 			if (fd_iter->type == CGI_PIPE)
 			{
+				Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
-				// int status;
+				int status;
 				char buff[CGI_BUFF];
 				//kill(request.get_m_cgi_pid(), SIGTERM);
 				//waitpid(request.get_m_cgi_pid(), &status, 0);
 				ft::memset(buff, 0, CGI_BUFF);
 				// if (status == 0)
 				// {
+				waitpid(request.get_m_cgi_pid(), &status, 0);
 				if( 0 < (ret = read(sockfd, buff, CGI_BUFF - 1)))
 				{
 					ft::console_log("++++++ READ PROCESS(pipe): " + std::to_string(ret));
@@ -408,7 +412,7 @@ Server::readProcess()
 						std::cout << e.what() << std::endl;
 						return (true);
 					}
-					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					// ft::fdSet(fd_iter->clientfd, m_write_fds);
 					return (false);
 				}
 				if (response.get_m_cgi_chunked_read_end() == true && ret == 0)
@@ -540,7 +544,7 @@ Server::writeProcess()
 					else
 						request.set_m_body(body.substr(ret, std::string::npos));
 					ft::console_log("CGI body length 2: " + std::to_string(request.get_m_body().length()));
-					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
+					// ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 				}
 				// if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
 				// {
@@ -572,6 +576,8 @@ Server::writeProcess()
 				{
 					ft::console_log("RET IS 0");
 					ft::console_log("RET IS 0 BODY _____ ");
+					write(check_fd, "end", 3);
+					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
 					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
@@ -625,7 +631,9 @@ Server::writeProcess()
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
 						ret = write(sockfd, buff.c_str(), buff.size());
-						ft::console_log("++++++ WRITE PROCESS(sock): " + std::to_string(pos));
+						ft::console_log("++++++ WRITE PROCESS(sock) | num : " + num);
+						ft::console_log("++++++ WRITE PROCESS(sock) | pos : " + std::to_string(pos));
+						ft::console_log("++++++ WRITE PROCESS(sock) | buf : " + std::to_string(buffsize));
 						ft::console_log("finish body: \n");
 						response.set_m_pos(pos + buffsize);
 						if (buffsize == 0)
@@ -1254,10 +1262,11 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	/* 최적화 open close 해줘야함. */
 	// int parent_write = fds2[1];
 	// int cgi_stdin = fds2[0];
-	int parent_write = fds2[1];
-	int cgi_stdin = fds2[0];
+	int parent_write = open("/tmp/.tmptext2", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open("/tmp/.tmptext2", O_RDONLY);
 	int parent_read = open("/tmp/.tmptext", O_RDONLY);
 	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
@@ -1271,10 +1280,23 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	if (pid == 0) // child process
 	{
-		req.set_m_cgi_pid(pid);
+		struct stat buff;
+
 		close(parent_write);
-		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
+		while (42)
+		{
+			int ha;
+			ha = stat("/tmp/.check_fd", &buff);
+			printf("---- %d %lld\n", ha, buff.st_size);
+			sleep(1);
+			if (buff.st_size > 0)
+				break ;
+		}
+		if (dup2(cgi_stdout, STDOUT_FILENO) < 0)
+			throw(Server::CgiException());
+		if (dup2(cgi_stdin, STDIN_FILENO) < 0)
 			throw (Server::CgiException());
+
 		if (extension.compare("php") == 0)
 		{
 			char path[1024];
@@ -1296,6 +1318,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else  // parent process
 	{
 		close(cgi_stdin);
+		req.set_m_cgi_pid(pid);
 		req.set_m_cgi_stdin(parent_read);
 		req.set_m_cgi_stdout(parent_write);
 		ft::doubleFree(argv);

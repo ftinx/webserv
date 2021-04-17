@@ -712,15 +712,16 @@ Request::getBody(int fd)
 			ret = read(fd, buff, m_cut_bytes);
 			myname += ret;
 			ft::console_log("=============================================="+std::to_string(myname));
-			if (ret == m_cut_bytes && m_check_cgi == true)
-			{
-				m_should_read = false;
-				buff[m_cut_bytes - 2] ='\0';
-				ft::console_log("CHHNKED BODY(success): ");
-				free(buff);
-				return (SUCCESS);
-			}
-			else if (ret == m_cut_bytes && m_check_cgi == false)
+			// if (ret == m_cut_bytes && m_check_cgi == true)
+			// {
+			// 	m_should_read = false;
+			// 	buff[m_cut_bytes - 2] ='\0';
+			// 	ft::console_log("CHHNKED BODY(success): ");
+			// 	free(buff);
+			// 	return (SUCCESS);
+			// }
+			// else if (ret == m_cut_bytes && m_check_cgi == false)
+			if (ret == m_cut_bytes)
 			{
 				printf("------m_cut_bytes %d -----\n", m_cut_bytes);
 				buff[m_cut_bytes - 2] ='\0';
