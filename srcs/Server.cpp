@@ -411,7 +411,7 @@ Server::readProcess()
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					return (false);
 				}
-				if (ret == 0)
+				if (response.get_m_cgi_chunked_read_end() == true && ret == 0)
 				{
 					std::cout << "RET IS 0" << std::endl;
 					ft::console_log("::3:: RET 0 body size: " + std::to_string(response.get_m_body().size()));
@@ -531,14 +531,15 @@ Server::writeProcess()
 				{
 					tmp += ret;
 					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(tmp));
-					ft::console_log("CGI body length: " + std::to_string(ret));
+					ft::console_log("CGI body length 1: " + std::to_string(request.get_m_body().length()));
 					if (ret == body.length())
 					{
+						ft::console_log("here clear body ==================");
 						request.clearBody();
-						ft::fdClr(sockfd, m_write_fds);
 					}
 					else
 						request.set_m_body(body.substr(ret, std::string::npos));
+					ft::console_log("CGI body length 2: " + std::to_string(request.get_m_body().length()));
 					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 				}
 				// if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
