@@ -37,6 +37,7 @@ class Request
 		int m_error_code;
 		std::string m_reset_path;
 		HttpConfigLocation m_location_block;
+		bool m_read_end;
 
 		/* cgi envp */
 		std::string m_path_translated;
@@ -84,6 +85,7 @@ class Request
 		int	get_m_error_code() const;
 		std::string get_m_reset_path() const;
 		HttpConfigLocation get_m_location_block() const;
+		bool get_m_read_end() const;
 		std::string get_m_path_translated() const;
 		std::string get_m_path_info() const;
 		std::string get_m_script_name() const;
@@ -117,6 +119,7 @@ class Request
 		void set_m_error_code(int);
 		void set_m_reset_path(std::string);
 		void set_m_location_block(HttpConfigLocation);
+		void set_m_read_end(bool);
 		void set_m_cut_bytes(int);
 
 		std::string getMethod();

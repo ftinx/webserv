@@ -381,7 +381,6 @@ Server::readProcess()
 
 			if (fd_iter->type == CGI_PIPE)
 			{
-				// Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
 				// int status;
@@ -415,11 +414,11 @@ Server::readProcess()
 				if (ret == 0)
 				{
 					std::cout << "RET IS 0" << std::endl;
+					ft::console_log("::3:: RET 0 body size: " + std::to_string(response.get_m_body().size()));
 					close(fd_iter->sockfd);
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
-					// response.set_m_cgi_chunked_read_end(true);
-					sleep(10);
+					response.set_m_cgi_chunked_read_end(true);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					return (true);
@@ -479,7 +478,7 @@ Server::readProcess()
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
 						ft::console_log("----- set cgi fds -----");
-						ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
+						// ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
 						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
 						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdout(), sockfd));
@@ -526,18 +525,21 @@ Server::writeProcess()
 				// int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
 				int buffsize = std::min(CGI_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
 				size_t ret = 0;
+				static int tmp = 0;
 
-				if ((ret = write(sockfd, body.c_str(), buffsize)) > 0)
+				if (buffsize > 0 && (ret = write(sockfd, body.c_str(), buffsize)) > 0) //buffsize 0으로 write 하면 ret이 size_t max
 				{
-					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(ret));
+					tmp += ret;
+					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(tmp));
 					ft::console_log("CGI body length: " + std::to_string(ret));
-					if (ret == body.size())
+					if (ret == body.length())
 					{
 						request.clearBody();
-						//ft::fdClr(sockfd, m_write_fds);
+						ft::fdClr(sockfd, m_write_fds);
 					}
 					else
-						request.set_m_body(body.substr(ret));
+						request.set_m_body(body.substr(ret, std::string::npos));
+					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 				}
 				// if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
 				// {
@@ -565,17 +567,23 @@ Server::writeProcess()
 					std::cout << "L" << EPERM  << std::endl;
 					std::cout << "M" << EPIPE << std::endl;
 				}
-				if (ret <= 0)
+				if (buffsize == 0 && ret == 0 && (request.get_m_read_end() == true))
 				{
-					ft::console_log("-------::2:: write ret 0 -----");
-					sleep(5);
+					ft::console_log("RET IS 0");
+					ft::console_log("RET IS 0 BODY _____ ");
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
 					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					if (ret == 0)
-						return (true);
+					return (true);
+				}
+				else if (ret < 0)
+				{
+					ft::fdClr(sockfd, this->m_write_fds);
+					close(sockfd);
+					this->m_fd_table.erase(fd_iter);
+					*m_maxfd = findMaxFd();
 					return (false);
 				}
 
@@ -616,7 +624,7 @@ Server::writeProcess()
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
 						ret = write(sockfd, buff.c_str(), buff.size());
-						ft::console_log("++++++ WRITE PROCESS(sock): " + std::to_string(ret));
+						ft::console_log("++++++ WRITE PROCESS(sock): " + std::to_string(pos));
 						ft::console_log("finish body: \n");
 						response.set_m_pos(pos + buffsize);
 						if (buffsize == 0)
@@ -1248,7 +1256,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	int parent_write = fds2[1];
 	int cgi_stdin = fds2[0];
 	int parent_read = open("/tmp/.tmptext", O_RDONLY);
-	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT, 0666);
+	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
@@ -1279,6 +1287,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 			if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 				throw (Server::CgiException());
 		}
+		close(cgi_stdout);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
 		exit(EXIT_SUCCESS);

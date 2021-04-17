@@ -10,7 +10,7 @@ Request::Request()
 : m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_raw_header(""), m_headers(), m_body(""),
 m_content_length(-1), m_written_bytes(0),
-m_error_code(0),m_reset_path(""), m_location_block(),
+m_error_code(0),m_reset_path(""), m_location_block(), m_read_end(false),
 m_path_translated(""), m_path_info(""), m_script_name(""),
 m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
@@ -43,6 +43,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_error_code = rhs.get_m_error_code();
 	this->m_reset_path = rhs.get_m_reset_path();
 	this->m_location_block = rhs.get_m_location_block();
+	this->m_read_end = rhs.get_m_read_end();
 	this->m_path_translated = rhs.get_m_path_translated();
 	this->m_path_info = rhs.get_m_path_info();
 	this->m_script_name = rhs.get_m_script_name();
@@ -162,6 +163,12 @@ HttpConfigLocation
 Request::get_m_location_block() const
 {
 	return (this->m_location_block);
+}
+
+bool
+Request::get_m_read_end() const
+{
+	return (this->m_read_end);
 }
 
 std::string
@@ -334,6 +341,12 @@ void
 Request::set_m_location_block(HttpConfigLocation block)
 {
 	this->m_location_block = block;
+}
+
+void
+Request::set_m_read_end(bool read_end)
+{
+	this->m_read_end = read_end;
 }
 
 void
@@ -614,6 +627,7 @@ Request::getBody(int fd)
 		{
 			ft::console_log("++++++ READ PROCESS(SOCK): " + std::to_string(ret));
 			m_body.append(buff);
+			m_read_end = true;
 			free(buff);
 			return (SUCCESS);
 		}
@@ -656,6 +670,10 @@ Request::getBody(int fd)
 			for (it = lines.begin(); it != lines.end() - i; ++it)
 			{
 				num = std::strtol((*it).c_str(), &temp, 16);
+				if (num == 0)
+				{
+					m_read_end = true;
+				}
 				if (*temp)
 				{
 					free(buff);
@@ -712,6 +730,7 @@ Request::getBody(int fd)
 					ft::console_log("CHUNKED BODY(success): ");
 					m_should_read = false;
 					free(buff);
+					m_read_end = true;
 					return (SUCCESS);
 				}
 				ft::console_log("CHUNKED BODY(continue): ");
