@@ -695,7 +695,6 @@ Request::getBody(int fd)
 				m_body += *it;
 				m_cut_bytes += num + numlen + 2;
 			}
-			m_body += str;
 			ft::console_log("m_cut_bytes: "+ std::to_string(m_cut_bytes));
 			ft::console_log("m_chunked_bytes: "+ std::to_string(num));
 			m_should_read = true;
