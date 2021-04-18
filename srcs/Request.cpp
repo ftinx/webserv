@@ -12,7 +12,7 @@ m_method(DEFAULT), m_uri(), m_raw_header(""), m_headers(), m_body(""),
 m_content_length(-1), m_written_bytes(0),
 m_error_code(0),m_reset_path(""), m_location_block(), m_read_end(false),
 m_path_translated(""), m_path_info(""), m_script_name(""),
-m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1),
+m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1), m_check_fd(-1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
 m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_chunked_bytes(0),
@@ -50,6 +50,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_cgi_pid = rhs.get_m_cgi_pid();
 	this->m_cgi_stdin = rhs.get_m_cgi_stdin();
 	this->m_cgi_stdout = rhs.get_m_cgi_stdout();
+	this->m_check_fd = rhs.get_m_check_fd();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
 	this->m_parse_content_length = rhs.get_m_parse_content_length();
@@ -206,6 +207,13 @@ Request::get_m_cgi_stdout() const
 {
 	return (this->m_cgi_stdout);
 }
+
+int
+Request::get_m_check_fd() const
+{
+	return (this->m_check_fd);
+}
+
 
 std::string
 Request::get_m_content_type() const
@@ -365,6 +373,12 @@ void
 Request::set_m_cgi_stdout(int cgi_stdout)
 {
 	this->m_cgi_stdout = cgi_stdout;
+}
+
+void
+Request::set_m_check_fd(int check_fd)
+{
+	this->m_check_fd = check_fd;
 }
 
 void

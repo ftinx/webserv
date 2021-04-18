@@ -3,7 +3,7 @@
 #include <bitset>
 #include <iostream>
 
-int check_fd = open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666);
+// int check_fd = open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666);
 
 char *bin2hex(const unsigned char *input, size_t len)
 {
@@ -576,7 +576,7 @@ Server::writeProcess()
 				{
 					ft::console_log("RET IS 0");
 					ft::console_log("RET IS 0 BODY _____ ");
-					write(check_fd, "end", 3);
+					write(request.get_m_check_fd(), "end", 3);
 					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
 					ft::fdClr(sockfd, this->m_write_fds);
@@ -1276,6 +1276,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	std::cout << "Execute Cgi === "<< req.get_m_path_translated().c_str() << std::endl;
+	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1290,7 +1291,10 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 			printf("---- %d %lld\n", ha, buff.st_size);
 			sleep(1);
 			if (buff.st_size > 0)
+			{
+				unlink("/tmp/.check_fd");
 				break ;
+			}
 		}
 		if (dup2(cgi_stdout, STDOUT_FILENO) < 0)
 			throw(Server::CgiException());
