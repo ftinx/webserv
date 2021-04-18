@@ -933,18 +933,31 @@ Server::getMimeType(std::string extension)
 }
 
 std::string
-Server::makeAutoindexPage(std::string root, std::string path)
+Server::makeAutoindexPage(std::string root, std::string abs_path, std::string loc_path)
 {
 	std::string page;
-	std::string dir_name(path.substr(root.length() + 1, std::string::npos));
+	std::string dir_name(abs_path.substr(root.length() + 1, std::string::npos));
 	struct dirent *entry;
 	std::vector<std::string> entry_dir;
 	std::vector<std::string> entry_file;
-	DIR *dirptr = opendir(path.c_str());
+	DIR *dirptr = opendir(abs_path.c_str());
 	struct stat buffer;
 	struct tm *tm;
 	char timestamp[64];
 	std::string bytes;
+
+	std::string reset_dir_name;
+	if (loc_path.compare("/") == 0)
+		reset_dir_name = loc_path + dir_name;
+	else if (dir_name.compare("/") == 0)
+		reset_dir_name = loc_path + dir_name;
+	else
+		reset_dir_name = loc_path + std::string("/") + dir_name;
+
+	std::cout << "root : " << root << std::endl;
+	std::cout << "abs_path : " << abs_path << std::endl;
+	std::cout << "loc_path : " << loc_path << std::endl;
+	std::cout << "reset_dir_name : " << reset_dir_name << std::endl;
 
 	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
 	{
@@ -952,19 +965,19 @@ Server::makeAutoindexPage(std::string root, std::string path)
 		 	entry_dir.push_back(std::string(entry->d_name));
 		if (std::string(entry->d_name).substr(0, 1) == ".")
 			continue ;
-		if (ft::isValidDirPath(path + std::string(entry->d_name)))
+		if (ft::isValidDirPath(abs_path + std::string(entry->d_name)))
 			entry_dir.push_back(std::string(entry->d_name));
-		if (ft::isValidFilePath(path + std::string(entry->d_name)))
+		if (ft::isValidFilePath(abs_path + std::string(entry->d_name)))
 			entry_file.push_back(std::string(entry->d_name));
 	}
 	std::sort(entry_dir.begin(), entry_dir.end());
 	std::sort(entry_file.begin(), entry_file.end());
 	page += std::string("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
 			+ std::string("<style>\ntable{border-collapse:collapse;width:100%;font-family:Monaco;}\nth,td{text-align:left;padding:4px;}\ntr:not(:first-child):hover{background-color:#f5f5f5;}\n</style>\n")
-			+ std::string("<title>Index of /")
-			+ std::string(dir_name)
-			+ std::string("</title>\n</head>\n<body>\n<h1>Directory Listing</h1>\n<h2>Index of /")
-			+ std::string(dir_name)
+			+ std::string("<title>Index of ")
+			+ std::string(reset_dir_name)
+			+ std::string("</title>\n</head>\n<body>\n<h1>Directory Listing</h1>\n<h2>Index of ")
+			+ std::string(reset_dir_name)
 			+ std::string("</h2>\n<hr>\n");
 	if (dir_name[0] != '/')
 		dir_name = std::string("/") + dir_name;
@@ -982,7 +995,7 @@ Server::makeAutoindexPage(std::string root, std::string path)
 			ft::memset(reinterpret_cast<void *>(timestamp), 0, 64);
 		}
 		page += std::string("<tr><td><a href=\"")
-				+ std::string(dir_name + *it)
+				+ std::string(reset_dir_name + *it)
 				+ std::string("\">")
 				+ std::string(*it)
 				+ std::string("/</a></td><td>")
@@ -1001,7 +1014,7 @@ Server::makeAutoindexPage(std::string root, std::string path)
 		if (bytes.size() >= 5)
 			bytes = std::to_string(buffer.st_size / 1024) + std::string("K");
 		page += std::string("<tr><td><a href=\"")
-				+ std::string(dir_name + *it)
+				+ std::string(reset_dir_name + *it)
 				+ std::string("\">")
 				+ std::string(*it)
 				+ std::string("</a></td><td>")
@@ -1103,7 +1116,10 @@ Server::methodGET(int clientfd, std::string method)
 		for (autoindex_it = this->m_get_location_auto_index.begin() ; autoindex_it != this->m_get_location_auto_index.end() ; ++autoindex_it) // index 를 못찾은 경우
 		{
 			if (location_block.get_m_path().compare((*autoindex_it).first) == 0 && (*autoindex_it).second == true) // location 블록의 autoindex 값이 on인 경우 페이지 만들어서 200 응답과 반환
-				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), abs_path), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			{
+				std::string loc_path(location_block.get_m_path());
+				return (Server::makeResponseBodyMessage(200, this->m_server_name, makeAutoindexPage(location_block.get_m_root(), abs_path, loc_path), "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
+			}
 		}
 	}
 	else // 폴더가 아니라면
