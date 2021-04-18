@@ -105,7 +105,7 @@ HttpConfigLocation::get_m_auth_basic_user_file() const
 	return (this->m_auth_basic_user_file);
 }
 
-int
+long
 HttpConfigLocation::get_m_limit_body_size() const
 {
 	return (this->m_limit_body_size);
@@ -248,7 +248,18 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 			this->m_auth_basic_user_file = line.back();
 		}
 		else if (line.front().compare("limit_body_size") == 0)
-			this->m_limit_body_size = ft::stoi(line.back());
+		{
+			char *tmp;
+			std::strtol(line.back().c_str(), &tmp, 10);
+			if (*tmp)
+				throw std::exception();
+			this->m_limit_body_size = ft::stol(line.back());
+			std::cout <<"m_limit_body_size: " << this->m_limit_body_size << std::endl;
+			if (this->m_limit_body_size == 0)
+				this->m_limit_body_size = INT_MAX;
+			else if (this->m_limit_body_size < 0 || this->m_limit_body_size > INT_MAX)
+				throw std::exception();
+		}
 		else if (line.front().compare("return") == 0)
 		{
 			if (this->m_redirect.empty() == false)
@@ -263,8 +274,12 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 				this->m_redirect.push_back(line[i]);
 			}
 			char *tmp;
-			strtol(this->m_redirect.front().c_str(), &tmp, 10);
+			std::strtol(this->m_redirect.front().c_str(), &tmp, 10);
 			if (*tmp || this->m_redirect.size() != 2)
+				throw std::exception();
+			if (this->m_redirect[0].compare("301") != 0 &&
+				this->m_redirect[0].compare("302") != 0 &&
+				this->m_redirect[0].compare("307") != 0) // 301 302 307 확인 후 아니면 에러
 				throw std::exception();
 		}
 		else if (line.front().compare("}") == 0)
