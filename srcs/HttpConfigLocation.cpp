@@ -254,7 +254,6 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 			if (*tmp)
 				throw std::exception();
 			this->m_limit_body_size = ft::stol(line.back());
-			std::cout <<"m_limit_body_size: " << this->m_limit_body_size << std::endl;
 			if (this->m_limit_body_size == 0)
 				this->m_limit_body_size = INT_MAX;
 			else if (this->m_limit_body_size < 0 || this->m_limit_body_size > INT_MAX)
