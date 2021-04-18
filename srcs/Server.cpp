@@ -1292,6 +1292,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 			sleep(1);
 			if (buff.st_size > 0)
 			{
+				close(req.get_m_check_fd());
 				unlink("/tmp/.check_fd");
 				break ;
 			}
