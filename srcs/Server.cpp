@@ -364,6 +364,8 @@ Server::handleRequest(int clientfd)
 				ft::getMethodString(method), getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
 			break;
 		}
+		this->m_responses[clientfd].setMultipleResponses(request.get_m_count_message());
+		request.set_m_count_message(0);
 	}
 	return ;
 }
@@ -601,8 +603,9 @@ Server::writeProcess()
 			else if(fd_iter->type == C_SOCKET)
 			{
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::4::");
-				int ret;
+				int ret = 0;
 				int buffsize;
+				// Request &request = m_requests[sockfd];
 				Response &response = m_responses[sockfd];
 				int pos = response.get_m_pos();
 
@@ -651,7 +654,6 @@ Server::writeProcess()
 						}
 						ft::console_log("finish body: \n");
 					}
-
 				}
 				else
 				{
@@ -660,7 +662,7 @@ Server::writeProcess()
 					buffsize = std::min(content_length - pos, SOCK_BUFF);
 					if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
 					{
-						this->m_requests[sockfd] = Request(); // 안해줘도 되지 않나
+						// this->m_requests[sockfd] = Request(); // 안해줘도 되지 않나
 						response.set_m_pos(pos + ret);
 						ft::console_log("------ OK " + std::to_string(pos));
 						return (false);
@@ -688,6 +690,8 @@ Server::writeProcess()
 					std::cout << "O" << EPIPE << std::endl;
 					std::cout << "P" << EDESTADDRREQ << std::endl;
 				}
+
+
 				if (ret <= 0)
 				{
 					static int youpiget = 0;

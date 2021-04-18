@@ -596,6 +596,9 @@ Request::getHeader(int fd)
 			size_t tmp;
 			size_t last_pos;
 			size_t first_pos;
+			ft::console_log("*************************");
+			ft::console_log(str);
+			ft::console_log("*************************");
 
 			if ((first_pos = str.find("\r\n\r\n")) != std::string::npos)
 			{
@@ -607,14 +610,18 @@ Request::getHeader(int fd)
 				ft::console_log("----recv2 ------\n" + header);
 				while (last_pos < static_cast<size_t>(ret))
 				{
+					ft::console_log("----recv2-1 ------");
 					if ((tmp = str.find("\r\n\r\n", last_pos + 1)) != std::string::npos)
 					{
-						std::string header1 = str.substr(last_pos + 1, first_pos);
-						ft::console_log("::::"+header1+"++++");
-						if (str.compare(last_pos + 1, first_pos, header) == 0)
-							m_count_message++;
+						ft::console_log("----recv-2-2 ------");
+						if (str.compare(last_pos, first_pos, header) == 0)
+						{
+							ft::console_log("----recv-2-3 ------");
+							m_count_message += 1;
+						}
 						else
 						{
+							ft::console_log("----recv-2-4 ------");
 							break;
 						}
 						last_pos = tmp + 4;
@@ -651,13 +658,13 @@ Request::getHeader(int fd)
 	{
 		ft::console_log("----read1 ------" + std::to_string(m_count_message));
 		ret = read(fd, buff, m_cut_bytes);
-		if (m_count_message != 1)
+		if (ret == m_cut_bytes) // 헤더 다 받았을 때
 		{
-			ft::console_log("----read2 ------");
-		}
-		else if (ret == m_cut_bytes) // 헤더 다 받았을 때
-		{
-			ft::console_log("----read3 ------");
+			ft::console_log("----read3 ------" + std::to_string(m_count_message));
+			if (m_count_message != 1)
+			{
+				buff[m_header_bytes] = '\0';
+			}
 			m_raw_header.append(buff);
 			m_should_read = false;
 			parseRawHeader();
