@@ -16,7 +16,7 @@ m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1), m_check_fd(-1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
 m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_chunked_bytes(0),
-m_should_peek(false),m_should_read(false), m_got_all_msg(false)
+m_should_peek(false),m_should_read(false), m_got_all_msg(false), m_count_message(0)
 {
 }
 
@@ -64,6 +64,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_should_peek =  rhs.get_m_should_peek();
 	this->m_should_read =  rhs.get_m_should_read();
 	this->m_got_all_msg = rhs.get_m_got_all_msg();
+	this->m_count_message = rhs.get_m_count_message();
 	return (*this);
 }
 
@@ -293,6 +294,12 @@ Request::get_m_got_all_msg() const
 	return (this->m_got_all_msg);
 }
 
+int
+Request::get_m_count_message() const
+{
+	return (this->m_count_message);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -385,6 +392,12 @@ void
 Request::set_m_cut_bytes(int cut_bytes)
 {
 	this->m_cut_bytes = cut_bytes;
+}
+
+void
+Request::set_m_count_message(int count_message)
+{
+	this->m_count_message = count_message;
 }
 
 /*============================================================================*/
@@ -569,7 +582,7 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 int
 Request::getHeader(int fd)
 {
-	int ret;
+	int ret = 0;
 	char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
 
 	ft::memset(buff, 0, SOCK_BUFF);
@@ -579,14 +592,41 @@ Request::getHeader(int fd)
 		if ((ret = recv(fd, buff, SOCK_BUFF - 1, MSG_PEEK)) > 0)
 		{
 			std::string str(buff);
-			size_t pos;
+			std::string header;
+			size_t tmp;
+			size_t last_pos;
+			size_t first_pos;
 
-			if ((pos = str.find("\r\n\r\n")) != std::string::npos)
+			if ((first_pos = str.find("\r\n\r\n")) != std::string::npos)
 			{
-				ft::console_log("----recv2 ------");
-				this->set_m_cut_bytes(pos + 4);
+				/* 끝 buff 까지 읽고 count 세고 cutbytes 조정 */
+				m_count_message = 1;
+				first_pos += 4;
+				header = str.substr(0, first_pos);
+				last_pos = first_pos;
+				ft::console_log("----recv2 ------\n" + header);
+				while (last_pos < static_cast<size_t>(ret))
+				{
+					if ((tmp = str.find("\r\n\r\n", last_pos + 1)) != std::string::npos)
+					{
+						std::string header1 = str.substr(last_pos + 1, first_pos);
+						ft::console_log("::::"+header1+"++++");
+						if (str.compare(last_pos + 1, first_pos, header) == 0)
+							m_count_message++;
+						else
+						{
+							break;
+						}
+						last_pos = tmp + 4;
+					}
+					else
+						break;
+				}
+				this->set_m_cut_bytes(last_pos);
 				m_should_read = true;
+				m_header_bytes = first_pos;
 				free(buff);
+				ft::console_log("----recv3 ------" + std::to_string(m_count_message) + " " + std::to_string(m_cut_bytes));
 				return (CONTINUE);
 			}
 			else
@@ -609,9 +649,15 @@ Request::getHeader(int fd)
 	}
 	else if (m_should_read && m_raw_header == "")
 	{
+		ft::console_log("----read1 ------" + std::to_string(m_count_message));
 		ret = read(fd, buff, m_cut_bytes);
-		if (ret == m_cut_bytes) // 헤더 다 받았을 때
+		if (m_count_message != 1)
 		{
+			ft::console_log("----read2 ------");
+		}
+		else if (ret == m_cut_bytes) // 헤더 다 받았을 때
+		{
+			ft::console_log("----read3 ------");
 			m_raw_header.append(buff);
 			m_should_read = false;
 			parseRawHeader();

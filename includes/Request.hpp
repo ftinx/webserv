@@ -64,6 +64,7 @@ class Request
 		bool m_should_peek;
 		bool m_should_read;
 		bool m_got_all_msg;
+		int m_count_message;
 
 	public:
 		Request();
@@ -107,6 +108,7 @@ class Request
 		bool get_m_should_peek() const;
 		bool get_m_should_read() const;
 		bool get_m_got_all_msg() const;
+		int get_m_count_message() const;
 
 		/* setter */
 		void set_m_http_version(std::string);
@@ -124,6 +126,7 @@ class Request
 		void set_m_location_block(HttpConfigLocation);
 		void set_m_read_end(bool);
 		void set_m_cut_bytes(int);
+		void set_m_count_message(int);
 
 		std::string getMethod();
 		std::string getContentLength();
