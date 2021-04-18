@@ -55,6 +55,7 @@ namespace ft
 	bool isdigit(int c);
 	bool isprint(int c);
 	int atoi(const char *str);
+	long atol(const char *str);
 	size_t strlen(const char *str);
 	void putchar_fd(const char c, int fd);
 	void putstr_fd(const char *s, int fd);
@@ -68,6 +69,7 @@ namespace ft
 	/* LIBFT C++ */
 	std::string strTolower(const std::string &str);
 	int stoi(const std::string &str);
+	long stol(const std::string &str);
 	char* strdup(const std::string &str);
 	std::string ltrim(const std::string &str, const std::string &set);
 	std::string rtrim(const std::string &str, const std::string &set);
