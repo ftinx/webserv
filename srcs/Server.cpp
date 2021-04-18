@@ -953,12 +953,6 @@ Server::makeAutoindexPage(std::string root, std::string abs_path, std::string lo
 		reset_dir_name = loc_path + dir_name;
 	else
 		reset_dir_name = loc_path + std::string("/") + dir_name;
-
-	std::cout << "root : " << root << std::endl;
-	std::cout << "abs_path : " << abs_path << std::endl;
-	std::cout << "loc_path : " << loc_path << std::endl;
-	std::cout << "reset_dir_name : " << reset_dir_name << std::endl;
-
 	for (entry = readdir(dirptr) ; entry ; entry = readdir(dirptr))
 	{
 		if (std::string(entry->d_name).compare("..") == 0)

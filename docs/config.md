@@ -137,7 +137,7 @@
    - [x] 주석으로만 구성되었거나 비어있는 라인 체크
    - [x] http block 존재 여부 체크
    - [x] server block 존재 여부 체크
-   - [x] server block과 return요소 중복 체크
+     - [x] server block과 return요소 중복 체크
    - [x] location block 존재 여부 체크
 
 5. **논의 필요**
@@ -147,46 +147,48 @@
    
 5. **샘플**
 
-- config/default.conf
+   1. config/default.conf
 
-  ```yaml
-  http {
-      software_name ftinx
-      software_version 0.1
-      include mime.types # 'mime.types' file must be included
-      # ㄴ https://developer.mozilla.org/ko/docs/Web/HTTP/Basics_of_HTTP/MIME_types
-      # ㄴ https://www.nginx.com/resources/wiki/start/topics/examples/full/#mime-types
-      default_type application/octet-stream
-      # ㄴ https://developer.mozilla.org/en-US/docs/Learn/Server-side/Configuring_server_MIME_types
-      # root /Users/ftinx/www # Please enter an absolute root path
-      server {
-          server_name default_server
-          listen 1234 # port
-          default_error_page default_error.html # Change the default error page
-          # content_length 2048
-          location / {
-              limit_except GET # Allowed methods GET HEAD PUT POST OPTIONS DELETE TRACE
-              # cgi .bin .cgi .bla
-              # cgi_path /Users/ftinx/cgi-bin/cgi_tester
-              index index.html index.htm index.php
-              # limit_body_size 100 # http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
-              # root /Users/ftinx/www
-              auth_basic ftinx
-              auth_basic_user_file ../.auth/.htpasswd_default # default id/pwd : ftinx/1234
-              autoindex on
-          }
-          location /redirect {  # second location block for test'302 Found' redirection
-              limit_except GET
-              return 302 /
-          }
-      }
-      server { # second server block for test '301 Moved Permanently' redirection
-          server_name redirect_server
-          listen 9999
-          return 301 https://42seoul.kr/
-      }
-  }
-  ```
+   ```yaml
+   http {
+       software_name ftinx
+       software_version 0.1
+       include mime.types # 'mime.types' file must be included
+       # ㄴ https://developer.mozilla.org/ko/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+       # ㄴ https://www.nginx.com/resources/wiki/start/topics/examples/full/#mime-types
+       default_type application/octet-stream
+       # ㄴ https://developer.mozilla.org/en-US/docs/Learn/Server-side/Configuring_server_MIME_types
+       # root /Users/ftinx/www # Please enter an absolute root path
+       server {
+           server_name default_server
+           listen 1234 # port
+           default_error_page default_error.html # Change the default error page
+           # content_length 2048
+           location / {
+               limit_except GET # Allowed methods GET HEAD PUT POST OPTIONS DELETE TRACE
+               # cgi .bin .cgi .bla
+               # cgi_path /Users/ftinx/cgi-bin/cgi_tester
+               index index.html index.htm index.php
+               # limit_body_size 100 # http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
+               # root /Users/ftinx/www
+               auth_basic ftinx
+               auth_basic_user_file ../.auth/.htpasswd_default # default id/pwd : ftinx/1234
+               autoindex on
+           }
+           location /redirect {  # second location block for test'302 Found' redirection
+               limit_except GET
+               return 302 /
+           }
+       }
+       server { # second server block for test '301 Moved Permanently' redirection
+           server_name redirect_server
+           listen 9999
+           return 301 https://42seoul.kr/
+       }
+   }
+   ```
+
+   
 
 
 
