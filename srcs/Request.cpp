@@ -575,7 +575,6 @@ Request::getHeader(int fd)
 	ft::memset(buff, 0, SOCK_BUFF);
 	if (m_should_read == false && this->m_raw_header == "")
 	{
-		ft::console_log("----recv1 ------");
 		if ((ret = recv(fd, buff, SOCK_BUFF - 1, MSG_PEEK)) > 0)
 		{
 			std::string str(buff);
@@ -583,7 +582,6 @@ Request::getHeader(int fd)
 
 			if ((pos = str.find("\r\n\r\n")) != std::string::npos)
 			{
-				ft::console_log("----recv2 ------");
 				this->set_m_cut_bytes(pos + 4);
 				m_should_read = true;
 				free(buff);
@@ -591,7 +589,6 @@ Request::getHeader(int fd)
 			}
 			else
 			{
-				ft::console_log("----recv3 ------");
 				m_should_read = false;
 				if (ret == SOCK_BUFF - 1)
 					throw (HeaderIsTooLargeException());
@@ -604,8 +601,6 @@ Request::getHeader(int fd)
 			free(buff);
 			return (FAIL);
 		}
-		ft::console_log("----recv4 ------" + std::to_string(ret));
-		/* ret <= 0 아직 고려 안함 */
 	}
 	else if (m_should_read && m_raw_header == "")
 	{
@@ -633,8 +628,6 @@ Request::getHeader(int fd)
 		}
 	}
 	free(buff);
-	printf("iden =====::%d::======::%d::\n", m_raw_header == "", m_should_read == false);
-	ft::console_log("GETHEADER | ::" + m_raw_header + "::");
 	ft::console_log("GETHEADER | return CONTINUE");
 	return (CONTINUE); // 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때
 }

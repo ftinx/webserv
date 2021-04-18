@@ -384,10 +384,10 @@ Server::readProcess()
 
 			if (fd_iter->type == CGI_PIPE)
 			{
-				Request &request = this->m_requests[fd_iter->clientfd];
+				// Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
-				int status;
+				// int status;
 				// char buff[SOCK_BUFF];
 				char *buff =  (char*)malloc(sizeof(char) * SOCK_BUFF);
 				//kill(request.get_m_cgi_pid(), SIGTERM);
@@ -395,7 +395,6 @@ Server::readProcess()
 				ft::memset(buff, 0, SOCK_BUFF);
 				// if (status == 0)
 				// {
-				waitpid(request.get_m_cgi_pid(), &status, 0);
 				if( 0 < (ret = read(sockfd, buff, SOCK_BUFF - 1)))
 				{
 					ft::console_log("++++++ READ PROCESS(pipe): " + std::to_string(ret));
@@ -448,13 +447,12 @@ Server::readProcess()
 					}
 					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
-						ft::console_log("ONLY HEADER | method: "+ std::to_string(request.get_m_method()));
 						ft::console_log("ONLY HEADER | uri: "+ request.get_m_reset_path());
 						ft::console_log("ONLY HEADER | fd: "+ std::to_string(sockfd));
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
-							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
+							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;
 							std::cout << "SET WRITE FD :D" << std::endl;
 							ft::fdSet(sockfd, m_write_fds);
 						}
@@ -529,7 +527,7 @@ Server::writeProcess()
 				// int content_length = body.size();
 				// int written_bytes = request.get_m_written_bytes();
 				// int buffsize = std::min(SOCK_BUFF, content_length - written_bytes);
-				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
+				int buffsize = std::min(CGI_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
 				size_t ret = 0;
 				static int tmp = 0;
 
@@ -576,16 +574,22 @@ Server::writeProcess()
 				}
 				if (buffsize == 0 && ret == 0 && (request.get_m_read_end() == true))
 				{
+					int status;
 					ft::console_log("RET IS 0");
-					ft::console_log("RET IS 0 BODY _____ ");
+					ft::console_log("RET IS 0 BODY _____ " + std::to_string(WIFEXITED(status)));
 					write(request.get_m_check_fd(), "end", 3);
+					sleep(3);
+					waitpid(request.get_m_cgi_pid(), &status, 0);
+					// if (WIFEXITED(status))
+					// {
 					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
-					ft::fdClr(sockfd, this->m_write_fds);
+					ft::fdClr(request.get_m_cgi_stdout(), this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					return (true);
+					// }
 				}
 				else if (ret < 0)
 				{
@@ -595,8 +599,6 @@ Server::writeProcess()
 					*m_maxfd = findMaxFd();
 					return (false);
 				}
-
-
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
@@ -623,7 +625,7 @@ Server::writeProcess()
 						const std::string &body = response.get_m_cgi_response();
 						int content_length = body.size();
 						// buffsize = std::min(content_length - pos, 32768); //chunked writingd
-						buffsize = std::min(content_length - pos, SOCK_BUFF); // mess writig
+						buffsize = std::min(content_length - pos, GAEBOKCHI); // mess writig
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
 						{
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -641,8 +643,8 @@ Server::writeProcess()
 						{
 							ft::console_log("------ END ");
 							close(m_requests[sockfd].get_m_cgi_stdout());
-							unlink("/tmp/.tmptext1");
-							unlink("/tmp/.tmptext2");
+							unlink((std::string("/tmp/.tmptext1_") + std::to_string(sockfd)).c_str());
+							unlink((std::string("/tmp/.tmptext2_") + std::to_string(sockfd)).c_str());
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -1270,10 +1272,10 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	/* 최적화 open close 해줘야함. */
 	// int parent_write = fds2[1];
 	// int cgi_stdin = fds2[0];
-	int parent_write = open("/tmp/.tmptext2", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open("/tmp/.tmptext2", O_RDONLY);
-	int parent_read = open("/tmp/.tmptext", O_RDONLY);
-	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_write = open((std::string("/tmp/.tmptext2_") + std::to_string(clientfd)).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open((std::string("/tmp/.tmptext2_") + std::to_string(clientfd)).c_str(), O_RDONLY);
+	int parent_read = open((std::string("/tmp/.tmptext1_") + std::to_string(clientfd)).c_str(), O_RDONLY);
+	int cgi_stdout = open((std::string("/tmp/.tmptext1_") + std::to_string(clientfd)).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 
 	/* set fd nonblock */
@@ -1284,7 +1286,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	std::cout << "Execute Cgi === "<< req.get_m_path_translated().c_str() << std::endl;
-	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
+	req.set_m_check_fd(open((std::string("/tmp/.check_fd") + std::to_string(clientfd)).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1295,13 +1297,11 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		while (42)
 		{
 			int ha;
-			ha = stat("/tmp/.check_fd", &buff);
-			printf("---- %d %lld\n", ha, buff.st_size);
-			sleep(1);
+			ha = stat((std::string("/tmp/.check_fd") + std::to_string(clientfd)).c_str(), &buff);
 			if (buff.st_size > 0)
 			{
 				close(req.get_m_check_fd());
-				unlink("/tmp/.check_fd");
+				//unlink((std::string("/tmp/.check_fd") + std::to_string(clientfd)).c_str());
 				break ;
 			}
 		}
