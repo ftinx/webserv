@@ -634,7 +634,7 @@ Request::getBody(int fd)
 	char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
 
 	ft::memset(buff, 0, SOCK_BUFF);
-	if (m_content_length >= 0)
+	if (m_chunked == false && m_content_length >= 0)
 	{
 		ret = read(fd, buff, m_content_length);
 		if (ret == m_content_length)
@@ -681,6 +681,8 @@ Request::getBody(int fd)
 
 			size_t i = it_size % 2;
 			m_cut_bytes = 0;
+			if (m_content_length == -1)
+				m_content_length = 0;
 			for (it = lines.begin(); it != lines.end() - i; ++it)
 			{
 				num = std::strtol((*it).c_str(), &temp, 16);
@@ -707,10 +709,15 @@ Request::getBody(int fd)
 					return (CONTINUE);
 				}
 				m_body += *it;
+				m_content_length += num;
 				m_cut_bytes += num + numlen + 2;
 			}
+			ft::console_log("chunked limit_body_size: " + std::to_string(m_location_block.get_m_limit_body_size()));
+			if (m_location_block.get_m_limit_body_size() < m_content_length)
+			{
+				m_error_code = 413;
+			}
 			ft::console_log("m_cut_bytes: "+ std::to_string(m_cut_bytes));
-			ft::console_log("m_chunked_bytes: "+ std::to_string(num));
 			m_should_read = true;
 			free(buff);
 			return (CONTINUE);
@@ -721,11 +728,9 @@ Request::getBody(int fd)
 			** CGI 의 SUCCESS 는 chunked 를 다 읽었을 때
 			** 일반 요청의 SUCCESS는 0/r/n/r/n 까지 다 읽었을 때
 			*/
-			static int myname = 0;
 			ft::console_log("------ chunked read ------");
 			ret = read(fd, buff, m_cut_bytes);
-			myname += ret;
-			ft::console_log("=============================================="+std::to_string(myname));
+			ft::console_log("=============================================="+std::to_string(ret));
 			// if (ret == m_cut_bytes && m_check_cgi == true)
 			// {
 			// 	m_should_read = false;

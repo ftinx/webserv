@@ -634,16 +634,20 @@ Server::writeProcess()
 						ft::console_log("++++++ WRITE PROCESS(sock) | num : " + num);
 						ft::console_log("++++++ WRITE PROCESS(sock) | pos : " + std::to_string(pos));
 						ft::console_log("++++++ WRITE PROCESS(sock) | buf : " + std::to_string(buffsize));
-						ft::console_log("finish body: \n");
 						response.set_m_pos(pos + buffsize);
 						if (buffsize == 0)
 						{
-							std::cout << "------ END " << pos << std::endl;
+							ft::console_log("------ END ");
+							close(m_requests[sockfd].get_m_cgi_stdout());
+							unlink("/tmp/.tmptext1");
+							unlink("/tmp/.tmptext2");
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
+
 							return (true);
 						}
+						ft::console_log("finish body: \n");
 					}
 
 				}
