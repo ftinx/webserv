@@ -16,9 +16,9 @@
 
 # define BUFFER_SIZE 4096
 // # define CGI_BUFF 65536
-# define CGI_BUFF 4000000
+# define CGI_BUFF 10000000
 // # define CGI_BUFF 32768
-# define SOCK_BUFF 4000000
+# define SOCK_BUFF 10000000
 // # define SOCK_BUFF 680000
 # define RESV_SIZE INT_MAX
 

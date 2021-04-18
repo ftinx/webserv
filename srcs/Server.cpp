@@ -307,8 +307,9 @@ Server::acceptSocket()
 		std::cerr << "accept error" << std::endl;
 		return ;
 	}
-	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
 	ft::fdSet(this->m_client_socket, this->m_main_fds);
+	fcntl(m_client_socket, F_SETFL, O_NONBLOCK);
+	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
 	if (this->m_client_socket > *this->m_maxfd)
 		*(this->m_maxfd) = this->m_client_socket;
 	std::cerr << "Accept OK" << std::endl;
@@ -387,14 +388,15 @@ Server::readProcess()
 				Response &response = this->m_responses[fd_iter->clientfd];
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
 				int status;
-				char buff[CGI_BUFF];
+				// char buff[SOCK_BUFF];
+				char *buff =  (char*)malloc(sizeof(char) * SOCK_BUFF);
 				//kill(request.get_m_cgi_pid(), SIGTERM);
 				//waitpid(request.get_m_cgi_pid(), &status, 0);
-				ft::memset(buff, 0, CGI_BUFF);
+				ft::memset(buff, 0, SOCK_BUFF);
 				// if (status == 0)
 				// {
 				waitpid(request.get_m_cgi_pid(), &status, 0);
-				if( 0 < (ret = read(sockfd, buff, CGI_BUFF - 1)))
+				if( 0 < (ret = read(sockfd, buff, SOCK_BUFF - 1)))
 				{
 					ft::console_log("++++++ READ PROCESS(pipe): " + std::to_string(ret));
 					response.setCgiResponse(buff);
@@ -526,8 +528,8 @@ Server::writeProcess()
 				const std::string &body = request.get_m_body();
 				// int content_length = body.size();
 				// int written_bytes = request.get_m_written_bytes();
-				// int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
-				int buffsize = std::min(CGI_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
+				// int buffsize = std::min(SOCK_BUFF, content_length - written_bytes);
+				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
 				size_t ret = 0;
 				static int tmp = 0;
 
@@ -551,7 +553,7 @@ Server::writeProcess()
 				// 	written_bytes += ret;
 				// 	request.set_m_written_bytes(written_bytes);
 				// 	std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
-				// 	buffsize = std::min(CGI_BUFF, content_length - written_bytes);
+				// 	buffsize = std::min(SOCK_BUFF, content_length - written_bytes);
 				// 	ft::fdClr(sockfd, m_write_fds);
 				// 	return (false);
 				// }
@@ -660,7 +662,7 @@ Server::writeProcess()
 					{
 						this->m_requests[sockfd] = Request(); // 안해줘도 되지 않나
 						response.set_m_pos(pos + ret);
-						std::cout << "------ OK " << pos << std::endl;
+						ft::console_log("------ OK " + std::to_string(pos));
 						return (false);
 					}
 				}
@@ -688,7 +690,9 @@ Server::writeProcess()
 				}
 				if (ret <= 0)
 				{
-					std::cout << "------ END " << pos << std::endl;
+					static int youpiget = 0;
+					ft::console_log("------ END " + std::to_string(pos) + ":=================::" + std::to_string(youpiget));
+					youpiget++;
 					this->m_requests[sockfd] = Request();
 					this->m_responses[sockfd] = Response();
 					ft::fdClr(sockfd, m_write_fds);
