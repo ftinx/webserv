@@ -17,7 +17,7 @@ class HttpConfigLocation
 		bool m_autoindex;
 		std::vector<std::string> m_auth_basic;
 		std::string m_auth_basic_user_file;
-		int m_limit_body_size;
+		long m_limit_body_size;
 		std::vector<std::string> m_redirect;
 
 	public:
@@ -36,7 +36,7 @@ class HttpConfigLocation
 		bool get_m_autoindex() const;
 		std::vector<std::string> get_m_auth_basic() const;
 		std::string get_m_auth_basic_user_file() const;
-		int get_m_limit_body_size() const;
+		long get_m_limit_body_size() const;
 		std::vector<std::string> get_m_redirect() const;
 
 		/* setter */
