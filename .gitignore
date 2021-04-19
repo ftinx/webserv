@@ -2,6 +2,12 @@
 Webserv
 *.log
 console_log
+.htpasswd_jwon
+.htpasswd_holee
+.htpasswd_yechoi
+jwon.conf
+holee.conf
+yechoi.conf
 
 # Created by https://www.toptal.com/developers/gitignore/api/c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++
