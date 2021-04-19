@@ -186,7 +186,6 @@ ServerManager::runServers()
 				std::cout << errno << std::endl;
 				return ;
 			case 0:
-<<<<<<< HEAD
 				// ft::console_log("Timeout Reset");
 				std::cerr << "Timeout Reset" << std::endl;
 				int max_server_socket;
@@ -209,9 +208,6 @@ ServerManager::runServers()
 					if (this->m_maxfd < this->m_server[i]->get_m_server_socket())
 						this->m_maxfd = this->m_server[i]->get_m_server_socket();
 				}
-=======
-				std::cerr << "timeout" << std::endl;
->>>>>>> 324ff118f745f938e1523ced0e0bd39ec4e2a1b9
 			default:
 				for (size_t i = 0; i < this->m_server_size; i++) {
 					this->m_server[i]->getRequest(&this->m_main_fds, &this->m_read_fds,
