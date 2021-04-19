@@ -19,6 +19,7 @@
 # define CGI_BUFF 10000000
 // # define CGI_BUFF 32768
 # define SOCK_BUFF 10000000
+# define READ_BUFF 200
 // # define SOCK_BUFF 680000
 # define GAEBOKCHI 262144
 # define RESV_SIZE INT_MAX
@@ -114,7 +115,7 @@ namespace ft
 	Method getMethodType(const std::string &str);
 	std::string getMethodString(const Method &method);
 	std::string getErrorMessage(int status_code);
-	void console_log(std::string str);
+	void console_log(std::string str, int work=0);
 
 	/* PASRSE CONFIG */
 	bool checkBlankStr(std::string str);

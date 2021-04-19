@@ -583,14 +583,15 @@ int
 Request::getHeader(int fd)
 {
 	int ret = 0;
-	char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
-
-	ft::memset(buff, 0, SOCK_BUFF);
+	// char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
+	char buff[READ_BUFF];
+	// ft::memset(buff, 0, SOCK_BUFF);
 	if (m_should_read == false && this->m_raw_header == "")
 	{
 		ft::console_log("----recv1 ------");
-		if ((ret = recv(fd, buff, SOCK_BUFF - 1, MSG_PEEK)) > 0)
+		if ((ret = recv(fd, buff, READ_BUFF - 1, MSG_PEEK)) > 0)
 		{
+			buff[ret] = '\0';
 			std::string str(buff);
 			std::string header;
 			size_t tmp;
@@ -632,7 +633,7 @@ Request::getHeader(int fd)
 				this->set_m_cut_bytes(last_pos);
 				m_should_read = true;
 				m_header_bytes = first_pos;
-				free(buff);
+				// free(buff);
 				ft::console_log("----recv3 ------" + std::to_string(m_count_message) + " " + std::to_string(m_cut_bytes));
 				return (CONTINUE);
 			}
@@ -640,15 +641,15 @@ Request::getHeader(int fd)
 			{
 				ft::console_log("----recv3 ------");
 				m_should_read = false;
-				if (ret == SOCK_BUFF - 1)
+				if (ret == READ_BUFF - 1)
 					throw (HeaderIsTooLargeException());
-				free(buff);
+				// free(buff);
 				return (CONTINUE);
 			}
 		}
 		else if (ret <= 0)
 		{
-			free(buff);
+			// free(buff);
 			return (FAIL);
 		}
 		ft::console_log("----recv4 ------" + std::to_string(ret));
@@ -658,6 +659,7 @@ Request::getHeader(int fd)
 	{
 		ft::console_log("----read1 ------" + std::to_string(m_count_message));
 		ret = read(fd, buff, m_cut_bytes);
+		buff[ret] = '\0';
 		if (ret == m_cut_bytes) // 헤더 다 받았을 때
 		{
 			ft::console_log("----read3 ------" + std::to_string(m_count_message));
@@ -668,13 +670,13 @@ Request::getHeader(int fd)
 			m_raw_header.append(buff);
 			m_should_read = false;
 			parseRawHeader();
-			free(buff);
+			// free(buff);
 			ft::console_log("GETHEADER | return SUCCESS");
 			return (SUCCESS);
 		}
 		else if (ret <= 0)
 		{
-			free(buff);
+			// free(buff);
 			m_should_read = false;
 			ft::console_log("GETHEADER | return FAIL");
 			return (FAIL);
@@ -685,8 +687,8 @@ Request::getHeader(int fd)
 			m_cut_bytes -= ret;
 		}
 	}
-	free(buff);
-	printf("iden =====::%d::======::%d::\n", m_raw_header == "", m_should_read == false);
+	// // free(buff);
+	// printf("iden =====::%d::======::%d::\n", m_raw_header == "", m_should_read == false);
 	ft::console_log("GETHEADER | ::" + m_raw_header + "::");
 	ft::console_log("GETHEADER | return CONTINUE");
 	return (CONTINUE); // 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때
@@ -807,7 +809,6 @@ Request::getBody(int fd)
 			// else if (ret == m_cut_bytes && m_check_cgi == false)
 			if (ret == m_cut_bytes)
 			{
-				printf("------m_cut_bytes %d -----\n", m_cut_bytes);
 				buff[m_cut_bytes - 2] ='\0';
 				if (strlen(buff) >= 3 && strncmp(buff + strlen(buff) - 3, "0\r\n", 3) == 0) /* chunked 메세지의 마지막을 탐지 0\r\n\r\n */
 				{

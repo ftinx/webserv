@@ -456,8 +456,7 @@ Server::readProcess()
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
-							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
-							std::cout << "SET WRITE FD :D" << std::endl;
+							ft::console_log("STATUS CODE: " + std::to_string(this->m_responses[sockfd].get_m_status_code()));
 							ft::fdSet(sockfd, m_write_fds);
 						}
 					}
@@ -695,7 +694,7 @@ Server::writeProcess()
 				if (ret <= 0)
 				{
 					static int youpiget = 0;
-					ft::console_log("------ END " + std::to_string(pos) + ":=================::" + std::to_string(youpiget));
+					ft::console_log("------ END " + std::to_string(pos) + ":=================::" + std::to_string(youpiget), 1);
 					youpiget++;
 					this->m_requests[sockfd] = Request();
 					this->m_responses[sockfd] = Response();
