@@ -123,10 +123,10 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 			char *tmp;
 			std::strtol(line.back().c_str(), &tmp, 10);
 			if (*tmp)
-				throw std::exception();
+				throw ListenValueErrorException(lines[idx], idx);
 			this->m_listen = ft::stoi(line.back());
-			if (this->m_listen < 1024 || this->m_listen >= 49151)
-				throw std::exception();
+			if (this->m_listen < 1024 || this->m_listen > 49151)
+				throw ListenValueErrorException(lines[idx], idx);
 		}
 		else if (line.front().compare("default_error_page") == 0)
 		{
@@ -151,12 +151,12 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 			}
 			char *tmp;
 			std::strtol(this->m_redirect[0].c_str(), &tmp, 10);
-			if (*tmp || this->m_redirect.size() != 2)
-				throw std::exception();
-			if (this->m_redirect[0].compare("301") != 0 &&
+			if (*tmp ||
+				(this->m_redirect.size() != 2) ||
+				(this->m_redirect[0].compare("301") != 0 &&
 				this->m_redirect[0].compare("302") != 0 &&
-				this->m_redirect[0].compare("307") != 0) // 301 302 307 확인 후 아니면 에러
-				throw std::exception();
+				this->m_redirect[0].compare("307") != 0)) // 301 302 307 확인 후 아니면 에러
+				throw ReturnMethodErrorException(lines[idx], idx);
 			return_exist = true;
 		}
 		else if (line.front().compare("location") == 0)
