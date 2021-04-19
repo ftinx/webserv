@@ -7,16 +7,15 @@
 /*============================================================================*/
 
 Request::Request()
-: m_message(""), m_http_version(""), m_cgi_version(""), m_check_cgi(false),
+: m_message(""), m_http_version(""), m_check_cgi(false),
 m_method(DEFAULT), m_uri(), m_raw_header(""), m_headers(), m_body(""),
-m_content_length(-1), m_written_bytes(0),
-m_error_code(0),m_reset_path(""), m_location_block(), m_read_end(false),
+m_content_length(-1), m_error_code(0),m_reset_path(""), m_location_block(), m_read_end(false),
 m_path_translated(""), m_path_info(""), m_script_name(""),
 m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1), m_check_fd(-1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
-m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0), m_chunked_bytes(0),
-m_should_peek(false),m_should_read(false), m_got_all_msg(false), m_count_message(0)
+m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0),
+m_should_read(false), m_count_message(0)
 {
 }
 
@@ -31,7 +30,6 @@ Request& Request::operator=(Request const &rhs)
 		return (*this);
 	this->m_message = rhs.get_m_message();
 	this->m_http_version = rhs.get_m_http_version();
-	this->m_cgi_version = rhs.get_m_cgi_version();
 	this->m_check_cgi = rhs.get_m_check_cgi();
 	this->m_method = rhs.get_m_method();
 	this->m_uri = rhs.get_m_uri();
@@ -39,7 +37,6 @@ Request& Request::operator=(Request const &rhs)
 	this->m_headers = rhs.get_m_headers();
 	this->m_body = rhs.get_m_body();
 	this->m_content_length = rhs.get_m_content_length();
-	this->m_written_bytes = rhs.get_m_written_bytes();
 	this->m_error_code = rhs.get_m_error_code();
 	this->m_reset_path = rhs.get_m_reset_path();
 	this->m_location_block = rhs.get_m_location_block();
@@ -60,10 +57,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_header_bytes =  rhs.get_m_header_bytes();
 	this->m_body_bytes =  rhs.get_m_body_bytes();
 	this->m_cut_bytes = rhs.get_m_cut_bytes();
-	this->m_chunked_bytes =  rhs.get_m_chunked_bytes();
-	this->m_should_peek =  rhs.get_m_should_peek();
 	this->m_should_read =  rhs.get_m_should_read();
-	this->m_got_all_msg = rhs.get_m_got_all_msg();
 	this->m_count_message = rhs.get_m_count_message();
 	return (*this);
 }
@@ -93,13 +87,6 @@ Request::get_m_http_version() const
 {
 	return (this->m_http_version);
 }
-
-std::string
-Request::get_m_cgi_version() const
-{
-	return (this->m_cgi_version);
-}
-
 
 bool
 Request::get_m_check_cgi() const
@@ -141,12 +128,6 @@ int
 Request::get_m_content_length() const
 {
 	return (this->m_content_length);
-}
-
-int
-Request::get_m_written_bytes() const
-{
-	return (this->m_written_bytes);
 }
 
 int
@@ -270,28 +251,10 @@ Request::get_m_cut_bytes() const
 	return (this->m_cut_bytes);
 }
 
-int
-Request::get_m_chunked_bytes() const
-{
-	return (this->m_chunked_bytes);
-}
-
-bool
-Request::get_m_should_peek() const
-{
-	return (this->m_should_peek);
-}
-
 bool
 Request::get_m_should_read() const
 {
 	return (this->m_should_read);
-}
-
-bool
-Request::get_m_got_all_msg() const
-{
-	return (this->m_got_all_msg);
 }
 
 int
@@ -311,12 +274,6 @@ Request::set_m_http_version(std::string http_version)
 }
 
 void
-Request::set_m_cgi_version(std::string cgi_version)
-{
-	this->m_cgi_version = cgi_version;
-}
-
-void
 Request::set_m_check_cgi(bool flag)
 {
 	this->m_check_cgi = flag;
@@ -332,12 +289,6 @@ void
 Request::set_m_body(std::string body)
 {
 	this->m_body = body;
-}
-
-void
-Request::set_m_written_bytes(int written_bytes)
-{
-	this->m_written_bytes = written_bytes;
 }
 
 void
@@ -470,17 +421,17 @@ Request::getAcceptLanguage()
 	std::map<std::string, std::string>::const_iterator it;
 	it = this->m_headers.find("Accept-Language");
 
-	// `Accept-Language Header` not exist
+	/* `Accept-Language Header` not exist */
 	if (it == this->m_headers.end())
 		return (this->m_content_type = "ko");
-	// Quality not exist
+	/* Quality not exist */
 	if ((*it).second.find(";") == std::string::npos)
 	{
 		if ((*it).second.find("en") == std::string::npos)
 			return (this->m_content_type = "ko");
 		return (this->m_content_type = "en");
 	}
-	// Quality exist
+	/* Quality exist */
 	std::vector<std::string> line;
 	std::string content_type = "";
 	float quality = 0;
@@ -491,7 +442,7 @@ Request::getAcceptLanguage()
 		{
 			std::vector<std::string> content_type_line;
 			content_type_line = ft::split(*line_iter, ';');
-			// Compare Quality
+			/* Compare Quality */
 			if (std::stof(content_type_line[1].substr(2)) > quality)
 			{
 				quality = std::stof(content_type_line[1].substr(2));
@@ -499,7 +450,6 @@ Request::getAcceptLanguage()
 			}
 		}
 	}
-	// std::cout << content_type << std::endl;
 	return (this->m_content_type = content_type);
 }
 
@@ -509,7 +459,7 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 	size_t pos;
 	std::string tmp;
 
-	/* chunked case */
+	/* Transfered-encoding: chunked 에서 메세지의 끝 탐지하기*/
 	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
 		*chunked = true;
 	else if ((pos = this->m_message.find("transfer-encoding: chunked")) != std::string::npos)
@@ -525,11 +475,10 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 		this->m_body_bytes = this->m_message.size() - m_header_bytes;
 		this->m_cut_bytes = buff.find("0\r\n\r\n") + 5;
 		this->m_chunked_finished_read = true;
-		std::cout << "CASE 1" << std::endl;
 		return (true);
 	}
-
-	/* content-length case */
+	/* content-length 또는 헤더만 온 경우 메세지 끝 탐지하기 */
+	/* -- content-length 파싱하기 */
 	int content_length = 0;
 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
 	{
@@ -553,27 +502,11 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 			m_body_bytes = m_content_length;
 		}
 	}
+	/* 받아온 메세지가 content_length / header_bytes 보다 길때 읽을 위치(m_cut_bytes) 설정*/
 	if (*chunked == false && m_content_length >= 0 && (size_t)(m_content_length + m_header_bytes) <= m_message.size())
 	{
-		/* 받아온 메세지가 content_length보다 길때 */
 		this->m_message = this->m_message.substr(0, m_header_bytes + m_content_length);
 		m_cut_bytes = m_header_bytes + m_content_length;
-		std::cout << "CASE 2" << std::endl;
-		return (true);
-	}
-	else
-	{
-		/* 받아온 메세지가 content_length보다 짧으면 더 읽어야 */
-		return (false);
-	}
-
-
-	/* no body case */
-	if ((pos = this->m_message.find("\r\n\r\n")) != std::string::npos && *chunked == false)
-	{
-		std::cout << "CASE 3" << std::endl;
-		this->m_message = this->m_message.substr(0, pos + 4);
-		m_cut_bytes = m_header_bytes;
 		return (true);
 	}
 	return (false);
@@ -583,13 +516,11 @@ int
 Request::getHeader(int fd)
 {
 	int ret = 0;
-	// char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
-	char buff[READ_BUFF];
-	// ft::memset(buff, 0, SOCK_BUFF);
+	char buff[HEADER_BUFF];
+
 	if (m_should_read == false && this->m_raw_header == "")
 	{
-		ft::console_log("----recv1 ------");
-		if ((ret = recv(fd, buff, READ_BUFF - 1, MSG_PEEK)) > 0)
+		if ((ret = recv(fd, buff, HEADER_BUFF - 1, MSG_PEEK)) > 0)
 		{
 			buff[ret] = '\0';
 			std::string str(buff);
@@ -597,32 +528,25 @@ Request::getHeader(int fd)
 			size_t tmp;
 			size_t last_pos;
 			size_t first_pos;
-			ft::console_log("*************************");
-			ft::console_log(str);
-			ft::console_log("*************************");
 
+			/* header 위치 찾아내서 m_cut_bytes로 설정 */
 			if ((first_pos = str.find("\r\n\r\n")) != std::string::npos)
 			{
-				/* 끝 buff 까지 읽고 count 세고 cutbytes 조정 */
 				m_count_message = 1;
 				first_pos += 4;
 				header = str.substr(0, first_pos);
 				last_pos = first_pos;
-				ft::console_log("----recv2 ------\n" + header);
+				/* 헤더만 들어오는 메세지가 동일하게 여러번 들어왔을 때 개수를 세줌 */
 				while (last_pos < static_cast<size_t>(ret))
 				{
-					ft::console_log("----recv2-1 ------");
 					if ((tmp = str.find("\r\n\r\n", last_pos + 1)) != std::string::npos)
 					{
-						ft::console_log("----recv-2-2 ------");
 						if (str.compare(last_pos, first_pos, header) == 0)
 						{
-							ft::console_log("----recv-2-3 ------");
 							m_count_message += 1;
 						}
 						else
 						{
-							ft::console_log("----recv-2-4 ------");
 							break;
 						}
 						last_pos = tmp + 4;
@@ -633,36 +557,30 @@ Request::getHeader(int fd)
 				this->set_m_cut_bytes(last_pos);
 				m_should_read = true;
 				m_header_bytes = first_pos;
-				// free(buff);
-				ft::console_log("----recv3 ------" + std::to_string(m_count_message) + " " + std::to_string(m_cut_bytes));
 				return (CONTINUE);
 			}
+			/* header 위치 찾아낼 수 없으면 더 읽어야 */
 			else
 			{
-				ft::console_log("----recv3 ------");
 				m_should_read = false;
-				if (ret == READ_BUFF - 1)
+				/* 읽어낼 수 있는 헤더 크기를 넘었을 때 오류 처리 */
+				if (ret == HEADER_BUFF - 1)
 					throw (HeaderIsTooLargeException());
-				// free(buff);
 				return (CONTINUE);
 			}
 		}
 		else if (ret <= 0)
 		{
-			// free(buff);
 			return (FAIL);
 		}
-		ft::console_log("----recv4 ------" + std::to_string(ret));
-		/* ret <= 0 아직 고려 안함 */
 	}
 	else if (m_should_read && m_raw_header == "")
 	{
-		ft::console_log("----read1 ------" + std::to_string(m_count_message));
 		ret = read(fd, buff, m_cut_bytes);
 		buff[ret] = '\0';
-		if (ret == m_cut_bytes) // 헤더 다 받았을 때
+		/* 헤더만 온전히 읽어왔을 때 */
+		if (ret == m_cut_bytes)
 		{
-			ft::console_log("----read3 ------" + std::to_string(m_count_message));
 			if (m_count_message != 1)
 			{
 				buff[m_header_bytes] = '\0';
@@ -670,28 +588,23 @@ Request::getHeader(int fd)
 			m_raw_header.append(buff);
 			m_should_read = false;
 			parseRawHeader();
-			// free(buff);
-			ft::console_log("GETHEADER | return SUCCESS");
 			return (SUCCESS);
 		}
+		/* read 실패 */
 		else if (ret <= 0)
 		{
-			// free(buff);
 			m_should_read = false;
-			ft::console_log("GETHEADER | return FAIL");
 			return (FAIL);
 		}
-		else if (ret < m_cut_bytes) // 헤더 덜 받아서 또 read 해야
+		/*  헤더 덜 받아서 또 read 해야 */
+		else if (ret < m_cut_bytes)
 		{
 			m_raw_header.append(buff);
 			m_cut_bytes -= ret;
 		}
 	}
-	// // free(buff);
-	// printf("iden =====::%d::======::%d::\n", m_raw_header == "", m_should_read == false);
-	ft::console_log("GETHEADER | ::" + m_raw_header + "::");
-	ft::console_log("GETHEADER | return CONTINUE");
-	return (CONTINUE); // 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때
+	/* 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때 */
+	return (CONTINUE);
 }
 
 int
@@ -701,23 +614,26 @@ Request::getBody(int fd)
 	char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
 
 	ft::memset(buff, 0, SOCK_BUFF);
+	/* m_content_length가 있는 경우, 그만큼만 body 읽어오기 */
 	if (m_chunked == false && m_content_length >= 0)
 	{
 		ret = read(fd, buff, m_content_length);
+		/* 읽어오려고 했던 만큼 온전히 다 읽었을 때 */
 		if (ret == m_content_length)
 		{
-			ft::console_log("++++++ READ PROCESS(SOCK): " + std::to_string(ret));
 			m_body.append(buff);
 			m_read_end = true;
 			free(buff);
 			return (SUCCESS);
 		}
+		/* read 실패 */
 		else if (ret <= 0 && m_content_length != 0)
 		{
 			free(buff);
 			return (FAIL);
 		}
-		else // body 읽어올 게 더 남았을 때
+		/* 읽어올 만큼 다 못읽어서 더 읽어야 할 때 */
+		else
 		{
 			m_body.append(buff);
 			m_content_length -= ret;
@@ -725,18 +641,19 @@ Request::getBody(int fd)
 			return (CONTINUE);
 		}
 	}
+	/* chunked의 경우, 훔쳐보면서 파싱과 동시에 읽을 양을 결정 */
 	else if (m_chunked == true)
 	{
-		if (m_should_read == false && m_raw_header != "") // 얼마나 읽을지 훔쳐보기
+		/* 최대 버퍼만큼 일단 훔쳐봄 */
+		if (m_should_read == false && m_raw_header != "")
 		{
-			ft::console_log("------ chunked peek ------");
 			ret = recv(fd, buff, SOCK_BUFF - 1, MSG_PEEK);
 			if (ret <= 0)
 			{
 				free(buff);
 				return (FAIL);
 			}
-
+			/* 훔쳐본 메세지 파싱 및 읽을 메세지 길이 설정 */
 			std::string str(buff);
 			std::string crlf("\r\n");
 			std::vector<std::string> lines = ft::split2(str, crlf);
@@ -779,60 +696,50 @@ Request::getBody(int fd)
 				m_content_length += num;
 				m_cut_bytes += num + numlen + 2;
 			}
-			ft::console_log("chunked limit_body_size: " + std::to_string(m_location_block.get_m_limit_body_size()));
+			/* 읽어온 바디가 conf에서 설정한 limit_body_size 보다 크면 에러처리 */
 			if (m_location_block.get_m_limit_body_size() < m_content_length)
 			{
 				m_error_code = 413;
 			}
-			ft::console_log("m_cut_bytes: "+ std::to_string(m_cut_bytes));
 			m_should_read = true;
 			free(buff);
 			return (CONTINUE);
 		}
-		else if (m_should_read == true &&  m_raw_header != "")// 위에서 설정한 만큼 읽어오기
+		/* 위에서 설정한 만큼만 읽어서 버퍼 비워주기 */
+		else if (m_should_read == true &&  m_raw_header != "")
 		{
 			/*
 			** CGI 의 SUCCESS 는 chunked 를 다 읽었을 때
 			** 일반 요청의 SUCCESS는 0/r/n/r/n 까지 다 읽었을 때
 			*/
-			ft::console_log("------ chunked read ------");
 			ret = read(fd, buff, m_cut_bytes);
-			ft::console_log("=============================================="+std::to_string(ret));
-			// if (ret == m_cut_bytes && m_check_cgi == true)
-			// {
-			// 	m_should_read = false;
-			// 	buff[m_cut_bytes - 2] ='\0';
-			// 	ft::console_log("CHHNKED BODY(success): ");
-			// 	free(buff);
-			// 	return (SUCCESS);
-			// }
-			// else if (ret == m_cut_bytes && m_check_cgi == false)
+			/* 목표한 만큼 다 읽었을 때 */
 			if (ret == m_cut_bytes)
 			{
 				buff[m_cut_bytes - 2] ='\0';
-				if (strlen(buff) >= 3 && strncmp(buff + strlen(buff) - 3, "0\r\n", 3) == 0) /* chunked 메세지의 마지막을 탐지 0\r\n\r\n */
+				/* chunked 메세지의 마지막을 탐지 0\r\n\r\n */
+				if (strlen(buff) >= 3 && strncmp(buff + strlen(buff) - 3, "0\r\n", 3) == 0)
 				{
-					ft::console_log("CHUNKED BODY(success): ");
 					m_should_read = false;
 					free(buff);
 					m_read_end = true;
 					return (SUCCESS);
 				}
-				ft::console_log("CHUNKED BODY(continue): ");
 				m_should_read = false;
 				free(buff);
 				return (CONTINUE);
 			}
+			/* 목표한 만큼 못읽었을 때 다시 읽어올 길이를 설정 */
 			else if (ret > 0)
 			{
 				buff[m_cut_bytes - 2] ='\0';
-				m_body += std::string(&(buff[m_cut_bytes - m_chunked_bytes - 2]));
+				m_body += std::string(&(buff[m_cut_bytes - 2]));
 				m_should_read = true;
 				m_cut_bytes -= ret;
-				ft::console_log("CHHNKED BODY(continue): ");
 				free(buff);
 				return (CONTINUE);
 			}
+			/* read 실패 */
 			else if (ret <= 0)
 			{
 				free(buff);
@@ -841,8 +748,6 @@ Request::getBody(int fd)
 			return (FAIL);
 		}
 	}
-	// content length 없고, chunked도 아닌 오로지 헤더만 들어온 요청
-	ft::console_log("only header");
 	return (CONTINUE);
 }
 
@@ -889,7 +794,6 @@ Request::parseRequestLine(std::string request_line)
 	this->m_method = ft::getMethodType(pieces[0]);
 	this->m_uri.set_m_uri(pieces[1]);
 	this->m_http_version = pieces[2];
-	ft::console_log("PARSE REQUEST LINE | method: "+ std::to_string(m_method));
 
 	if (this->m_uri.get_m_uri().size() > 8000)
 	{
@@ -967,7 +871,6 @@ Request::checkBlankLine(std::string str)
 bool
 Request::parseRawHeader()
 {
-	// size_t pos;
 	std::vector<std::string> lines = ft::split(m_raw_header, std::string("\r\n"));
 	std::vector<std::string>::const_iterator it;
 
@@ -981,9 +884,6 @@ Request::parseRawHeader()
 			return(false);
 		}
 	}
-	ft::console_log("PARSE HEADER | path: " + m_uri.get_m_path());
-	ft::console_log("PARSE HEADER | version: " + m_http_version);
-	ft::console_log("PARSE HEADER | raw header: \n" + m_raw_header);
 	return (false);
 }
 
@@ -1040,7 +940,6 @@ Request::getRestPath()
 			if (path == "")
 				path = "/";
 			return (path);
-			// return (m_reset_path.substr(pos + (*it).size(), std::string::npos));
 		}
 	}
 	return ("/");
@@ -1079,7 +978,6 @@ Request::checkCGI()
 			this->m_path_translated = loc.get_m_cgi_path();
 			this->m_script_name = getScriptName(m_path_translated);
 			this->m_path_info = getRestPath();
-			// std::cout << "***** PATH INFO ******" << m_path_info << std::endl;
 		}
 		return (true);
 	}
