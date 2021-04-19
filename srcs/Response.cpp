@@ -1,10 +1,6 @@
 #include "Response.hpp"
 
 /*============================================================================*/
-/****************************  Static variables  ******************************/
-/*============================================================================*/
-
-/*============================================================================*/
 /******************************  Constructor  *********************************/
 /*============================================================================*/
 
@@ -72,10 +68,6 @@ Response::~Response()
 }
 
 /*============================================================================*/
-/*******************************  Overload  ***********************************/
-/*============================================================================*/
-
-/*============================================================================*/
 /********************************  Getter  ************************************/
 /*============================================================================*/
 
@@ -91,7 +83,7 @@ Response::get_m_html_document() const
 	return (this->m_html_document);
 }
 
-std::string&
+std::string &
 Response::get_m_reponse_message()
 {
 	return (this->m_response_message);
@@ -186,13 +178,13 @@ Response::get_m_headers() const
 	return (this->m_headers);
 }
 
-std::string&
+std::string &
 Response::get_m_cgi_header()
 {
 	return (this->m_cgi_header);
 }
 
-std::string&
+std::string &
 Response::get_m_cgi_response()
 {
 	return (this->m_cgi_response);
@@ -301,7 +293,7 @@ void
 Response::set_m_content_length(int content_length)
 {
 	this->m_content_length = content_length;
-	return;
+	return ;
 }
 
 void
@@ -326,28 +318,8 @@ Response::set_m_pos(int pos)
 }
 
 /*============================================================================*/
-/******************************  Exception  ***********************************/
-/*============================================================================*/
-
-/*============================================================================*/
 /*********************************  Util  *************************************/
 /*============================================================================*/
-
-// int
-// Response::findCgiStatusCode()
-// {
-// 	size_t pos;
-// 	int ret;
-// 	char *buff = (char *)this->m_cgi_response.c_str();
-
-// 	if ((pos = this->m_cgi_response.find("Status: ")) == std::string::npos
-// 		&& (pos = this->m_cgi_response.find("status: ")) == std::string::npos)
-// 		return (0);
-// 	ret = std::stoi(std::string(&buff[pos + std::strlen("Status: ")]));
-// 	if (ret >= 100 && ret < 600)
-// 		return (ret);
-// 	return (0);
-// }
 
 int
 Response::findCgiStatusCodeHeader()
@@ -369,14 +341,11 @@ Response::findCgiStatusCodeHeader()
 		+ "Transfer-Encoding: chunked" + "\r\n"
 		+ this->m_cgi_response.substr(pos + 2 , pos2 - pos - 2) + "\r\n\r\n";
 	this->m_cgi_response.erase(0, pos2 + 4);
-	// this->m_cgi_response = this->m_cgi_response.substr(pos2 + 4, std::string::npos);
 	this->m_has_cgi_response = true;
 	if (ret >= 100 && ret < 600)
 		return (ret);
 	return (0);
 }
-
-
 
 Response &
 Response::setStatusCode(int status_code)
@@ -562,7 +531,6 @@ Response::makeHttpResponseMessage(std::string method)
 
 	/* Set Response Config */
 	this->m_response_size = this->m_response_message.length();
-
 	return (*this);
 }
 
@@ -576,7 +544,6 @@ Response::makeCgiHttpResponseMessage()
 
 	/* Set Response Config */
 	this->m_response_size = this->m_response_message.size();
-
 	return (*this);
 }
 
@@ -606,38 +573,6 @@ Response::setMultipleResponses(int count)
 	}
 	return ;
 }
-
-/*
-**	gettimeofday()은 time(2)와 매우 비슷하지만 마이크로초 단위의 시간 까지 되돌려준다.
-**	현재는 time(2)를 대신해서 쓰이고 있으며, 가능한 time(2)대신 이 함수를 사용하는 걸 권장한다.
-**
-**	#include <sys/time.h>
-**	int gettimeofday(struct timeval *tv, struct timezone *tz);
-**
-**	<< tv >>
-**	struct timeval
-**	{
-**		long tv_sec;		// 초
-**		long tv_usec;		// 마이크로초
-**	}
-**
-**	<< tz >>
-**	struct timezone
-**	{
-**		int tz_minuteswest;	// 그리니치 서측분차
-**		int tz_dsttime;		// DST 보정타입(일광 절약시간)
-**	}
-**	현재 timezone 구조체는 사용되지 않고 있으며, 앞으로도 지원되지 않을 것이다.
-**	간혹 커널 소스등에서 이 필드가 사용되는 경우가 있는데, 모든 경우에 버그로 판단되어서 무시한다.
-**	tz은 NULL을 사용하도록 한다.
-**
-**	return === 0: success
-**	return === -1: fail
-**
-**	시간 구조체 함수 관계 참고: https://venture21.tistory.com/22
-**
-**	getDateTimestamp함수 Util.hpp 로 옮김.
-*/
 
 Response &
 Response::setCurrentDate(int hour, int minute, int second)
