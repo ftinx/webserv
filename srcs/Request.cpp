@@ -477,7 +477,7 @@ Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
 		this->m_chunked_finished_read = true;
 		return (true);
 	}
-	/* content-length 또는 헤더만 온 경우 메세지 끝 남지하기 */
+	/* content-length 또는 헤더만 온 경우 메세지 끝 탐지하기 */
 	/* -- content-length 파싱하기 */
 	int content_length = 0;
 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
