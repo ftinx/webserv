@@ -15,8 +15,13 @@
 # include <unistd.h>
 
 # define BUFFER_SIZE 4096
-# define CGI_BUFF 65536
-# define SOCK_BUFF 100000000
+// # define CGI_BUFF 65536
+# define CGI_BUFF 10000000
+// # define CGI_BUFF 32768
+# define SOCK_BUFF 10000000
+# define READ_BUFF 8000
+// # define SOCK_BUFF 680000
+# define GAEBOKCHI 262144
 # define RESV_SIZE INT_MAX
 
 enum Method
@@ -76,6 +81,7 @@ namespace ft
 	std::string trim(const std::string &str, const std::string &set);
 	std::vector<std::string> split(const std::string &str, const char &set);
 	std::vector<std::string> split(const std::string &str, const std::string &set);
+	std::vector<std::string> split2(const std::string &str, const std::string &set);
 
 	/* FD SET */
 	void fdZero(fd_set *fds);
@@ -94,6 +100,7 @@ namespace ft
 	/* TIME */
 	std::string getDateTimestamp(int hour, int minute, int second);
 	int compareTimestampToCurrent(std::string timestamp);
+	std::string compareDetailTimestampToCurrent(std::string timestamp);
 
 	/* BASE64 */
 	std::string encode(const std::string &input);
@@ -110,6 +117,7 @@ namespace ft
 	Method getMethodType(const std::string &str);
 	std::string getMethodString(const Method &method);
 	std::string getErrorMessage(int status_code);
+	void console_log(std::string str, int work=0);
 
 	/* PASRSE CONFIG */
 	bool checkBlankStr(std::string str);

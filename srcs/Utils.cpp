@@ -312,6 +312,26 @@ split(const std::string &str, const std::string &set)
 	return (ret);
 }
 
+std::vector<std::string>
+split2(const std::string &str, const std::string &set)
+{
+	std::size_t start = 0;
+	std::size_t pos_set = 0;
+	std::vector<std::string> ret;
+
+	while (start < str.length())
+	{
+		if (start == std::string::npos)
+			break ;
+		pos_set = str.find(set, start);
+		if (pos_set == std::string::npos)
+			pos_set = str.length();
+		ret.push_back(str.substr(start, (pos_set - start)));
+		start = pos_set + set.size();
+	}
+	return (ret);
+}
+
 /*============================================================================*/
 /*******************************  FD SET  *************************************/
 /*============================================================================*/
@@ -453,6 +473,22 @@ compareTimestampToCurrent(std::string timestamp)
 	strptime(timestamp.c_str(), "%a, %d %b %Y %H:%M:%S %Z", &timestamp_tm);
 	timestamp_timeval.tv_sec = mktime(&timestamp_tm);
 	return (current_timeval.tv_sec - timestamp_timeval.tv_sec);
+}
+
+std::string
+compareDetailTimestampToCurrent(std::string timestamp)
+{
+	struct timeval current_timeval;
+	struct timeval timestamp_timeval;
+	struct tm timestamp_tm;
+	std::string result = "";
+
+	gettimeofday(&current_timeval, NULL);
+	strptime(timestamp.c_str(), "%a, %d %b %Y %H:%M:%S %Z", &timestamp_tm);
+	timestamp_timeval.tv_sec = mktime(&timestamp_tm);
+	result = std::to_string(current_timeval.tv_sec - timestamp_timeval.tv_sec);
+	result += std::to_string(current_timeval.tv_usec - timestamp_timeval.tv_usec);
+	return (result);
 }
 
 /*============================================================================*/
@@ -763,6 +799,30 @@ getErrorMessage(int status_code)
 		default:
 			return (std::string("Undefined Status Code"));
 	}
+}
+
+void
+console_log(std::string str, int work)
+{
+	// static std::string end_loop_server = "";
+	if (!work)
+		return ;
+	// int fd;
+	std::string current_time = compareDetailTimestampToCurrent("Fri, 16 Apr 2021 19:36:00 KST");
+	// std::string current_time = ft::getDateTimestamp(0, 0, 0);
+	std::string log;
+	log = "[" + current_time + "] " + str;
+	// if ((fd = open("console_log", O_CREAT|O_RDWR|O_APPEND, S_IRWXU)) < 0)
+	// 	throw std::exception();
+	// ft::putendl_fd(log.c_str(), fd);
+	// if (str == "end loop server")
+	// {
+	// 	ft::putendl_fd((current_time + " - " + end_loop_server).c_str(), fd);
+	// 	end_loop_server = log;
+	// }
+	std::cout << "[" << current_time << "] " << str << std::endl;
+	// close(fd);
+	return ;
 }
 
 /*============================================================================*/

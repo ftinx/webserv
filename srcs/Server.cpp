@@ -3,6 +3,8 @@
 #include <bitset>
 #include <iostream>
 
+// int check_fd = open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666);
+
 char *bin2hex(const unsigned char *input, size_t len)
 {
     char *result;
@@ -305,8 +307,9 @@ Server::acceptSocket()
 		std::cerr << "accept error" << std::endl;
 		return ;
 	}
-	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
 	ft::fdSet(this->m_client_socket, this->m_main_fds);
+	fcntl(m_client_socket, F_SETFL, O_NONBLOCK);
+	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
 	if (this->m_client_socket > *this->m_maxfd)
 		*(this->m_maxfd) = this->m_client_socket;
 	std::cerr << "Accept OK" << std::endl;
@@ -316,7 +319,11 @@ Server::acceptSocket()
 void
 Server::handleRequest(int clientfd)
 {
-	Method method = this->m_requests[clientfd].get_m_method();
+	Request &request = this->m_requests[clientfd];
+	Method method = request.get_m_method();
+	ft::console_log("HANDLE REQUEST | fd: "+ std::to_string(clientfd));
+	ft::console_log("HANDLE REQUEST | method : " + std::to_string(method));
+	ft::console_log("HANDLE REQUEST | uri: "+ this->m_requests[clientfd].get_m_reset_path());
 
 	this->m_responses[clientfd] = Response();
 	if (this->m_requests[clientfd].get_m_error_code())
@@ -357,9 +364,12 @@ Server::handleRequest(int clientfd)
 				ft::getMethodString(method), getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
 			break;
 		}
+		this->m_responses[clientfd].setMultipleResponses(request.get_m_count_message());
+		request.set_m_count_message(0);
 	}
 	return ;
 }
+
 
 bool
 Server::readProcess()
@@ -371,30 +381,34 @@ Server::readProcess()
 		int sockfd = fd_iter->sockfd;
 		if (ft::fdIsSet(sockfd, this->m_read_fds))
 		{
+			int ret;
+			int status_code = 0;
+
 			if (fd_iter->type == CGI_PIPE)
 			{
-				std::cout << "::3::"<<std::endl;
-				// int status;
-				int ret;
-				int status_code = 0;
-				char buff[CGI_BUFF];
-
-				//kill(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), SIGTERM);
-				//waitpid(this->m_requests[fd_iter->clientfd].get_m_cgi_pid(), &status, 0);
-				ft::memset(buff, 0, CGI_BUFF);
+				Request &request = this->m_requests[fd_iter->clientfd];
+				Response &response = this->m_responses[fd_iter->clientfd];
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
+				int status;
+				// char buff[SOCK_BUFF];
+				char *buff =  (char*)malloc(sizeof(char) * SOCK_BUFF);
+				//kill(request.get_m_cgi_pid(), SIGTERM);
+				//waitpid(request.get_m_cgi_pid(), &status, 0);
+				ft::memset(buff, 0, SOCK_BUFF);
 				// if (status == 0)
 				// {
-				if( 0 < (ret = read(fd_iter->sockfd, buff, CGI_BUFF - 1)))
+				waitpid(request.get_m_cgi_pid(), &status, 0);
+				if( 0 < (ret = read(sockfd, buff, SOCK_BUFF - 1)))
 				{
-					buff[ret] = '\0';
-					this->m_responses[fd_iter->clientfd].setCgiResponse(buff);
+					ft::console_log("++++++ READ PROCESS(pipe): " + std::to_string(ret));
+					response.setCgiResponse(buff);
 					try
 					{
 						if (status_code == 0 &&
-							(status_code = this->m_responses[fd_iter->clientfd].findCgiStatusCodeHeader()))
+							(status_code = response.findCgiStatusCodeHeader()))
 						{
-							this->m_responses[fd_iter->clientfd].set_m_status_code(status_code);
-							m_responses[fd_iter->clientfd].set_m_has_cgi_response(true);
+							response.set_m_status_code(status_code);
+							response.set_m_has_cgi_response(true);
 						}
 					}
 					catch (std::exception &e)
@@ -405,52 +419,91 @@ Server::readProcess()
 					// ft::fdSet(fd_iter->clientfd, m_write_fds);
 					return (false);
 				}
-				if (ret == 0)
+				if (response.get_m_cgi_chunked_read_end() == true && ret == 0)
 				{
 					std::cout << "RET IS 0" << std::endl;
+					ft::console_log("::3:: RET 0 body size: " + std::to_string(response.get_m_body().size()));
 					close(fd_iter->sockfd);
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
-					this->m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
+					response.set_m_cgi_chunked_read_end(true);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					return (true);
 				}
-				// }
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
-				int ret;
-
-				std::cout << "::1:: " << sockfd << " ::" <<std::endl;
-				if ((ret = this->m_requests[sockfd].getMessage(sockfd)) == SUCCESS)
+				Request &request = this->m_requests[sockfd];
+				Response &response = this->m_responses[sockfd];
+				int header_status = request.getHeader(sockfd);
+				int body_status = -1;
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::");
+				if (header_status == SUCCESS)
 				{
-					std::cout << "GET MESSAGE SUCCESS " << std::endl;
-					resetRequest(&this->m_requests[sockfd]);
-					handleRequest(sockfd);
-					if (this->m_responses[sockfd].get_m_status_code() != 0)
+					resetRequest(&request);
+					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
 					{
-						std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
-						std::cout << "SET WRITE FD :D" << std::endl;
-						ft::fdSet(sockfd, m_write_fds);
+						/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
+						if (request.checkCGI() == true)
+							executeCgi(request, response, sockfd);
 					}
-					return (true);
+					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
+					{
+						ft::console_log("ONLY HEADER | method: "+ std::to_string(request.get_m_method()));
+						ft::console_log("ONLY HEADER | uri: "+ request.get_m_reset_path());
+						ft::console_log("ONLY HEADER | fd: "+ std::to_string(sockfd));
+						handleRequest(sockfd);
+						if (this->m_responses[sockfd].get_m_status_code() != 0)
+						{
+							ft::console_log("STATUS CODE: " + std::to_string(this->m_responses[sockfd].get_m_status_code()));
+							ft::fdSet(sockfd, m_write_fds);
+						}
+					}
 				}
-				else if (ret == FAIL)
+				else if (header_status == FAIL)
 				{
-					std::cout << "GET MESSAGE FAIL" << std::endl;
+					ft::console_log("GET HEADER | FAIL");
 					close(sockfd);
-					this->m_requests[sockfd] = Request();
-					this->m_responses[sockfd] = Response();
-					ft::fdClr(sockfd, this->m_main_fds);
-					ft::fdClr(sockfd, this->m_write_fds);
-					this->m_fd_table.erase(fd_iter);
+					ft::fdClr(sockfd, m_main_fds);
+					m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					if (this->m_fd_table.size() <= 0)
-						return (false);
-					return (true);
+					return (false);
 				}
-				return (true);
+				else if (header_status == CONTINUE && request.get_m_raw_header() != "") //body 읽어야 함
+				{
+					body_status = request.getBody(sockfd);
+					if (body_status == FAIL)
+					{
+						ft::console_log("GET BODY | FAIL");
+						close(sockfd);
+						ft::fdClr(sockfd, m_main_fds);
+						m_fd_table.erase(fd_iter);
+						*m_maxfd = findMaxFd();
+						return (false);
+					}
+					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
+					{
+						ft::console_log("----- set cgi fds -----");
+						// ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
+						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
+						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
+						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdout(), sockfd));
+						// *m_maxfd = findMaxFd();
+					}
+					else if (body_status == SUCCESS)
+					{
+						ft::console_log("----- handle request -----");
+						handleRequest(sockfd);
+						if (this->m_responses[sockfd].get_m_status_code() != 0)
+						{
+							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
+							std::cout << "SET WRITE FD :D" << std::endl;
+							ft::fdSet(sockfd, m_write_fds);
+						}
+					}
+					ft::console_log("m_check_cgi " + std::to_string(request.get_m_check_cgi()));
+				}
 			}
 			return (false);
 		}
@@ -470,24 +523,42 @@ Server::writeProcess()
 		{
 			if (fd_iter->type == CGI_PIPE)
 			{
-				std::cout << "::2::"<<std::endl;
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::");
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
-				int content_length = request.get_m_content_length();
-				int written_bytes = request.get_m_written_bytes();
-				int buffsize = std::min(CGI_BUFF, content_length - written_bytes);
-				int ret = 0;
+				// int content_length = body.size();
+				// int written_bytes = request.get_m_written_bytes();
+				// int buffsize = std::min(SOCK_BUFF, content_length - written_bytes);
+				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
+				size_t ret = 0;
+				static int tmp = 0;
 
-				if (buffsize > 0 && (ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				if (buffsize > 0 && (ret = write(sockfd, body.c_str(), buffsize)) > 0) //buffsize 0으로 write 하면 ret이 size_t max
 				{
-					written_bytes += ret;
-					request.set_m_written_bytes(written_bytes);
-					std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
-					buffsize = std::min(CGI_BUFF, content_length - written_bytes);
-					return (false);
+					tmp += ret;
+					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(tmp));
+					ft::console_log("CGI body length 1: " + std::to_string(request.get_m_body().length()));
+					if (ret == body.length())
+					{
+						ft::console_log("here clear body ==================");
+						request.clearBody();
+					}
+					else
+						request.set_m_body(body.substr(ret, std::string::npos));
+					ft::console_log("CGI body length 2: " + std::to_string(request.get_m_body().length()));
+					// ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 				}
-				if (ret < 0)
+				// if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
+				// {
+				// 	written_bytes += ret;
+				// 	request.set_m_written_bytes(written_bytes);
+				// 	std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
+				// 	buffsize = std::min(SOCK_BUFF, content_length - written_bytes);
+				// 	ft::fdClr(sockfd, m_write_fds);
+				// 	return (false);
+				// }
+				else if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
 					std::cout << "A" << EAGAIN << std::endl;
@@ -504,64 +575,84 @@ Server::writeProcess()
 					std::cout << "L" << EPERM  << std::endl;
 					std::cout << "M" << EPIPE << std::endl;
 				}
-				if (ret <= 0)
+				if (buffsize == 0 && ret == 0 && (request.get_m_read_end() == true))
+				{
+					ft::console_log("RET IS 0");
+					ft::console_log("RET IS 0 BODY _____ ");
+					write(request.get_m_check_fd(), "end", 3);
+					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
+					m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
+					ft::fdClr(sockfd, this->m_write_fds);
+					close(sockfd);
+					this->m_fd_table.erase(fd_iter);
+					*m_maxfd = findMaxFd();
+					return (true);
+				}
+				else if (ret < 0)
 				{
 					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
-					if (ret == 0)
-						return (true);
 					return (false);
 				}
+
+
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
-				std::cout << "::4::"<<std::endl;
-				int ret;
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::4::");
+				int ret = 0;
 				int buffsize;
+				// Request &request = m_requests[sockfd];
 				Response &response = m_responses[sockfd];
 				int pos = response.get_m_pos();
 
 				if (response.get_m_has_cgi_response() == true)
 				{
-					const std::string &body = response.get_m_cgi_response();
-					int content_length = body.size();
-					// buffsize = std::min(content_length - pos, 32768); //chunked writingd
-					buffsize = std::min(content_length - pos, SOCK_BUFF); // mess writig
-
 					std::string &header = response.get_m_cgi_header();
 					if (header != "")
 					{
+						ft::console_log("---- write cgi response header ----");
 						ret = write(sockfd, header.c_str(), header.size());
+						ft::console_log("finish header: " + header);
 						header = "";
-						std::cout << ".... wrote header" <<std::endl;
 						if (ret > 0)
 							return (false);
 					}
 					else
 					{
+						const std::string &body = response.get_m_cgi_response();
+						int content_length = body.size();
+						// buffsize = std::min(content_length - pos, 32768); //chunked writingd
+						buffsize = std::min(content_length - pos, GAEBOKCHI); // mess writig
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
 						{
-							// 짤라서 틈틈히 보내주려면 여기서 클리어 해줘야
+							ft::fdClr(sockfd, this->m_write_fds);
 							return(false);
 						}
 						std::string num;
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
 						ret = write(sockfd, buff.c_str(), buff.size());
+						ft::console_log("++++++ WRITE PROCESS(sock) | num : " + num);
+						ft::console_log("++++++ WRITE PROCESS(sock) | pos : " + std::to_string(pos));
+						ft::console_log("++++++ WRITE PROCESS(sock) | buf : " + std::to_string(buffsize));
 						response.set_m_pos(pos + buffsize);
-						std::cout << ".... wrote body " << pos + buffsize << std::endl;
-						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == true)
+						if (buffsize == 0)
 						{
-							std::cout << "------ END " << pos << std::endl;
+							ft::console_log("------ END ");
+							close(m_requests[sockfd].get_m_cgi_stdout());
+							unlink("/tmp/.tmptext1");
+							unlink("/tmp/.tmptext2");
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
+
 							return (true);
 						}
+						ft::console_log("finish body: \n");
 					}
-
 				}
 				else
 				{
@@ -570,9 +661,9 @@ Server::writeProcess()
 					buffsize = std::min(content_length - pos, SOCK_BUFF);
 					if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
 					{
-						this->m_requests[sockfd] = Request(); // 안해줘도 되지 않나
+						// this->m_requests[sockfd] = Request(); // 안해줘도 되지 않나
 						response.set_m_pos(pos + ret);
-						std::cout << "------ OK " << pos << std::endl;
+						ft::console_log("------ OK " + std::to_string(pos));
 						return (false);
 					}
 				}
@@ -598,54 +689,18 @@ Server::writeProcess()
 					std::cout << "O" << EPIPE << std::endl;
 					std::cout << "P" << EDESTADDRREQ << std::endl;
 				}
+
+
 				if (ret <= 0)
 				{
-					std::cout << "------ END " << pos << std::endl;
+					static int youpiget = 0;
+					ft::console_log("------ END " + std::to_string(pos) + ":=================::" + std::to_string(youpiget), 1);
+					youpiget++;
 					this->m_requests[sockfd] = Request();
 					this->m_responses[sockfd] = Response();
 					ft::fdClr(sockfd, m_write_fds);
 				}
 				writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
-
-				// buffsize = std::min(content_length - pos, SOCK_BUFF);
-				// if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
-				// {
-				// 	this->m_requests[sockfd] = Request();
-				// 	response.set_m_pos(pos + ret);
-				// 	std::cout << "OOOOOOO OK " << pos << std::endl;
-				// }
-				// if (ret < 0)
-				// {
-				// 	std::cout << "XXXXXXX FAIL" << pos << std::endl;
-				// 	std::cout << "ERRNO IS " << errno << std::endl;
-				// 	std::cout << "X" << EACCES << std::endl;
-				// 	std::cout << "A" << EAGAIN << std::endl;
-				// 	std::cout << "B" << EALREADY << std::endl;
-				// 	std::cout << "C" << EBADF << std::endl;
-				// 	std::cout << "D" << ECONNRESET << std::endl;
-				// 	std::cout << "E" << EFAULT  << std::endl;
-				// 	std::cout << "F" << EINTR << std::endl;
-				// 	std::cout << "G" << EINVAL << std::endl;
-				// 	std::cout << "H" << EISCONN << std::endl;
-				// 	std::cout << "I" << EMSGSIZE << std::endl;
-				// 	std::cout << "J" << ENOBUFS << std::endl;
-				// 	std::cout << "K" << ENOMEM << std::endl;
-				// 	std::cout << "L" << ENOTCONN << std::endl;
-				// 	std::cout << "M" << ENOTSOCK << std::endl;
-				// 	std::cout << "N" << EOPNOTSUPP << std::endl;
-				// 	std::cout << "O" << EPIPE << std::endl;
-				// 	std::cout << "P" << EDESTADDRREQ << std::endl;
-				// }
-				// if (ret <= 0)
-				// {
-				// 	std::cout << "OOOOOOO END " << pos << std::endl;
-				// 	this->m_requests[sockfd] = Request();
-				// 	this->m_responses[sockfd] = Response();
-				// 	ft::fdClr(sockfd, m_write_fds);
-				// 	sleep(1);
-				// 	std::cout << "Zzzzzzz...." << std::endl;
-				// }
-				// writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
 			}
 			return (false);
 		}
@@ -784,6 +839,9 @@ Server::resetRequest(Request *req)
 		req->set_m_error_code(413);
 		return ;
 	}
+	req->set_m_check_cgi(ft::checkValidFileExtension(path_out, block.get_m_cgi()));
+
+
 	/* 인증파트 */
 	if (block.get_m_auth_basic().empty() == false) // 인증이 필요한 블럭일 때
 	{
@@ -1204,7 +1262,7 @@ Server::makeCgiArgv(Request req)
 }
 
 Response
-Server::executeCgi(Request req, Response res, int clientfd)
+Server::executeCgi(Request &req, Response &res, int clientfd)
 {
 	/* Setting execve parameters */
 	char** envp = Server::makeCgiEnvp(req, res);
@@ -1212,7 +1270,7 @@ Server::executeCgi(Request req, Response res, int clientfd)
 
 	Response response(res);
 
-	int fds1[2], fds2[2];
+	int fds2[2];
 	pid_t pid;
 
 	if (envp == NULL)
@@ -1222,13 +1280,17 @@ Server::executeCgi(Request req, Response res, int clientfd)
 		ft::doubleFree(envp);
 		throw (Server::CgiException());
 	}
-	else if (pipe(fds1) < 0 || pipe(fds2) < 0)
+	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
-	int parent_write = fds2[1];
-	int parent_read = fds1[0];
-	int cgi_stdin = fds2[0];
-	int cgi_stdout = fds1[1];
+	/* 최적화 open close 해줘야함. */
+	// int parent_write = fds2[1];
+	// int cgi_stdin = fds2[0];
+	int parent_write = open("/tmp/.tmptext2", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open("/tmp/.tmptext2", O_RDONLY);
+	int parent_read = open("/tmp/.tmptext", O_RDONLY);
+	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
@@ -1238,15 +1300,32 @@ Server::executeCgi(Request req, Response res, int clientfd)
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	std::cout << "Execute Cgi === "<< req.get_m_path_translated().c_str() << std::endl;
+	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
 	if (pid == 0) // child process
 	{
-		req.set_m_cgi_pid(pid);
+		struct stat buff;
+
 		close(parent_write);
-		close(parent_read);
-		if (dup2(cgi_stdin, STDIN_FILENO) < 0 || dup2(cgi_stdout, STDOUT_FILENO) < 0)
+		while (42)
+		{
+			int ha;
+			ha = stat("/tmp/.check_fd", &buff);
+			printf("---- %d %lld\n", ha, buff.st_size);
+			sleep(1);
+			if (buff.st_size > 0)
+			{
+				close(req.get_m_check_fd());
+				unlink("/tmp/.check_fd");
+				break ;
+			}
+		}
+		if (dup2(cgi_stdout, STDOUT_FILENO) < 0)
+			throw(Server::CgiException());
+		if (dup2(cgi_stdin, STDIN_FILENO) < 0)
 			throw (Server::CgiException());
+
 		if (extension.compare("php") == 0)
 		{
 			char path[1024];
@@ -1260,22 +1339,25 @@ Server::executeCgi(Request req, Response res, int clientfd)
 			if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 				throw (Server::CgiException());
 		}
+		close(cgi_stdout);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
 		exit(EXIT_SUCCESS);
 	}
 	else  // parent process
 	{
-		close(cgi_stdout);
 		close(cgi_stdin);
+		req.set_m_cgi_pid(pid);
+		req.set_m_cgi_stdin(parent_read);
+		req.set_m_cgi_stdout(parent_write);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
+		// ft::fdSet(parent_write, m_write_fds);
+		// ft::fdSet(parent_read, m_main_fds);
 		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
 		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
-		ft::fdSet(parent_write, m_write_fds);
-		ft::fdSet(parent_read, m_main_fds);
 		*m_maxfd = findMaxFd();
-		response.get_m_cgi_response().reserve(RESV_SIZE);
+		// response.get_m_cgi_response().reserve(RESV_SIZE);
 	}
 	(void)clientfd;
 	return (response);
@@ -1300,21 +1382,21 @@ Server::methodPOST(int clientfd, std::string method)
 	Response response;
 	Request request(m_requests[clientfd]);
 
-	if (request.checkCGI() == true)
-	{
-		try
-		{
-			response = executeCgi(request, response, clientfd);
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << e.what() << std::endl;
-		}
-	}
-	else
-	{
+	// if (request.checkCGI() == true)
+	// {
+	// 	try
+	// 	{
+	// 		response = executeCgi(request, response, clientfd);
+	// 	}
+	// 	catch(const std::exception& e)
+	// 	{
+	// 		std::cerr << e.what() << std::endl;
+	// 	}
+	// }
+	// else
+	// {
 		response = postBody(request, response);
-	}
+	// }
 	return (response);
 }
 
@@ -1596,12 +1678,12 @@ Server::parseErrorResponse(int clientfd)
 		it = m_http_config_path_method.find(request.get_m_uri().get_m_path());
 		if (it != m_http_config_path_method.end())
 			allow_method = it->second;
-		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, makeErrorPage(status_code), "", request.getAcceptLanguage(),
+		return (Server::makeResponseBodyMessage(status_code, this->m_server_name, "", "", request.getAcceptLanguage(),
 				ft::getMethodString(request.get_m_method()), getMimeType("html"), request.getReferer(), 0, 0, 0, allow_method));
 	}
 	return (
 		Server::makeResponseBodyMessage(
-			status_code, this->m_server_name, makeErrorPage(status_code), "", request.getAcceptLanguage(),
+			status_code, this->m_server_name, "", "", request.getAcceptLanguage(),
 			ft::getMethodString(request.get_m_method()), getMimeType("html"), request.getReferer()
 			)
 	);

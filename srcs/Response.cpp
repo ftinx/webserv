@@ -596,6 +596,17 @@ Response::setCgiContentLength()
 	return (*this);
 }
 
+void
+Response::setMultipleResponses(int count)
+{
+	std::string copy = this->m_response_message;
+	while (--count > 0)
+	{
+		this->m_response_message += copy;
+	}
+	return ;
+}
+
 /*
 **	gettimeofday()은 time(2)와 매우 비슷하지만 마이크로초 단위의 시간 까지 되돌려준다.
 **	현재는 time(2)를 대신해서 쓰이고 있으며, 가능한 time(2)대신 이 함수를 사용하는 걸 권장한다.

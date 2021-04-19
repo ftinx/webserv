@@ -129,6 +129,7 @@ class Response
 		Response& makeCgiHttpResponseMessage();
 		Response& setCgiResponse(char* cgi_response);
 		Response& setCgiContentLength();
+		void setMultipleResponses(int);
 
 		/* HTML Document Util */
 		Response& setHtmlDocument();
