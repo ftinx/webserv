@@ -5,8 +5,8 @@
 /*============================================================================*/
 
 HttpConfigServer::HttpConfigServer():
-	m_server_name(""),
-	m_listen(0),
+	m_server_name("default"),
+	m_listen(8080),
 	m_default_error_page(""),
 	m_content_length(0),
 	m_location_block(),
@@ -119,7 +119,15 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 		if (line.front().compare("server_name") == 0)
 			this->m_server_name = line.back();
 		else if (line.front().compare("listen") == 0)
-			this->m_listen = stoi(line.back());
+		{
+			char *tmp;
+			std::strtol(line.back().c_str(), &tmp, 10);
+			if (*tmp)
+				throw std::exception();
+			this->m_listen = ft::stoi(line.back());
+			if (this->m_listen < 1024 || this->m_listen >= 49151)
+				throw std::exception();
+		}
 		else if (line.front().compare("default_error_page") == 0)
 		{
 			if (ft::isValidFilePath(root + std::string("/") + line.back()) == false)
@@ -142,8 +150,12 @@ HttpConfigServer::parseServerBlock(std::vector<std::string> lines, std::string r
 				this->m_redirect.push_back(line[i]);
 			}
 			char *tmp;
-			strtol(this->m_redirect[0].c_str(), &tmp, 10);
+			std::strtol(this->m_redirect[0].c_str(), &tmp, 10);
 			if (*tmp || this->m_redirect.size() != 2)
+				throw std::exception();
+			if (this->m_redirect[0].compare("301") != 0 &&
+				this->m_redirect[0].compare("302") != 0 &&
+				this->m_redirect[0].compare("307") != 0) // 301 302 307 확인 후 아니면 에러
 				throw std::exception();
 			return_exist = true;
 		}

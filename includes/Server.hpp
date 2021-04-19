@@ -133,7 +133,7 @@ class Server
 		// bool checkHttpConfigFilePath(std::string path, std::string method="");
 		// bool checkHttpConfigFilePathHead(std::string path);
 		std::string getMimeType(std::string extension);
-		std::string makeAutoindexPage(std::string root, std::string path);
+		std::string makeAutoindexPage(std::string root, std::string abs_path, std::string loc_path);
 
 		Response methodGET(int clientfd, std::string method="GET");
 

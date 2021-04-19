@@ -53,6 +53,29 @@ atoi(const char *str)
 	return (value);
 }
 
+long
+atol(const char *str)
+{
+	int sign;
+	long value;
+
+	sign = 1;
+	value = 0;
+	while (ft::isspace(*str))
+		str++;
+	if (*str == '-')
+		sign = -1;
+	if (*str == '-' || *str == '+')
+		++str;
+	while (ft::isdigit(*str))
+	{
+		value = value * 10 + (*str - '0');
+		str++;
+	}
+	value = sign == 1 ? value : -value;
+	return (value);
+}
+
 size_t
 strlen(const char *str)
 {
@@ -189,6 +212,15 @@ stoi(const std::string &str)
 	int value;
 
 	value = ft::atoi(str.c_str());
+	return (value);
+}
+
+long
+stol(const std::string &str)
+{
+	long value;
+
+	value = ft::atol(str.c_str());
 	return (value);
 }
 
