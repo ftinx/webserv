@@ -1,9 +1,6 @@
 #include "Server.hpp"
-
 #include <bitset>
 #include <iostream>
-
-// int check_fd = open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666);
 
 char *bin2hex(const unsigned char *input, size_t len)
 {
@@ -13,7 +10,6 @@ char *bin2hex(const unsigned char *input, size_t len)
     if (input == NULL || len <= 0)
         return (NULL);
 
-    // (2 hexits+space)/chr + NULL
     int resultlength = (len*3)+1;
 
     result = (char*)malloc(resultlength);
@@ -386,21 +382,17 @@ Server::readProcess()
 
 			if (fd_iter->type == CGI_PIPE)
 			{
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
+
 				Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
 				int status;
-				// char buff[SOCK_BUFF];
 				char *buff =  (char*)malloc(sizeof(char) * SOCK_BUFF);
-				//kill(request.get_m_cgi_pid(), SIGTERM);
-				//waitpid(request.get_m_cgi_pid(), &status, 0);
+
 				ft::memset(buff, 0, SOCK_BUFF);
-				// if (status == 0)
-				// {
 				waitpid(request.get_m_cgi_pid(), &status, 0);
 				if( 0 < (ret = read(sockfd, buff, SOCK_BUFF - 1)))
 				{
-					ft::console_log("++++++ READ PROCESS(pipe): " + std::to_string(ret));
 					response.setCgiResponse(buff);
 					try
 					{
@@ -416,13 +408,10 @@ Server::readProcess()
 						std::cout << e.what() << std::endl;
 						return (true);
 					}
-					// ft::fdSet(fd_iter->clientfd, m_write_fds);
 					return (false);
 				}
 				if (response.get_m_cgi_chunked_read_end() == true && ret == 0)
 				{
-					std::cout << "RET IS 0" << std::endl;
-					ft::console_log("::3:: RET 0 body size: " + std::to_string(response.get_m_body().size()));
 					close(fd_iter->sockfd);
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
@@ -450,9 +439,6 @@ Server::readProcess()
 					}
 					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
-						ft::console_log("ONLY HEADER | method: "+ std::to_string(request.get_m_method()));
-						ft::console_log("ONLY HEADER | uri: "+ request.get_m_reset_path());
-						ft::console_log("ONLY HEADER | fd: "+ std::to_string(sockfd));
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
@@ -463,7 +449,6 @@ Server::readProcess()
 				}
 				else if (header_status == FAIL)
 				{
-					ft::console_log("GET HEADER | FAIL");
 					close(sockfd);
 					ft::fdClr(sockfd, m_main_fds);
 					m_fd_table.erase(fd_iter);
@@ -475,7 +460,6 @@ Server::readProcess()
 					body_status = request.getBody(sockfd);
 					if (body_status == FAIL)
 					{
-						ft::console_log("GET BODY | FAIL");
 						close(sockfd);
 						ft::fdClr(sockfd, m_main_fds);
 						m_fd_table.erase(fd_iter);
@@ -484,25 +468,14 @@ Server::readProcess()
 					}
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
-						ft::console_log("----- set cgi fds -----");
-						// ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
-						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdin(), sockfd));
-						// m_fd_table.push_back(ft::makeFDT(CGI_PIPE, request.get_m_cgi_stdout(), sockfd));
-						// *m_maxfd = findMaxFd();
 					}
 					else if (body_status == SUCCESS)
 					{
-						ft::console_log("----- handle request -----");
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
-						{
-							std::cout << "STATUS CODE: " << this->m_responses[sockfd].get_m_status_code() << std::endl;;
-							std::cout << "SET WRITE FD :D" << std::endl;
 							ft::fdSet(sockfd, m_write_fds);
-						}
 					}
-					ft::console_log("m_check_cgi " + std::to_string(request.get_m_check_cgi()));
 				}
 			}
 			return (false);
@@ -527,9 +500,6 @@ Server::writeProcess()
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
-				// int content_length = body.size();
-				// int written_bytes = request.get_m_written_bytes();
-				// int buffsize = std::min(SOCK_BUFF, content_length - written_bytes);
 				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
 				size_t ret = 0;
 				static int tmp = 0;
@@ -537,27 +507,13 @@ Server::writeProcess()
 				if (buffsize > 0 && (ret = write(sockfd, body.c_str(), buffsize)) > 0) //buffsize 0으로 write 하면 ret이 size_t max
 				{
 					tmp += ret;
-					ft::console_log("++++++ WRITE PROCESS(pipe): " + std::to_string(tmp));
-					ft::console_log("CGI body length 1: " + std::to_string(request.get_m_body().length()));
 					if (ret == body.length())
 					{
-						ft::console_log("here clear body ==================");
 						request.clearBody();
 					}
 					else
 						request.set_m_body(body.substr(ret, std::string::npos));
-					ft::console_log("CGI body length 2: " + std::to_string(request.get_m_body().length()));
-					// ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 				}
-				// if ((ret = write(sockfd, &body.c_str()[written_bytes], buffsize)) > 0)
-				// {
-				// 	written_bytes += ret;
-				// 	request.set_m_written_bytes(written_bytes);
-				// 	std::cout << "WRITE PROCESS) WRITTEN BYTES: " << written_bytes << std::endl;
-				// 	buffsize = std::min(SOCK_BUFF, content_length - written_bytes);
-				// 	ft::fdClr(sockfd, m_write_fds);
-				// 	return (false);
-				// }
 				else if (ret < 0)
 				{
 					std::cout << "ERRNO IS " << errno << std::endl;
@@ -577,8 +533,6 @@ Server::writeProcess()
 				}
 				if (buffsize == 0 && ret == 0 && (request.get_m_read_end() == true))
 				{
-					ft::console_log("RET IS 0");
-					ft::console_log("RET IS 0 BODY _____ ");
 					write(request.get_m_check_fd(), "end", 3);
 					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_read_end(true);
@@ -613,9 +567,7 @@ Server::writeProcess()
 					std::string &header = response.get_m_cgi_header();
 					if (header != "")
 					{
-						ft::console_log("---- write cgi response header ----");
 						ret = write(sockfd, header.c_str(), header.size());
-						ft::console_log("finish header: " + header);
 						header = "";
 						if (ret > 0)
 							return (false);
@@ -624,8 +576,7 @@ Server::writeProcess()
 					{
 						const std::string &body = response.get_m_cgi_response();
 						int content_length = body.size();
-						// buffsize = std::min(content_length - pos, 32768); //chunked writingd
-						buffsize = std::min(content_length - pos, GAEBOKCHI); // mess writig
+						buffsize = std::min(content_length - pos, GAEBOKCHI);
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
 						{
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -635,13 +586,9 @@ Server::writeProcess()
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
 						ret = write(sockfd, buff.c_str(), buff.size());
-						ft::console_log("++++++ WRITE PROCESS(sock) | num : " + num);
-						ft::console_log("++++++ WRITE PROCESS(sock) | pos : " + std::to_string(pos));
-						ft::console_log("++++++ WRITE PROCESS(sock) | buf : " + std::to_string(buffsize));
 						response.set_m_pos(pos + buffsize);
 						if (buffsize == 0)
 						{
-							ft::console_log("------ END ");
 							close(m_requests[sockfd].get_m_cgi_stdout());
 							unlink("/tmp/.tmptext1");
 							unlink("/tmp/.tmptext2");
@@ -661,7 +608,6 @@ Server::writeProcess()
 					buffsize = std::min(content_length - pos, SOCK_BUFF);
 					if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
 					{
-						// this->m_requests[sockfd] = Request(); // 안해줘도 되지 않나
 						response.set_m_pos(pos + ret);
 						ft::console_log("------ OK " + std::to_string(pos));
 						return (false);
@@ -1084,50 +1030,6 @@ Server::makeAutoindexPage(std::string root, std::string abs_path, std::string lo
 	return (page);
 }
 
-// bool
-// Server::checkHttpConfigFilePathHead(std::string path)
-// {
-// 	int path_length = path.length();
-// 	std::vector<HttpConfigLocation>::const_iterator headlocation_iter = this->m_head_location.begin();
-// 	while (headlocation_iter != this->m_head_location.end())
-// 	{
-// 		int headlocation_length = headlocation_iter->get_m_path().length();
-// 		if (path == headlocation_iter->get_m_path())
-// 			return (true);
-// 		if (path_length > headlocation_length
-// 		&& headlocation_length > 1
-// 		&& path.substr(0, headlocation_length) == headlocation_iter->get_m_path())
-// 			return (true);
-// 		headlocation_iter++;
-// 	}
-// 	return (false);
-// }
-
-// bool
-// Server::checkHttpConfigFilePath(std::string path, std::string method)
-// {
-// 	int path_length = path.length();
-// 	if (method == "HEAD")
-// 	{
-// 		if (checkHttpConfigFilePathHead(path))
-// 			return (false);
-// 		return (true);
-// 	}
-// 	std::vector<std::string>::const_iterator path_iter = this->m_http_config_file_path_set.begin();
-// 	while (path_iter != this->m_http_config_file_path_set.end())
-// 	{
-// 		int path_iter_length = (*path_iter).length();
-// 		if (path == *path_iter)
-// 			return (false);
-// 		if (path_length > path_iter_length
-// 		&& path_iter_length > 1
-// 		&& path.substr(0, path_iter_length) == *path_iter)
-// 			return (false);
-// 		path_iter++;
-// 	}
-// 	return (true);
-// }
-
 Response
 Server::methodGET(int clientfd, std::string method)
 {
@@ -1283,9 +1185,6 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
-	/* 최적화 open close 해줘야함. */
-	// int parent_write = fds2[1];
-	// int cgi_stdin = fds2[0];
 	int parent_write = open("/tmp/.tmptext2", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int cgi_stdin = open("/tmp/.tmptext2", O_RDONLY);
 	int parent_read = open("/tmp/.tmptext", O_RDONLY);
@@ -1299,7 +1198,8 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
-	std::cout << "Execute Cgi === "<< req.get_m_path_translated().c_str() << std::endl;
+	ft::console_log("Execute Cgi");
+
 	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
@@ -1310,9 +1210,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		close(parent_write);
 		while (42)
 		{
-			int ha;
-			ha = stat("/tmp/.check_fd", &buff);
-			printf("---- %d %lld\n", ha, buff.st_size);
+			stat("/tmp/.check_fd", &buff);
 			sleep(1);
 			if (buff.st_size > 0)
 			{
@@ -1352,12 +1250,9 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		req.set_m_cgi_stdout(parent_write);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
-		// ft::fdSet(parent_write, m_write_fds);
-		// ft::fdSet(parent_read, m_main_fds);
 		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_write, clientfd));
 		m_fd_table.push_back(ft::makeFDT(CGI_PIPE, parent_read, clientfd));
 		*m_maxfd = findMaxFd();
-		// response.get_m_cgi_response().reserve(RESV_SIZE);
 	}
 	(void)clientfd;
 	return (response);
@@ -1380,23 +1275,9 @@ Server::methodPOST(int clientfd, std::string method)
 {
 	(void)method;
 	Response response;
-	Request request(m_requests[clientfd]);
+	Request &request = m_requests[clientfd];
 
-	// if (request.checkCGI() == true)
-	// {
-	// 	try
-	// 	{
-	// 		response = executeCgi(request, response, clientfd);
-	// 	}
-	// 	catch(const std::exception& e)
-	// 	{
-	// 		std::cerr << e.what() << std::endl;
-	// 	}
-	// }
-	// else
-	// {
-		response = postBody(request, response);
-	// }
+	response = postBody(request, response);
 	return (response);
 }
 

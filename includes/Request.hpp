@@ -25,7 +25,6 @@ class Request
 	private:
 		std::string m_message;
 		std::string m_http_version;
-		std::string m_cgi_version;
 		bool m_check_cgi;
 		Method m_method;
 		Uri m_uri;
@@ -33,7 +32,6 @@ class Request
 		std::map<std::string, std::string> m_headers;
 		std::string m_body;
 		int m_content_length;
-		int m_written_bytes;
 		int m_error_code;
 		std::string m_reset_path;
 		HttpConfigLocation m_location_block;
@@ -60,10 +58,7 @@ class Request
 		int m_header_bytes;
 		int m_body_bytes;
 		int m_cut_bytes;
-		int m_chunked_bytes;
-		bool m_should_peek;
 		bool m_should_read;
-		bool m_got_all_msg;
 		int m_count_message;
 
 	public:
@@ -75,7 +70,6 @@ class Request
 		/* getter */
 		std::string get_m_message() const;
 		std::string get_m_http_version() const;
-		std::string get_m_cgi_version() const;
 		bool get_m_check_cgi() const;
 		Method get_m_method() const;
 		Uri get_m_uri() const;
@@ -83,7 +77,6 @@ class Request
 		std::map<std::string, std::string> get_m_headers() const ;
 		std::string get_m_body() const;
 		int get_m_content_length() const;
-		int get_m_written_bytes() const;
 		int	get_m_error_code() const;
 		std::string get_m_reset_path() const;
 		HttpConfigLocation get_m_location_block() const;
@@ -104,15 +97,11 @@ class Request
 		int get_m_header_bytes() const;
 		int get_m_body_bytes() const;
 		int get_m_cut_bytes() const;
-		int get_m_chunked_bytes() const;
-		bool get_m_should_peek() const;
 		bool get_m_should_read() const;
-		bool get_m_got_all_msg() const;
 		int get_m_count_message() const;
 
 		/* setter */
 		void set_m_http_version(std::string);
-		void set_m_cgi_version(std::string);
 		void set_m_check_cgi(bool);
 		void set_m_method(Method);
 		void set_m_cgi_pid(pid_t);
@@ -120,7 +109,6 @@ class Request
 		void set_m_cgi_stdout(int);
 		void set_m_check_fd(int);
 		void set_m_body(std::string);
-		void set_m_written_bytes(int);
 		void set_m_error_code(int);
 		void set_m_reset_path(std::string);
 		void set_m_location_block(HttpConfigLocation);
