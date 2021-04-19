@@ -14,7 +14,8 @@ HttpConfigLocation::HttpConfigLocation():
 	m_autoindex(false),
 	m_auth_basic(),
 	m_auth_basic_user_file(""),
-	m_limit_body_size(INT_MAX)
+	m_limit_body_size(INT_MAX),
+	m_redirect()
 {
 }
 
@@ -36,6 +37,7 @@ HttpConfigLocation::operator=(HttpConfigLocation const &rhs)
 	m_auth_basic = rhs.m_auth_basic;
 	m_auth_basic_user_file = rhs.m_auth_basic_user_file;
 	m_limit_body_size = rhs.m_limit_body_size;
+	m_redirect = rhs.m_redirect;
 	return (*this);
 }
 
@@ -109,15 +111,40 @@ HttpConfigLocation::get_m_limit_body_size() const
 	return (this->m_limit_body_size);
 }
 
+std::vector<std::string>
+HttpConfigLocation::get_m_redirect() const
+{
+	return (this->m_redirect);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
+
+void
+HttpConfigLocation::set_m_path(std::string path)
+{
+	this->m_path = path;
+}
 
 void
 HttpConfigLocation::set_m_root(std::string root)
 {
 	this->m_root = root;
 }
+
+void
+HttpConfigLocation::set_m_limit_except(std::vector<Method> limit_except)
+{
+	this->m_limit_except = limit_except;
+}
+
+void
+HttpConfigLocation::set_m_redirect(std::vector<std::string> redirect)
+{
+	this->m_redirect = redirect;
+}
+
 
 /*============================================================================*/
 /******************************  Exception  ***********************************/
@@ -222,6 +249,24 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 		}
 		else if (line.front().compare("limit_body_size") == 0)
 			this->m_limit_body_size = ft::stoi(line.back());
+		else if (line.front().compare("return") == 0)
+		{
+			if (this->m_redirect.empty() == false)
+			{
+				idx++;
+				continue ;
+			}
+			for (size_t i = 1 ; i < line.size() ; i++)
+			{
+				if (line[i].empty())
+					continue ;
+				this->m_redirect.push_back(line[i]);
+			}
+			char *tmp;
+			strtol(this->m_redirect.front().c_str(), &tmp, 10);
+			if (*tmp || this->m_redirect.size() != 2)
+				throw std::exception();
+		}
 		else if (line.front().compare("}") == 0)
 		{
 			idx++;

@@ -855,7 +855,6 @@ Server::resetRequest(Request *req)
 		std::vector<std::string> auth_value = ft::split((*header_it).second, ' ');
 		if (checkAuth(auth_value.back(), block.get_m_auth_basic(), block.get_m_root() + std::string("/") + block.get_m_auth_basic_user_file()) == false) // 인증 실패 시 403 에러
 		{
-			std::cout << "--=-==---=-=-="<<block.get_m_root() + std::string("/") + block.get_m_auth_basic_user_file()<<std::endl;
 			req->set_m_error_code(403);
 			return ;
 		}
@@ -943,7 +942,6 @@ Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, s
 	// 인증파일 존재하지 않으면 에러
 	if (ft::isValidFilePath(auth_file_path) == false)
 		return (false);
-
 	// .htpasswd 파일 순회하며 client id, pwd와 비교, 일치하면 인증성공
 	std::vector<std::string> idpwds = ft::split(ft::fileToString(auth_file_path), '\n');
 	std::vector<std::string>::const_iterator idpwds_it;
@@ -958,7 +956,6 @@ Server::checkAuth(std::string auth_value, std::vector<std::string> auth_basic, s
 		std::string pwd_server = idpwd_server.front();
 		if ((id_server.compare(id_client) == 0) && (pwd_server.compare(pwd_client) == 0))
 		{
-			std::cout << "=-=-=-=-=-=-=-=-=-"<<this->m_auth_id << this->m_auth_pw << std::endl;
 			this->m_auth_id = id_client;
 			this->m_auth_pw = pwd_client;
 			return (true);
@@ -1133,6 +1130,12 @@ Server::methodGET(int clientfd, std::string method)
 	std::string final_path;
 	std::string extension;
 
+	if (location_block.get_m_redirect().empty() == false) // location return 처리 (301)
+	{
+		int status_code = std::stoi(location_block.get_m_redirect().front());
+		std::string path = location_block.get_m_redirect().back();
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType(""), req.getReferer(), 0, 0, 0, "", "", path));
+	}
 	if (ft::isValidDirPath(abs_path)) // 폴더라면
 	{
 		if (abs_path.find("/", abs_path.length() - 1) == std::string::npos)
@@ -1630,7 +1633,7 @@ Server::makeErrorPage(int status_code)
 
 	if (this->m_server_block.get_m_default_error_page().empty() == false)
 	{
-		std::string path(this->m_root + this->m_server_block.get_m_default_error_page());
+		std::string path(this->m_root + std::string("/") + this->m_server_block.get_m_default_error_page());
 		if (ft::isValidFilePath(path))
 			return (ft::fileToString(path));
 	}
