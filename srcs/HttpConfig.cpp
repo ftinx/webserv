@@ -141,12 +141,6 @@ HttpConfig::parseMimeTypes()
 		for (std::vector<std::string>::const_iterator i = tmp.begin() ; i != tmp.end() ; ++i)
 			this->m_mime_types.insert(make_pair(*i, value));
 	}
-	// 파싱 잘 되었는지 출력 테스트
-	// std::cout << "-----------mime_types_map----------" << std::endl;
-	// std::map<std::string, std::string>::const_iterator test;
-	// for (test = this->m_mime_types.begin() ; test != this->m_mime_types.end() ; ++test)
-	// 	std::cout << test->first << " " << test->second << std::endl;
-	// std::cout << "-----------------------------------" << std::endl;
 }
 
 void
@@ -227,67 +221,4 @@ HttpConfig::parseConfigFile(std::string &file_path)
 		throw ServerBlockDoesNotExistException();
 	if (this->m_mime_types.empty())
 		throw MimeTypeErrorException();
-}
-
-void
-HttpConfig::printConfigFileInfo()
-{
-	std::string dash(80, '-');
-
-	std::cout << dash << std::endl
-		<< "config file infomation" << std::endl
-		// << "path(relative) : " << this->m_file_path << std::endl
-		<< "size: " << this->m_config_file.size() << " bytes, "
-		// << this->m_lines.size() + this->m_cnt_trash_lines << " lines" << std::endl
-		<< dash << std::endl
-		<< std::endl;
-
-	std::cout << dash << std::endl
-		<< "http block infomation" << std::endl
-		<< "software_name : " << this->m_name << std::endl
-		<< "software_version : " << this->m_version << std::endl
-		<< "include : " << this->m_include << std::endl
-		<< "root : " << this->m_root << std::endl
-		<< "size of server block : " << this->m_server_block.size() << std::endl
-		<< dash << std::endl
-		<< std::endl;
-
-	for (size_t i = 0 ; i < this->m_server_block.size() ; i++)
-	{
-		std::cout << dash << std::endl
-			<< "[" << i + 1 << "] server block infomation" << std::endl
-			<< "server name : " << this->m_server_block[i].get_m_server_name() << std::endl
-			<< "listen : " << this->m_server_block[i].get_m_listen() << std::endl
-			<< "default error page : " << this->m_server_block[i].get_m_default_error_page() << std::endl
-			<< "content length : " << this->m_server_block[i].get_m_content_length() << std::endl
-			<< "size of location block : " << this->m_server_block[i].get_m_location_block().size() << std::endl;
-		for (size_t j = 0 ; j < this->m_server_block[i].get_m_location_block().size() ; j++)
-		{
-			std::cout << "[" << j + 1 << "] location block infomation" << std::endl
-				<< "path : " << this->m_server_block[i].get_m_location_block()[j].get_m_path() << std::endl
-				<< "root : " << this->m_server_block[i].get_m_location_block()[j].get_m_root() << std::endl
-				<< "index : ";
-			for (size_t k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_index().size() ; k++)
-				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_index()[k] << " ";
-			std::cout << std::endl;
-			std::cout << "cgi : ";
-			for (size_t k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_cgi().size() ; k++)
-				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_cgi()[k] << " ";
-			std::cout << std::endl
-				<< "cgi path : " << this->m_server_block[i].get_m_location_block()[j].get_m_cgi_path() << std::endl
-				<< "autoindex : ";
-			if (this->m_server_block[i].get_m_location_block()[j].get_m_autoindex())
-				std::cout << "on" << std::endl;
-			else
-				std::cout << "off" << std::endl;
-			std::cout << "auth basic : ";
-			for (size_t k = 0 ; k < this->m_server_block[i].get_m_location_block()[j].get_m_auth_basic().size() ; k++)
-				std::cout << this->m_server_block[i].get_m_location_block()[j].get_m_auth_basic()[k] << " ";
-			std::cout << std::endl
-				<< "auth basic user file : " << this->m_server_block[i].get_m_location_block()[j].get_m_auth_basic_user_file() << std::endl;
-
-		}
-		std::cout << dash << std::endl
-			<< std::endl;
-	}
 }

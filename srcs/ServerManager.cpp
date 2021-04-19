@@ -81,8 +81,6 @@ void
 ServerManager::parseHttpConfig(std::string config_path)
 {
 	this->m_httpConfig.parseConfigFile(config_path);
-	//this->m_httpConfig.printConfigFileInfo();
-
 	storeParseValue();
 	return ;
 }

@@ -252,12 +252,12 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 			char *tmp;
 			std::strtol(line.back().c_str(), &tmp, 10);
 			if (*tmp)
-				throw std::exception();
+				throw LimitBodySizeErrorException(lines[idx], idx);
 			this->m_limit_body_size = ft::stol(line.back());
 			if (this->m_limit_body_size == 0)
 				this->m_limit_body_size = INT_MAX;
 			else if (this->m_limit_body_size < 0 || this->m_limit_body_size > INT_MAX)
-				throw std::exception();
+				throw LimitBodySizeErrorException(lines[idx], idx);
 		}
 		else if (line.front().compare("return") == 0)
 		{
@@ -274,12 +274,12 @@ HttpConfigLocation::parseLocationBlock(std::vector<std::string> lines, std::stri
 			}
 			char *tmp;
 			std::strtol(this->m_redirect.front().c_str(), &tmp, 10);
-			if (*tmp || this->m_redirect.size() != 2)
-				throw std::exception();
-			if (this->m_redirect[0].compare("301") != 0 &&
+			if (*tmp ||
+				(this->m_redirect.size() != 2) ||
+				(this->m_redirect[0].compare("301") != 0 &&
 				this->m_redirect[0].compare("302") != 0 &&
-				this->m_redirect[0].compare("307") != 0) // 301 302 307 확인 후 아니면 에러
-				throw std::exception();
+				this->m_redirect[0].compare("307") != 0)) // 301 302 307 확인 후 아니면 에러
+				throw ReturnMethodErrorException(lines[idx], idx);
 		}
 		else if (line.front().compare("}") == 0)
 		{

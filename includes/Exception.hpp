@@ -2,8 +2,10 @@
 # define EXCEPTION_HPP
 
 # include <iostream>
+# include <exception>
 
 /* parse request exception */
+
 class HeaderIsTooLargeException : public std::exception
 {
 	public:
@@ -61,6 +63,39 @@ class PathErrorException : public std::exception
 	public:
 		PathErrorException(std::string line, size_t idx);
 		virtual ~PathErrorException() throw();
+		virtual const char* what() const throw();
+};
+
+class ListenValueErrorException : public std::exception
+{
+	private:
+		std::string error_msg;
+		ListenValueErrorException();
+	public:
+		ListenValueErrorException(std::string line, size_t idx);
+		virtual ~ListenValueErrorException() throw();
+		virtual const char* what() const throw();
+};
+
+class ReturnMethodErrorException : public std::exception
+{
+	private:
+		std::string error_msg;
+		ReturnMethodErrorException();
+	public:
+		ReturnMethodErrorException(std::string line, size_t idx);
+		virtual ~ReturnMethodErrorException() throw();
+		virtual const char* what() const throw();
+};
+
+class LimitBodySizeErrorException : public std::exception
+{
+	private:
+		std::string error_msg;
+		LimitBodySizeErrorException();
+	public:
+		LimitBodySizeErrorException(std::string line, size_t idx);
+		virtual ~LimitBodySizeErrorException() throw();
 		virtual const char* what() const throw();
 };
 
