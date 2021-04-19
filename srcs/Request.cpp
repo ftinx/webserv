@@ -563,7 +563,7 @@ Request::getHeader(int fd)
 			else
 			{
 				m_should_read = false;
-				/* 읽어낼 수 있는 헤더양을 넘었을 때 오류 처리 */
+				/* 읽어낼 수 있는 헤더 크기를 넘었을 때 오류 처리 */
 				if (ret == HEADER_BUFF - 1)
 					throw (HeaderIsTooLargeException());
 				return (CONTINUE);
