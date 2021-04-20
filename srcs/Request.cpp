@@ -404,7 +404,7 @@ Request::getReferer()
 	if (this->m_referer != "")
 		return (this->m_referer);
 	std::map<std::string, std::string>::const_iterator it;
-	it = this->m_headers.find("Referer");
+	it = this->m_headers.find("referer");
 	/* `Referer` header not exist */
 	if (it == this->m_headers.end())
 		return ("");
@@ -419,7 +419,7 @@ Request::getAcceptLanguage()
 		return (this->m_content_type);
 
 	std::map<std::string, std::string>::const_iterator it;
-	it = this->m_headers.find("Accept-Language");
+	it = this->m_headers.find("accept-language");
 
 	/* `Accept-Language Header` not exist */
 	if (it == this->m_headers.end())
@@ -852,10 +852,7 @@ Request::parseHeader(std::string line)
 		this->m_chunked = true;
 	if (this->m_headers.insert(make_pair(ft::strTolower(key_value[0]), ft::trim(key_value[1], " "))).second == false
 	&& ft::strTolower(key_value[0]) == "host")
-	{
 		this->m_error_code = 400;
-		return (false);
-	}
 	return (true);
 }
 
