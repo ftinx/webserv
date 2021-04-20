@@ -234,7 +234,7 @@ Server::setServerAddr(int port)
 	this->m_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 }
 
-bool
+std::string
 Server::setServerSocket()
 {
 	int option;
@@ -242,8 +242,7 @@ Server::setServerSocket()
 	option = true;
 	if ((this->m_server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
 	{
-		std::cout << "socket error" << std::endl;
-		return (false);
+		return ("SOCKET ERROR");
 	}
     setsockopt(this->m_server_socket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
 	if (bind(
@@ -252,15 +251,13 @@ Server::setServerSocket()
 			static_cast<socklen_t>(sizeof(this->m_server_addr))
 		) == -1)
 	{
-		std::cout << "bind error" << std::endl;
-		return (false);
+		return ("BIND ERROR");
 	}
 	if (listen(this->m_server_socket, 1000) == -1)
 	{
-		std::cout << "listen error" << std::endl;
-		return (false);
+		return ("LISTEN ERROR");
 	}
-	return (true);
+	return ("");
 }
 
 void

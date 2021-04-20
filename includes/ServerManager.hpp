@@ -6,6 +6,7 @@
 
 #include <signal.h>
 
+#include "Util.h"
 #include "Server.hpp"
 #include "HttpConfig.hpp"
 
@@ -31,6 +32,9 @@ class ServerManager
 		fd_set m_read_fds, m_write_fds;
 		fd_set m_copy_write_fds;
 
+		/* Flag */
+		std::string m_err_message;
+
 	private:
 		void storeParseValue();
 
@@ -52,7 +56,7 @@ class ServerManager
 			std::string default_type,
 			int maxfd, fd_set main_fds, fd_set read_fds, fd_set write_fds, fd_set copy_write_fds
 		);
-		void initServers();
+		std::string initServers();
 		void runServers();
 		static void exitServers(int signo);
 };
