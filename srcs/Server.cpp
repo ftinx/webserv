@@ -1380,7 +1380,7 @@ Server::methodTRACE(int clientfd, std::string method)
 	Response response = Response();
 
 	return (
-		Server::makeResponseBodyMessage(200, this->m_requests[clientfd].get_m_message(), "", "", method, "message/http", this->m_requests[clientfd].getReferer())
+		Server::makeResponseBodyMessage(200, this->m_server_name, this->m_requests[clientfd].get_m_raw_header() + this->m_requests[clientfd].get_m_body(), "", "", method, "message/http", this->m_requests[clientfd].getReferer())
 	);
 }
 
