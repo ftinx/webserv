@@ -635,8 +635,6 @@ Server::writeProcess()
 					std::cout << "O" << EPIPE << std::endl;
 					std::cout << "P" << EDESTADDRREQ << std::endl;
 				}
-
-
 				if (ret <= 0)
 				{
 					static int youpiget = 0;
