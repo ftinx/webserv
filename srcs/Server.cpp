@@ -430,6 +430,7 @@ Server::readProcess()
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::");
 				if (header_status == SUCCESS)
 				{
+					ft::console_log("header_status success", 1);
 					resetRequest(&request);
 					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
 					{
@@ -439,12 +440,16 @@ Server::readProcess()
 					}
 					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
+						ft::console_log("111111");
 						handleRequest(sockfd);
+						ft::console_log("222222");
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
+							ft::console_log("333333");
 							ft::console_log("STATUS CODE: " + std::to_string(this->m_responses[sockfd].get_m_status_code()));
 							ft::fdSet(sockfd, m_write_fds);
 						}
+						ft::console_log("444444");
 					}
 				}
 				else if (header_status == FAIL)
@@ -635,8 +640,6 @@ Server::writeProcess()
 					std::cout << "O" << EPIPE << std::endl;
 					std::cout << "P" << EDESTADDRREQ << std::endl;
 				}
-
-
 				if (ret <= 0)
 				{
 					static int youpiget = 0;
@@ -665,13 +668,16 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 
 	if (writeProcess() == true)
 		return;
+	ft::console_log("after write process");
 	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
 	{
 		acceptSocket();
 		return ;
 	}
+	ft::console_log("after accept");
 	if (readProcess() == true)
 		return;
+	ft::console_log("after read process");
 	return ;
 }
 
