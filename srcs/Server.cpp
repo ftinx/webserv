@@ -255,7 +255,7 @@ Server::setServerSocket()
 		std::cout << "bind error" << std::endl;
 		return (false);
 	}
-	if (listen(this->m_server_socket, 1000) == -1)
+	if (listen(this->m_server_socket, 10) == -1)
 	{
 		std::cout << "listen error" << std::endl;
 		return (false);
@@ -635,8 +635,6 @@ Server::writeProcess()
 					std::cout << "O" << EPIPE << std::endl;
 					std::cout << "P" << EDESTADDRREQ << std::endl;
 				}
-
-
 				if (ret <= 0)
 				{
 					static int youpiget = 0;
