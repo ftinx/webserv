@@ -316,12 +316,12 @@ Server::handleRequest(int clientfd)
 	Method method = request.get_m_method();
 	ft::console_log("HANDLE REQUEST | fd: "+ std::to_string(clientfd));
 	ft::console_log("HANDLE REQUEST | method : " + std::to_string(method));
-	ft::console_log("HANDLE REQUEST | uri: "+ this->m_requests[clientfd].get_m_reset_path());
+	ft::console_log("HANDLE REQUEST | uri: "+ request.get_m_reset_path());
 
 	if (!request.isHost())
 		request.set_m_error_code(400);
 	this->m_responses[clientfd] = Response();
-	if (this->m_requests[clientfd].get_m_error_code())
+	if (request.get_m_error_code() && request.get_m_method() != 6 && request.get_m_method() != 7)
 		this->m_responses[clientfd] = this->parseErrorResponse(clientfd);
 	else
 	{
@@ -352,11 +352,11 @@ Server::handleRequest(int clientfd)
 		default:
 			std::map<std::string, std::string>::const_iterator it;
 			std::string allow_method("");
-			it = m_http_config_path_method.find(this->m_requests[clientfd].get_m_uri().get_m_path());
+			it = m_http_config_path_method.find(request.get_m_uri().get_m_path());
 			if (it != m_http_config_path_method.end())
 				allow_method = it->second;
-			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, "", "", this->m_requests[clientfd].getAcceptLanguage(),
-				ft::getMethodString(method), getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method);
+			this->m_responses[clientfd] = Server::makeResponseBodyMessage(405, this->m_server_name, "", "", request.getAcceptLanguage(),
+				ft::getMethodString(method), getMimeType("html"), request.getReferer(), 0, 0, 0, allow_method);
 			break;
 		}
 		this->m_responses[clientfd].setMultipleResponses(request.get_m_count_message());
@@ -1362,10 +1362,14 @@ Server::methodOPTIONS(int clientfd, std::string method)
 	Response response = Response();
 	std::string allow_method("");
 	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
-
-	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
-		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
 	allow_method = makeAllowMethod(location.get_m_limit_except());
+
+	std::map<std::string, std::string>::const_iterator it;
+	it = this->m_http_config_path_method.find(m_requests[clientfd].get_m_uri().get_m_path());
+	if (it == this->m_http_config_path_method.end())
+		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
+	if (location.get_m_path() == "") // 초기화된 상태 그대로, 맞는 로케이션 블록 못찾았을 때 값
+		return (Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, it->second));
 	return (Server::makeResponseBodyMessage(204, this->m_server_name, "",  "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, allow_method));
 }
 
@@ -1378,7 +1382,16 @@ Response
 Server::methodTRACE(int clientfd, std::string method)
 {
 	Response response = Response();
+	std::string allow_method("");
+	HttpConfigLocation location = m_requests[clientfd].get_m_location_block();
+	allow_method = makeAllowMethod(location.get_m_limit_except());
 
+	std::map<std::string, std::string>::const_iterator it;
+	it = this->m_http_config_path_method.find(m_requests[clientfd].get_m_uri().get_m_path());
+	if (it == this->m_http_config_path_method.end())
+		return (Server::makeResponseBodyMessage(404, this->m_server_name, makeErrorPage(404), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer()));
+	if (location.get_m_path() == "")
+		return (Server::makeResponseBodyMessage(405, this->m_server_name, makeErrorPage(405), "", this->m_requests[clientfd].getAcceptLanguage(), method, getMimeType("html"), this->m_requests[clientfd].getReferer(), 0, 0, 0, it->second));
 	return (
 		Server::makeResponseBodyMessage(200, this->m_server_name, this->m_requests[clientfd].get_m_raw_header() + this->m_requests[clientfd].get_m_body(), "", "", method, "message/http", this->m_requests[clientfd].getReferer())
 	);
@@ -1492,7 +1505,7 @@ Server::makeResponseBodyMessage(
 			.setHttpResponseHeader("content-type", response.get_m_content_type());
 	else if (method == "PUT")
 		response.setHttpResponseHeader("content-location", content_location);
-	else if (method == "OPTIONS")
+	else if (method == "OPTIONS" && allow_method != "")
 		response.setHttpResponseHeader("allow", allow_method);
 	else if (method == "TRACE")
 		response
