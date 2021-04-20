@@ -518,11 +518,11 @@ Request::getHeader(int fd)
 	int ret = 0;
 	char buff[HEADER_BUFF];
 
+	ft::memset(buff, 0, HEADER_BUFF);
 	if (m_should_read == false && this->m_raw_header == "")
 	{
 		if ((ret = recv(fd, buff, HEADER_BUFF - 1, MSG_PEEK)) > 0)
 		{
-			buff[ret] = '\0';
 			std::string str(buff);
 			std::string header;
 			size_t tmp;
@@ -577,7 +577,6 @@ Request::getHeader(int fd)
 	else if (m_should_read && m_raw_header == "")
 	{
 		ret = read(fd, buff, m_cut_bytes);
-		buff[ret] = '\0';
 		/* 헤더만 온전히 읽어왔을 때 */
 		if (ret == m_cut_bytes)
 		{
