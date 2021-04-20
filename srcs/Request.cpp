@@ -1019,3 +1019,13 @@ Request::clearBody()
 	this->m_body.clear();
 	return ;
 }
+
+bool
+Request::isHost()
+{
+	std::map<std::string, std::string>::const_iterator it;
+	it = this->m_headers.find("host");
+	if (it == this->m_headers.end())
+		return (false);
+	return (true);
+}

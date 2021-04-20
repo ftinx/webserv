@@ -318,6 +318,8 @@ Server::handleRequest(int clientfd)
 	ft::console_log("HANDLE REQUEST | method : " + std::to_string(method));
 	ft::console_log("HANDLE REQUEST | uri: "+ this->m_requests[clientfd].get_m_reset_path());
 
+	if (!request.isHost())
+		request.set_m_error_code(400);
 	this->m_responses[clientfd] = Response();
 	if (this->m_requests[clientfd].get_m_error_code())
 		this->m_responses[clientfd] = this->parseErrorResponse(clientfd);
