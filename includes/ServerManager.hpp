@@ -6,7 +6,6 @@
 
 #include <signal.h>
 
-#include "Util.h"
 #include "Server.hpp"
 #include "HttpConfig.hpp"
 
