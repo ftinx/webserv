@@ -136,6 +136,7 @@ class Request
 		bool checkCGI();
 		void printHeaders() const;
 		void clearBody();
+		bool isHost();
 };
 
 std::ostream& operator<<(std::ostream &os, const Request &ref);
