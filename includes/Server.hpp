@@ -105,7 +105,7 @@ class Server
 
 		/* Socket */
 		void setServerAddr(int port);
-		bool setServerSocket();
+		std::string setServerSocket();
 		void closeServer();
 
 		/* Request */

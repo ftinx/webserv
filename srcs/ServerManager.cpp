@@ -9,7 +9,10 @@
 /*============================================================================*/
 
 
-ServerManager::ServerManager(){};
+ServerManager::ServerManager()
+: m_err_message("")
+{};
+
 ServerManager::ServerManager(ServerManager const &other)
 {
 	*this = other;
@@ -34,6 +37,9 @@ ServerManager& ServerManager::operator=(ServerManager const &rhs)
 	this->m_main_fds = rhs.m_main_fds;
 	this->m_copy_fds = rhs.m_copy_fds;
 	this->m_copy_write_fds = rhs.m_copy_write_fds;
+
+	/* Flag */
+	this->m_err_message = rhs.m_err_message;
 	return (*this);
 };
 
@@ -99,12 +105,12 @@ ServerManager::generateServer(
 		&maxfd, &main_fds, &read_fds, &write_fds, &copy_write_fds
 		);
 	server.setServerAddr(port);
-	server.setServerSocket();
+	this->m_err_message = server.setServerSocket();
 	server.noteHttpConfigLocation();
 	return (server);
 }
 
-void
+std::string
 ServerManager::initServers()
 {
 	for (size_t i = 0; i < this->m_server_size; i++) {
@@ -126,7 +132,7 @@ ServerManager::initServers()
 			))
 		);
 	}
-	return ;
+	return (this->m_err_message);
 }
 
 void
