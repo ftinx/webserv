@@ -8,6 +8,8 @@ console_log
 jwon.conf
 holee.conf
 yechoi.conf
+multiple_same
+file_should_exist_after
 
 # Created by https://www.toptal.com/developers/gitignore/api/c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++
