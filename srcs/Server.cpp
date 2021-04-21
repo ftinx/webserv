@@ -438,7 +438,6 @@ Server::readProcess()
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
-							ft::console_log("STATUS CODE: " + std::to_string(this->m_responses[sockfd].get_m_status_code()), 1);
 							ft::fdSet(sockfd, m_write_fds);
 							// std::cout << sockfd << "==========================================================" << std::endl;
 							// for (int i=0; i<1; i++) {
@@ -481,12 +480,10 @@ Server::readProcess()
 					}
 					else if (body_status == SUCCESS)
 					{
-						std::cout << "before handle request "<< std::endl;
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
 							ft::fdSet(sockfd, m_write_fds);
-							std::cout << "after handle request: " << this->m_responses[sockfd].get_m_status_code() << this->m_requests[sockfd].get_m_uri().get_m_path() << std::endl;
 							return (true);
 						}
 					}
@@ -626,9 +623,12 @@ Server::writeProcess()
 						ft::console_log("------ OK " + std::to_string(pos + ret), 1);
 						// return (false);
 					}
-					if (buffsize == content_length || buffsize == 0)
+					if (ret == content_length - pos|| buffsize == 0)
 					{
-						ft::console_log("------ 000 END " + std::to_string(pos) + ":=================::", 1);
+						ft::console_log("------ END B ", 1);
+						std::cout << m_requests[sockfd].get_m_method() << " " << m_requests[sockfd].get_m_reset_path() << " " << m_responses[sockfd].get_m_status_code() << std::endl;
+						if (m_requests[sockfd].get_m_method() == 0)
+							std::cout << m_requests[sockfd].get_m_raw_header() << std::endl;
 						this->m_requests[sockfd] = Request();
 						this->m_responses[sockfd] = Response();
 						ft::fdClr(sockfd, m_write_fds);
@@ -660,7 +660,8 @@ Server::writeProcess()
 				if (ret <= 0)
 				{
 					static int youpiget = 0;
-					ft::console_log("------ END " + std::to_string(pos) + ":=================::" + std::to_string(youpiget), 1);
+					ft::console_log("------ END A ", 1);
+					std::cout << m_requests[sockfd].get_m_method() << " " << m_requests[sockfd].get_m_reset_path() << " " << m_responses[sockfd].get_m_status_code() << std::endl;
 					youpiget++;
 					this->m_requests[sockfd] = Request();
 					this->m_responses[sockfd] = Response();
