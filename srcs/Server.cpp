@@ -529,6 +529,7 @@ Server::writeProcess()
 					}
 					else
 						request.set_m_body(body.substr(ret, std::string::npos));
+					ft::fdSet(request.get_m_cgi_stdin(), m_read_fds);
 				}
 				else if (ret < 0)
 				{
@@ -549,9 +550,11 @@ Server::writeProcess()
 				}
 				if (buffsize == 0 && ret == 0 && (request.get_m_read_end() == true))
 				{
+					std::cout << "::2:: chunked cgi write end" <<  tmp << std::endl;
 					pid_t ret;
 					write(request.get_m_check_fd(), "end", 3);
 					ret = waitpid(request.get_m_cgi_pid(), &status, 0);
+					std::cout << "waitpid ret: " << ret  << " " << request.get_m_cgi_pid() << std::endl;
 					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_write_end(true);
 					ft::fdClr(sockfd, this->m_write_fds);
@@ -1218,8 +1221,8 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	int parent_write = open(TMP2, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int cgi_stdin = open(TMP2, O_RDONLY);
-	int parent_read = open(TMP1, O_RDONLY);
 	int cgi_stdout = open(TMP1, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_read = open(TMP1, O_RDONLY);
 
 
 	/* set fd nonblock */
@@ -1233,6 +1236,8 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	int checkfd = open(CHECKFD, O_RDWR | O_CREAT | O_TRUNC, 0666);
 	std::cout << "checkfd: " << checkfd << std::endl;
+	std::cout << "parent_write: " << parent_write << std::endl;
+	std::cout << "parent_read: " << parent_read << std::endl;
 	req.set_m_check_fd(checkfd);
 	pid = fork();
 
