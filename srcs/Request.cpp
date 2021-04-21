@@ -614,7 +614,7 @@ Request::getBody(int fd)
 
 	ft::memset(buff, 0, SOCK_BUFF);
 	std::cout << m_content_length << std::endl;
-	if (m_content_length == -1)
+	if (m_chunked == false && m_content_length == -1)
 	{
 		m_read_end = true;
 		m_should_read = false;
