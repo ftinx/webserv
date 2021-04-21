@@ -12,6 +12,9 @@ yechoi.conf
 multiple_same
 file_should_exist_after
 tonybyeon.conf
+.tmp1
+.tmp2
+.checkfd
 
 # Created by https://www.toptal.com/developers/gitignore/api/c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++

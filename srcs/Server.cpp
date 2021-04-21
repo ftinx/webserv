@@ -1229,9 +1229,8 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	int parent_write = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int cgi_stdin = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_RDONLY);
-	int parent_read = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_RDONLY);
 	int cgi_stdout = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-
+	int parent_read = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_RDONLY);
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
