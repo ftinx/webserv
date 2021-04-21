@@ -410,9 +410,16 @@ Server::readProcess()
 				}
 				if (response.get_m_cgi_chunked_write_end() == true && ret == 0)
 				{
+					Str parent_write_name;
+					Str parent_read_name;
+
+					parent_write_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(fd_iter->clientfd));
+					parent_read_name.p->append(this->m_tmp_path + std::string("/.tmp1_") + std::to_string(fd_iter->clientfd));
+
 					close(fd_iter->sockfd);
-					unlink((this->m_tmp_path + std::string("/.tmp1")).c_str());
-					unlink((this->m_tmp_path + std::string("/.tmp2")).c_str());
+
+					unlink((*(parent_write_name.p)).c_str());
+					unlink((*(parent_read_name.p)).c_str());
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					response.set_m_cgi_chunked_read_end(true);
@@ -618,6 +625,7 @@ Server::writeProcess()
 						memcpy(buf, buff.c_str(), buff.size());
 						buf[buff.size()] = '\0';
 						ret = write(sockfd, buf, buff.size());
+						std::cout << buf << std::endl;
 						response.set_m_pos(pos + buffsize);
 						free(buf);
 						std::cout << "written bytes: " << pos + buffsize << std::endl;
@@ -1220,8 +1228,6 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	char** argv = Server::makeCgiArgv(req);
 
 	Response response(res);
-
-	int fds2[2];
 	pid_t pid;
 
 	if (envp == NULL)
@@ -1231,13 +1237,22 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		ft::doubleFree(envp);
 		throw (Server::CgiException());
 	}
-	else if (pipe(fds2) < 0)
-		throw (Server::CgiException());
 
-	int parent_write = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_RDONLY);
-	int cgi_stdout = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int parent_read = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_RDONLY);
+	Str parent_write_name;
+	Str cgi_stdin_name;
+	Str cgi_stdout_name;
+	Str parent_read_name;
+
+	parent_write_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(clientfd));
+	cgi_stdin_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(clientfd));
+	cgi_stdout_name.p->append(this->m_tmp_path + std::string("/.tmp1_") + std::to_string(clientfd));
+	parent_read_name.p->append(this->m_tmp_path + std::string("/.tmp1_") + std::to_string(clientfd));
+
+
+	int parent_write = open((*(parent_write_name.p)).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open((*(cgi_stdin_name.p)).c_str(), O_RDONLY);
+	int cgi_stdout = open((*(cgi_stdout_name.p)).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_read = open((*(parent_read_name.p)).c_str(), O_RDONLY);
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
@@ -1248,7 +1263,11 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	ft::console_log("Execute Cgi", 1);
 
-	int checkfd = open((this->m_tmp_path + std::string("/.checkfd")).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+	Str checkfd_name;
+
+	checkfd_name.p->append(this->m_tmp_path + std::string("/.checkfd") + std::to_string(clientfd));
+
+	int checkfd = open((*(checkfd_name.p)).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
 	std::cout << "checkfd: " << checkfd << std::endl;
 	std::cout << "parent_write: " << parent_write << std::endl;
 	std::cout << "parent_read: " << parent_read << std::endl;
@@ -1260,13 +1279,14 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		struct stat buff;
 
 		close(parent_write);
+		close(parent_read);
 		while (42)
 		{
 			fstat(checkfd, &buff);
 			if (buff.st_size > 0)
 			{
 				close(req.get_m_check_fd());
-				unlink((this->m_tmp_path + std::string("/.checkfd")).c_str());
+				unlink((*(checkfd_name.p)).c_str());
 				break ;
 			}
 		}
@@ -1288,7 +1308,8 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 			if (execve(req.get_m_path_translated().c_str(), argv, envp) < 0)
 				throw (Server::CgiException());
 		}
-		close(cgi_stdout);
+		// close(cgi_stdout);
+		// close(cgi_stdin);
 		ft::doubleFree(argv);
 		ft::doubleFree(envp);
 		exit(EXIT_SUCCESS);
@@ -1296,6 +1317,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else  // parent process
 	{
 		close(cgi_stdin);
+		close(cgi_stdout);
 		req.set_m_cgi_pid(pid);
 		req.set_m_cgi_stdin(parent_read);
 		req.set_m_cgi_stdout(parent_write);
