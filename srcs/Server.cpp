@@ -378,7 +378,7 @@ Server::readProcess()
 
 			if (fd_iter->type == CGI_PIPE)
 			{
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::", 1);
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
@@ -423,7 +423,7 @@ Server::readProcess()
 				Response &response = this->m_responses[sockfd];
 				int header_status = request.getHeader(sockfd);
 				int body_status = -1;
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::", 1);
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
@@ -465,6 +465,7 @@ Server::readProcess()
 					// }
 					// std::cout << "\n=========================================================="<< std::endl;
 					body_status = request.getBody(sockfd);
+					std::cout << "body_status is " << body_status << std::endl;
 					if (body_status == FAIL)
 					{
 						m_requests[sockfd] = Request();
@@ -477,6 +478,7 @@ Server::readProcess()
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
+						std::cout << "ra??????" << std::endl;
 					}
 					else if (body_status == SUCCESS)
 					{
@@ -507,7 +509,7 @@ Server::writeProcess()
 		{
 			if (fd_iter->type == CGI_PIPE)
 			{
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::", 1);
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
@@ -1218,7 +1220,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
-	ft::console_log("Execute Cgi");
+	ft::console_log("Execute Cgi", 1);
 
 	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();

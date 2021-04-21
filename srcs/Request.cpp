@@ -601,7 +601,6 @@ Request::getHeader(int fd)
 			m_cut_bytes -= ret;
 		}
 	}
-	ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::meme::", 1);
 	/* 헤더 덜 받았을 때, 아니면 이미 이전에 헤더 다 받고 파싱 끝냈을 때 */
 	return (CONTINUE);
 }
