@@ -24,6 +24,10 @@
 # define GAEBOKCHI 262144
 # define RESV_SIZE INT_MAX
 
+# define TMP1 "/Users/yechoi/.tmp1"
+# define TMP2 "/Users/yechoi/.tmp2"
+# define CHECKFD "/Users/yechoi/.checkfd"
+
 enum Method
 {
 	DEFAULT,

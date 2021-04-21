@@ -465,7 +465,6 @@ Server::readProcess()
 					// }
 					// std::cout << "\n=========================================================="<< std::endl;
 					body_status = request.getBody(sockfd);
-					std::cout << "body_status is " << body_status << std::endl;
 					if (body_status == FAIL)
 					{
 						m_requests[sockfd] = Request();
@@ -478,7 +477,7 @@ Server::readProcess()
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
-						std::cout << "ra??????" << std::endl;
+						return (true);
 					}
 					else if (body_status == SUCCESS)
 					{
@@ -603,8 +602,8 @@ Server::writeProcess()
 						if (buffsize == 0)
 						{
 							close(m_requests[sockfd].get_m_cgi_stdout());
-							unlink("/tmp/.tmptext1");
-							unlink("/tmp/.tmptext2");
+							unlink(TMP1);
+							unlink(TMP2);
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -1207,10 +1206,10 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
-	int parent_write = open("/tmp/.tmptext2", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open("/tmp/.tmptext2", O_RDONLY);
-	int parent_read = open("/tmp/.tmptext", O_RDONLY);
-	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_write = open(TMP2, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open(TMP2, O_RDONLY);
+	int parent_read = open(TMP1, O_RDONLY);
+	int cgi_stdout = open(TMP1, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 
 	/* set fd nonblock */
@@ -1222,7 +1221,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	ft::console_log("Execute Cgi", 1);
 
-	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
+	req.set_m_check_fd(open(CHECKFD, O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1232,12 +1231,12 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		close(parent_write);
 		while (42)
 		{
-			stat("/tmp/.check_fd", &buff);
+			stat("CHECKFD", &buff);
 			sleep(1);
 			if (buff.st_size > 0)
 			{
 				close(req.get_m_check_fd());
-				unlink("/tmp/.check_fd");
+				unlink(CHECKFD);
 				break ;
 			}
 		}
