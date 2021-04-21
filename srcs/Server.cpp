@@ -199,8 +199,8 @@ Server::noteHttpConfigLocation()
 }
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port,
-int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types, std::string default_type,
+Server::init(HttpConfigServer server_block, std::string server_name, int port, int content_length, size_t location_size,
+std::string root, std::string tmp_path, std::map<std::string, std::string> mime_types, std::string default_type,
 int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
@@ -211,6 +211,7 @@ int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	this->m_root = root;
+	this->m_tmp_path = tmp_path;
 	this->m_mime_types = mime_types;
 	this->m_default_type = default_type;
 	this->m_maxfd = maxfd;
@@ -606,8 +607,8 @@ Server::writeProcess()
 						if (buffsize == 0)
 						{
 							close(m_requests[sockfd].get_m_cgi_stdout());
-							unlink(TMP1);
-							unlink(TMP2);
+							unlink((this->m_tmp_path + std::string("/.tmp1")).c_str());
+							unlink((this->m_tmp_path + std::string("/.tmp2")).c_str());
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -1213,10 +1214,10 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
-	int parent_write = open(TMP2, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open(TMP2, O_RDONLY);
-	int parent_read = open(TMP1, O_RDONLY);
-	int cgi_stdout = open(TMP1, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_write = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_RDONLY);
+	int parent_read = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_RDONLY);
+	int cgi_stdout = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 
 	/* set fd nonblock */
@@ -1228,7 +1229,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	ft::console_log("Execute Cgi", 1);
 
-	req.set_m_check_fd(open(CHECKFD, O_RDWR | O_CREAT | O_TRUNC, 0666));
+	req.set_m_check_fd(open((this->m_tmp_path + std::string("/.checkfd")).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1243,7 +1244,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 			if (buff.st_size > 0)
 			{
 				close(req.get_m_check_fd());
-				unlink(CHECKFD);
+				unlink((this->m_tmp_path + std::string("/.checkfd")).c_str());
 				break ;
 			}
 		}

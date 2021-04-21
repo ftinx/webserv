@@ -33,6 +33,7 @@ class Server
 		int m_content_length;
 		size_t m_location_size;
 		std::string m_root;
+		std::string m_tmp_path;
 		std::string m_default_type;
 		std::string m_auth_id;
 		std::string m_auth_pw;
@@ -98,7 +99,7 @@ class Server
 			int port,
 			int content_length,
 			size_t location_size,
-			std::string root,
+			std::string root, std::string tmp_path,
 			std::map<std::string, std::string> mime_types, std::string default_type,
 			int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds
 		);
