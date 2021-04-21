@@ -378,7 +378,7 @@ Server::readProcess()
 
 			if (fd_iter->type == CGI_PIPE)
 			{
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::", 1);
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
@@ -423,7 +423,7 @@ Server::readProcess()
 				Response &response = this->m_responses[sockfd];
 				int header_status = request.getHeader(sockfd);
 				int body_status = -1;
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::", 1);
 				if (header_status == SUCCESS)
 				{
 					ft::console_log("header_status success", 1);
@@ -441,7 +441,6 @@ Server::readProcess()
 						ft::console_log("222222");
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
-							ft::console_log("STATUS CODE: " + std::to_string(this->m_responses[sockfd].get_m_status_code()), 1);
 							ft::fdSet(sockfd, m_write_fds);
 							// std::cout << sockfd << "==========================================================" << std::endl;
 							// for (int i=0; i<1; i++) {
@@ -482,15 +481,14 @@ Server::readProcess()
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
+						return (true);
 					}
 					else if (body_status == SUCCESS)
 					{
-						std::cout << "before handle request "<< std::endl;
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
 							ft::fdSet(sockfd, m_write_fds);
-							std::cout << "after handle request: " << this->m_responses[sockfd].get_m_status_code() << this->m_requests[sockfd].get_m_uri().get_m_path() << std::endl;
 							return (true);
 						}
 					}
@@ -514,7 +512,7 @@ Server::writeProcess()
 		{
 			if (fd_iter->type == CGI_PIPE)
 			{
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::", 1);
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
@@ -608,8 +606,8 @@ Server::writeProcess()
 						if (buffsize == 0)
 						{
 							close(m_requests[sockfd].get_m_cgi_stdout());
-							unlink("/tmp/.tmptext1");
-							unlink("/tmp/.tmptext2");
+							unlink(TMP1);
+							unlink(TMP2);
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -630,9 +628,12 @@ Server::writeProcess()
 						ft::console_log("------ OK " + std::to_string(pos + ret), 1);
 						// return (false);
 					}
-					if (buffsize == content_length || buffsize == 0)
+					if (ret == content_length - pos|| buffsize == 0)
 					{
-						ft::console_log("------ 000 END " + std::to_string(pos) + ":=================::", 1);
+						ft::console_log("------ END B ", 1);
+						std::cout << m_requests[sockfd].get_m_method() << " " << m_requests[sockfd].get_m_reset_path() << " " << m_responses[sockfd].get_m_status_code() << std::endl;
+						if (m_requests[sockfd].get_m_method() == 0)
+							std::cout << m_requests[sockfd].get_m_raw_header() << std::endl;
 						this->m_requests[sockfd] = Request();
 						this->m_responses[sockfd] = Response();
 						ft::fdClr(sockfd, m_write_fds);
@@ -664,7 +665,8 @@ Server::writeProcess()
 				if (ret <= 0)
 				{
 					static int youpiget = 0;
-					ft::console_log("------ END " + std::to_string(pos) + ":=================::" + std::to_string(youpiget), 1);
+					ft::console_log("------ END A ", 1);
+					std::cout << m_requests[sockfd].get_m_method() << " " << m_requests[sockfd].get_m_reset_path() << " " << m_responses[sockfd].get_m_status_code() << std::endl;
 					youpiget++;
 					this->m_requests[sockfd] = Request();
 					this->m_responses[sockfd] = Response();
@@ -1211,10 +1213,10 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
-	int parent_write = open("/tmp/.tmptext2", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open("/tmp/.tmptext2", O_RDONLY);
-	int parent_read = open("/tmp/.tmptext", O_RDONLY);
-	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_write = open(TMP2, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open(TMP2, O_RDONLY);
+	int parent_read = open(TMP1, O_RDONLY);
+	int cgi_stdout = open(TMP1, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 
 	/* set fd nonblock */
@@ -1224,9 +1226,9 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
-	ft::console_log("Execute Cgi");
+	ft::console_log("Execute Cgi", 1);
 
-	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
+	req.set_m_check_fd(open(CHECKFD, O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1236,12 +1238,12 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		close(parent_write);
 		while (42)
 		{
-			stat("/tmp/.check_fd", &buff);
+			stat("CHECKFD", &buff);
 			sleep(1);
 			if (buff.st_size > 0)
 			{
 				close(req.get_m_check_fd());
-				unlink("/tmp/.check_fd");
+				unlink(CHECKFD);
 				break ;
 			}
 		}
@@ -1335,13 +1337,11 @@ Server::methodPUT(int clientfd, std::string method)
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
 	{
-		//close(fd);
 		return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 	}
 	else
 	{
-		//close(fd);
-		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", path));
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", "/"));
 	}
 	return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
