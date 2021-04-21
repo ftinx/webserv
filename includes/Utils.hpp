@@ -21,7 +21,7 @@
 # define SOCK_BUFF 10000000
 # define HEADER_BUFF 8000
 // # define SOCK_BUFF 680000
-# define GAEBOKCHI 262144
+# define GAEBOKCHI 26214
 # define RESV_SIZE INT_MAX
 
 # define TMP1 "/Users/yechoi/.tmp1"

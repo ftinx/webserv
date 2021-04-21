@@ -61,6 +61,7 @@ class Response
 		std::string m_cgi_response;
 		bool m_has_cgi_response;
 		bool m_cgi_chunked_read_end;
+		bool m_cgi_chunked_write_end;
 
 		/* server */
 		int		m_pos;
@@ -94,6 +95,7 @@ class Response
 		std::string &get_m_cgi_response();
 		bool get_m_has_cgi_response() const;
 		bool get_m_cgi_chunked_read_end() const;
+		bool get_m_cgi_chunked_write_end() const;
 		int get_m_pos();
 
 		/* setter */
@@ -111,6 +113,7 @@ class Response
 		void set_m_content_length(int content_length);
 		void set_m_has_cgi_response(bool has_cgi_response);
 		void set_m_cgi_chunked_read_end(bool cgi_chunked_read_end);
+		void set_m_cgi_chunked_write_end(bool cgi_chunked_write_end);
 		void set_m_pos(int pos);
 
 		/* CGI */
