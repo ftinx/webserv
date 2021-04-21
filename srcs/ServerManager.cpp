@@ -176,7 +176,7 @@ ServerManager::runServers()
 		);
 		// for (int i=0; i<1; i++) {
 		// 	std::cout << "-----" << "AFTER SELECT" << "-----" << std::endl;
-		// 	std::cout << std::bitset<32>(this->m_copy_write_fds.fds_bits[i]) << std::endl << std::endl;;
+		// 	std::cout << std::bitset<32>(this->m_write_fds.fds_bits[i]) << std::endl << std::endl;;
 		// }
 
 		switch (fd_num)
