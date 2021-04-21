@@ -626,7 +626,7 @@ Request::getBody(int fd)
 		/* 읽어오려고 했던 만큼 온전히 다 읽었을 때 */
 		if (ret == m_content_length)
 		{
-			std::cout << "hi1"<< std::endl;
+			std::cout << "hi1 "<< buff << std::endl;
 			m_body.append(buff);
 			m_read_end = true;
 			free(buff);
