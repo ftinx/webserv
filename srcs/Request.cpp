@@ -612,7 +612,6 @@ Request::getBody(int fd)
 	char *buff = (char*)malloc(sizeof(char) * SOCK_BUFF);
 
 	ft::memset(buff, 0, SOCK_BUFF);
-	std::cout << m_content_length << std::endl;
 	if (m_chunked == false && m_content_length == -1)
 	{
 		m_read_end = true;

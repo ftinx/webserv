@@ -9,7 +9,8 @@ Response::Response()
 m_server(""), m_status_description(""), m_headers(), m_html_document(""), m_body(""),
 m_head(""), m_content_length(0), m_response_message(""), m_response_size(0), m_index_file(),
 m_root(""), m_cgi_extension(), m_cgi_server_name(""), m_cgi_client_addr(), m_cgi_port(0),
-m_cgi_path(""), m_cgi_header(""), m_cgi_response(""), m_has_cgi_response(false), m_cgi_chunked_read_end(false), m_pos(0)
+m_cgi_path(""), m_cgi_header(""), m_cgi_response(""), m_has_cgi_response(false),
+m_cgi_chunked_read_end(false), m_cgi_chunked_write_end(false), m_pos(0)
 {
 }
 
@@ -53,6 +54,7 @@ Response::operator=(Response const &rhs)
 	this->m_cgi_response = rhs.m_cgi_response;
 	this->m_has_cgi_response = rhs.m_has_cgi_response;
 	this->m_cgi_chunked_read_end = rhs.m_cgi_chunked_read_end;
+	this->m_cgi_chunked_write_end = rhs.m_cgi_chunked_write_end;
 
 	/* Server */
 	this->m_pos = rhs.m_pos;
@@ -202,6 +204,12 @@ Response::get_m_cgi_chunked_read_end() const
 	return (this->m_cgi_chunked_read_end);
 }
 
+bool
+Response::get_m_cgi_chunked_write_end() const
+{
+	return (this->m_cgi_chunked_write_end);
+}
+
 int
 Response::get_m_pos()
 {
@@ -307,6 +315,13 @@ void
 Response::set_m_cgi_chunked_read_end(bool cgi_chunked_read_end)
 {
 	this->m_cgi_chunked_read_end =cgi_chunked_read_end;
+	return ;
+}
+
+void
+Response::set_m_cgi_chunked_write_end(bool cgi_chunked_write_end)
+{
+	this->m_cgi_chunked_write_end =cgi_chunked_write_end;
 	return ;
 }
 
