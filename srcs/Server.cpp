@@ -411,6 +411,8 @@ Server::readProcess()
 				if (response.get_m_cgi_chunked_write_end() == true && ret == 0)
 				{
 					close(fd_iter->sockfd);
+					unlink((this->m_tmp_path + std::string("/.tmp1")).c_str());
+					unlink((this->m_tmp_path + std::string("/.tmp2")).c_str());
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
 					response.set_m_cgi_chunked_read_end(true);
@@ -439,9 +441,7 @@ Server::readProcess()
 					}
 					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
-						ft::console_log("111111");
 						handleRequest(sockfd);
-						ft::console_log("222222");
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
 							ft::fdSet(sockfd, m_write_fds);
@@ -614,19 +614,19 @@ Server::writeProcess()
 						std::string num;
 						ft::itoa(buffsize, num, 16);
 						std::string buff = (num + "\r\n"+ body.substr(pos, buffsize) + "\r\n");
-						ret = write(sockfd, buff.c_str(), buff.size());
+						char *buf = (char*)malloc(buff.size() + 1);
+						memcpy(buf, buff.c_str(), buff.size());
+						buf[buff.size()] = '\0';
+						ret = write(sockfd, buf, buff.size());
 						response.set_m_pos(pos + buffsize);
+						free(buf);
 						std::cout << "written bytes: " << pos + buffsize << std::endl;
 						if (buffsize == 0)
 						{
 							std::cout << "buffsize == 0 " << std::endl;
-							close(m_requests[sockfd].get_m_cgi_stdout());
-							unlink((this->m_tmp_path + std::string("/.tmp1")).c_str());
-							unlink((this->m_tmp_path + std::string("/.tmp2")).c_str());
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
-
 							return (true);
 						}
 					}
