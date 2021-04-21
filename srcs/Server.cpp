@@ -378,7 +378,7 @@ Server::readProcess()
 
 			if (fd_iter->type == CGI_PIPE)
 			{
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::3::", 1);
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				Response &response = this->m_responses[fd_iter->clientfd];
@@ -423,7 +423,7 @@ Server::readProcess()
 				Response &response = this->m_responses[sockfd];
 				int header_status = request.getHeader(sockfd);
 				int body_status = -1;
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::", 1);
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
@@ -477,6 +477,7 @@ Server::readProcess()
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
+						return (true);
 					}
 					else if (body_status == SUCCESS)
 					{
@@ -507,7 +508,7 @@ Server::writeProcess()
 		{
 			if (fd_iter->type == CGI_PIPE)
 			{
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::2::", 1);
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
@@ -601,8 +602,8 @@ Server::writeProcess()
 						if (buffsize == 0)
 						{
 							close(m_requests[sockfd].get_m_cgi_stdout());
-							unlink("/tmp/.tmptext1");
-							unlink("/tmp/.tmptext2");
+							unlink(TMP1);
+							unlink(TMP2);
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -1205,10 +1206,10 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
-	int parent_write = open("/tmp/.tmptext2", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open("/tmp/.tmptext2", O_RDONLY);
-	int parent_read = open("/tmp/.tmptext", O_RDONLY);
-	int cgi_stdout = open("/tmp/.tmptext", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_write = open(TMP2, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open(TMP2, O_RDONLY);
+	int parent_read = open(TMP1, O_RDONLY);
+	int cgi_stdout = open(TMP1, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 
 	/* set fd nonblock */
@@ -1218,9 +1219,9 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	fcntl(parent_write, F_SETFL, O_NONBLOCK);
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
-	ft::console_log("Execute Cgi");
+	ft::console_log("Execute Cgi", 1);
 
-	req.set_m_check_fd(open("/tmp/.check_fd", O_RDWR | O_CREAT | O_TRUNC, 0666));
+	req.set_m_check_fd(open(CHECKFD, O_RDWR | O_CREAT | O_TRUNC, 0666));
 	pid = fork();
 
 	if (pid == 0) // child process
@@ -1230,12 +1231,12 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		close(parent_write);
 		while (42)
 		{
-			stat("/tmp/.check_fd", &buff);
+			stat("CHECKFD", &buff);
 			sleep(1);
 			if (buff.st_size > 0)
 			{
 				close(req.get_m_check_fd());
-				unlink("/tmp/.check_fd");
+				unlink(CHECKFD);
 				break ;
 			}
 		}
