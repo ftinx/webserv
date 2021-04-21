@@ -5,9 +5,11 @@ console_log
 .htpasswd_jwon
 .htpasswd_holee
 .htpasswd_yechoi
+.htpasswd_tonybyeon
 jwon.conf
 holee.conf
 yechoi.conf
+tonybyeon.conf
 
 # Created by https://www.toptal.com/developers/gitignore/api/c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++
