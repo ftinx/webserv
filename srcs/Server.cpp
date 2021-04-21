@@ -359,8 +359,11 @@ Server::handleRequest(int clientfd)
 				ft::getMethodString(method), getMimeType("html"), request.getReferer(), 0, 0, 0, allow_method);
 			break;
 		}
-		this->m_responses[clientfd].setMultipleResponses(request.get_m_count_message());
-		request.set_m_count_message(0);
+		// this->m_responses[clientfd].setMultipleResponses(request.get_m_count_message());
+		// request.set_m_count_message(0);
+		static int i = 0;
+
+		printf("handle request: %d\n", i++);
 	}
 	return ;
 }
@@ -441,13 +444,20 @@ Server::readProcess()
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
-							ft::console_log("STATUS CODE: " + std::to_string(this->m_responses[sockfd].get_m_status_code()));
+							ft::console_log("STATUS CODE: " + std::to_string(this->m_responses[sockfd].get_m_status_code()), 1);
 							ft::fdSet(sockfd, m_write_fds);
+							// std::cout << sockfd << "==========================================================" << std::endl;
+							// for (int i=0; i<1; i++) {
+							// 	std::cout << std::bitset<32>(m_write_fds->fds_bits[i]) << std::endl;
+							// }
+							// std::cout << "\n=========================================================="<< std::endl;
+							// sleep(1);
 						}
 					}
 				}
 				else if (header_status == FAIL)
 				{
+					m_requests[sockfd] = Request();
 					close(sockfd);
 					ft::fdClr(sockfd, m_main_fds);
 					m_fd_table.erase(fd_iter);
@@ -456,9 +466,15 @@ Server::readProcess()
 				}
 				else if (header_status == CONTINUE && request.get_m_raw_header() != "") //body 읽어야 함
 				{
+					// std::cout << sockfd << "==========================getBody==========================" << std::endl;
+					// for (int i=0; i<1; i++) {
+					// 	std::cout << std::bitset<32>(m_write_fds->fds_bits[i]) << std::endl;
+					// }
+					// std::cout << "\n=========================================================="<< std::endl;
 					body_status = request.getBody(sockfd);
 					if (body_status == FAIL)
 					{
+						m_requests[sockfd] = Request();
 						close(sockfd);
 						ft::fdClr(sockfd, m_main_fds);
 						m_fd_table.erase(fd_iter);
@@ -471,9 +487,14 @@ Server::readProcess()
 					}
 					else if (body_status == SUCCESS)
 					{
+						std::cout << "before handle request "<< std::endl;
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
+						{
 							ft::fdSet(sockfd, m_write_fds);
+							std::cout << "after handle request: " << this->m_responses[sockfd].get_m_status_code() << this->m_requests[sockfd].get_m_uri().get_m_path() << std::endl;
+							return (true);
+						}
 					}
 				}
 			}
@@ -554,7 +575,7 @@ Server::writeProcess()
 			}
 			else if(fd_iter->type == C_SOCKET)
 			{
-				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::4::");
+				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::4::", 1);
 				int ret = 0;
 				int buffsize;
 				// Request &request = m_requests[sockfd];
@@ -608,8 +629,16 @@ Server::writeProcess()
 					if ((ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0)
 					{
 						response.set_m_pos(pos + ret);
-						ft::console_log("------ OK " + std::to_string(pos));
-						return (false);
+						ft::console_log("------ OK " + std::to_string(pos + ret), 1);
+						// return (false);
+					}
+					if (buffsize == content_length || buffsize == 0)
+					{
+						ft::console_log("------ 000 END " + std::to_string(pos) + ":=================::", 1);
+						this->m_requests[sockfd] = Request();
+						this->m_responses[sockfd] = Response();
+						ft::fdClr(sockfd, m_write_fds);
+						return (true);
 					}
 				}
 				if (ret < 0)
@@ -643,7 +672,6 @@ Server::writeProcess()
 					this->m_responses[sockfd] = Response();
 					ft::fdClr(sockfd, m_write_fds);
 				}
-				writeLog("response", m_responses[sockfd], Request(), WRITE_LOG);
 			}
 			return (false);
 		}
@@ -1287,7 +1315,6 @@ Server::methodPUT(int clientfd, std::string method)
 {
 	Request &req(this->m_requests[clientfd]);
 	std::string path = req.get_m_reset_path();
-
 	int fd;
 	const char *body;
 	int status_code = 0;
@@ -1302,7 +1329,7 @@ Server::methodPUT(int clientfd, std::string method)
 	{
 		if ((fd = open((path).c_str(), O_RDWR | O_TRUNC, 0666)) < 0)
 			return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
-		status_code = 200;
+		status_code = 201;
 	}
 	body = req.get_m_body().c_str();
 	if (write(fd, req.get_m_body().c_str(), ft::strlen(req.get_m_body().c_str())) < 0)
@@ -1313,7 +1340,7 @@ Server::methodPUT(int clientfd, std::string method)
 	else
 	{
 		//close(fd);
-		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.getReferer()));
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", path));
 	}
 	return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
@@ -1328,6 +1355,7 @@ Server::methodDELETE(int clientfd, std::string method)
 	Request &req(this->m_requests[clientfd]);
 	std::string path = req.get_m_reset_path();
 
+	ft::console_log(path, 1);
 	if (ft::isValidFilePath(path))
 	{
 		if (unlink(path.c_str()) == 0)

@@ -43,7 +43,7 @@ echo -e "\033[47;30m* DELETE LOG *\033[0m"
 echo ""
 
 find . -type f -name "*.log" -exec rm {} \;
-rm console_log;
+find . -type f -name "console_log" -exec rm {} \;
 # 현재 폴더 아래의 log파일만 찾아서 삭제하는 명령어입니다. 수정 시 주의 요망!
 
 echo -e "\033[47;30m* COMPILING... *\033[0m"
