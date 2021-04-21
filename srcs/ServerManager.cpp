@@ -197,6 +197,7 @@ ServerManager::runServers()
 				std::cerr << "Timeout Reset" << std::endl;
 				int max_server_socket;
 				for (size_t i = 0; i < this->m_server_size; i++) {
+					this->m_server[i]->fdTableClear();
 					if (max_server_socket < this->m_server[i]->get_m_server_socket())
 						max_server_socket = this->m_server[i]->get_m_server_socket();
 				}
