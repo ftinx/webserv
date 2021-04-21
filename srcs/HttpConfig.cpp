@@ -11,6 +11,7 @@ HttpConfig::HttpConfig()
 	m_include(""),
 	m_default_type("application/octet-stream"),
 	m_root(""),
+	m_tmp_path(""),
 	m_server_block(),
 	m_mime_types()
 {
@@ -75,6 +76,12 @@ std::string
 HttpConfig::get_m_root() const
 {
 	return (this->m_root);
+}
+
+std::string
+HttpConfig::get_m_tmp_path() const
+{
+	return (this->m_tmp_path);
 }
 
 std::vector<HttpConfigServer>
@@ -153,6 +160,15 @@ HttpConfig::setDefaultRootPath()
 }
 
 void
+HttpConfig::setDefaultTmpPath()
+{
+	char path[1024];
+
+	getcwd(path, 1024);
+	this->m_tmp_path = std::string(path) + std::string("/.tmp");
+}
+
+void
 HttpConfig::parseConfigFile(std::string &file_path)
 {
 	size_t idx = 0;
@@ -163,6 +179,7 @@ HttpConfig::parseConfigFile(std::string &file_path)
 	this->m_lines = ft::split(this->m_config_file, '\n');
 
 	setDefaultRootPath();
+	setDefaultTmpPath();
 	if (HttpConfig::checkCurlyBracketsFaired() == false)
 		throw BracketPairErrorException();
 	while (idx < this->m_lines.size())
@@ -204,6 +221,12 @@ HttpConfig::parseConfigFile(std::string &file_path)
 				if (ft::isValidDirPath(line.back()) == false)
 					throw PathErrorException(m_lines[idx], idx);
 				this->m_root = line.back();
+			}
+			else if (line.front().compare("tmp_path") == 0)
+			{
+				if (ft::isValidDirPath(line.back()) == false)
+					throw PathErrorException(m_lines[idx], idx);
+				this->m_tmp_path = line.back();
 			}
 			else if (line.front().compare("server") == 0)
 			{

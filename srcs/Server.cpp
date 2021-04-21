@@ -199,8 +199,8 @@ Server::noteHttpConfigLocation()
 }
 
 void
-Server::init(HttpConfigServer server_block, std::string server_name, int port,
-int content_length, size_t location_size, std::string root, std::map<std::string, std::string> mime_types, std::string default_type,
+Server::init(HttpConfigServer server_block, std::string server_name, int port, int content_length, size_t location_size,
+std::string root, std::string tmp_path, std::map<std::string, std::string> mime_types, std::string default_type,
 int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_write_fds)
 {
 	this->m_requests = std::vector<Request>(MAX_SOCK_NUM);
@@ -211,6 +211,7 @@ int *maxfd, fd_set *main_fds, fd_set *read_fds, fd_set *write_fds, fd_set *copy_
 	this->m_content_length = content_length;
 	this->m_location_size = location_size;
 	this->m_root = root;
+	this->m_tmp_path = tmp_path;
 	this->m_mime_types = mime_types;
 	this->m_default_type = default_type;
 	this->m_maxfd = maxfd;
@@ -428,6 +429,7 @@ Server::readProcess()
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::", 1);
 				if (header_status == SUCCESS)
 				{
+					ft::console_log("header_status success", 1);
 					resetRequest(&request);
 					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
 					{
@@ -437,7 +439,9 @@ Server::readProcess()
 					}
 					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
+						ft::console_log("111111");
 						handleRequest(sockfd);
+						ft::console_log("222222");
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
 							ft::fdSet(sockfd, m_write_fds);
@@ -448,6 +452,7 @@ Server::readProcess()
 							// std::cout << "\n=========================================================="<< std::endl;
 							// sleep(1);
 						}
+						ft::console_log("444444");
 					}
 				}
 				else if (header_status == FAIL)
@@ -616,8 +621,8 @@ Server::writeProcess()
 						{
 							std::cout << "buffsize == 0 " << std::endl;
 							close(m_requests[sockfd].get_m_cgi_stdout());
-							unlink(TMP1);
-							unlink(TMP2);
+							unlink((this->m_tmp_path + std::string("/.tmp1")).c_str());
+							unlink((this->m_tmp_path + std::string("/.tmp2")).c_str());
 							this->m_requests[sockfd] = Request();
 							this->m_responses[sockfd] = Response();
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -699,13 +704,16 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 
 	if (writeProcess() == true)
 		return;
+	ft::console_log("after write process");
 	if (ft::fdIsSet(this->m_server_socket, this->m_read_fds))
 	{
 		acceptSocket();
 		return ;
 	}
+	ft::console_log("after accept");
 	if (readProcess() == true)
 		return;
+	ft::console_log("after read process");
 	return ;
 }
 
@@ -1219,11 +1227,10 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	else if (pipe(fds2) < 0)
 		throw (Server::CgiException());
 
-	int parent_write = open(TMP2, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open(TMP2, O_RDONLY);
-	int cgi_stdout = open(TMP1, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int parent_read = open(TMP1, O_RDONLY);
-
+	int parent_write = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int cgi_stdin = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_RDONLY);
+	int cgi_stdout = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	int parent_read = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_RDONLY);
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
@@ -1234,7 +1241,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	ft::console_log("Execute Cgi", 1);
 
-	int checkfd = open(CHECKFD, O_RDWR | O_CREAT | O_TRUNC, 0666);
+	int checkfd = open((this->m_tmp_path + std::string("/.checkfd")).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
 	std::cout << "checkfd: " << checkfd << std::endl;
 	std::cout << "parent_write: " << parent_write << std::endl;
 	std::cout << "parent_read: " << parent_read << std::endl;
@@ -1252,7 +1259,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 			if (buff.st_size > 0)
 			{
 				close(req.get_m_check_fd());
-				unlink(CHECKFD);
+				unlink((this->m_tmp_path + std::string("/.checkfd")).c_str());
 				break ;
 			}
 		}

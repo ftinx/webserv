@@ -22,6 +22,7 @@ class HttpConfig
 		std::string m_include;
 		std::string m_default_type;
 		std::string m_root;
+		std::string m_tmp_path;
 		std::vector<HttpConfigServer> m_server_block;
 		std::map<std::string, std::string> m_mime_types;
 
@@ -30,6 +31,7 @@ class HttpConfig
 		bool checkCurlyBracketsFaired(); // 중괄호의 갯수와 열고 닫음에 에러가 없는지 확인
 		void parseMimeTypes();
 		void setDefaultRootPath();
+		void setDefaultTmpPath();
 
 	public:
 		HttpConfig();
@@ -43,6 +45,7 @@ class HttpConfig
 		std::string get_m_include() const;
 		std::string get_m_default_type() const;
 		std::string get_m_root() const;
+		std::string get_m_tmp_path() const;
 		std::vector<HttpConfigServer> get_m_server_block() const;
 		std::map<std::string, std::string> get_m_mime_types() const;
 
