@@ -314,15 +314,12 @@ Server::handleRequest(int clientfd)
 {
 	Request &request = this->m_requests[clientfd];
 	Method method = request.get_m_method();
-	ft::console_log("HANDLE REQUEST | fd: "+ std::to_string(clientfd));
-	ft::console_log("HANDLE REQUEST | method : " + std::to_string(method));
-	ft::console_log("HANDLE REQUEST | uri: "+ request.get_m_reset_path());
 
-	if (!request.isHost())
-		request.set_m_error_code(400);
 	this->m_responses[clientfd] = Response();
 	if (request.get_m_error_code() && request.get_m_method() != 6 && request.get_m_method() != 7)
 		this->m_responses[clientfd] = this->parseErrorResponse(clientfd);
+	else if (!request.isHost())
+		request.set_m_error_code(400);
 	else
 	{
 		/* make Response for Method */
@@ -361,9 +358,6 @@ Server::handleRequest(int clientfd)
 		}
 		// this->m_responses[clientfd].setMultipleResponses(request.get_m_count_message());
 		// request.set_m_count_message(0);
-		static int i = 0;
-
-		printf("handle request: %d\n", i++);
 	}
 	return ;
 }
