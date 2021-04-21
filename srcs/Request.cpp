@@ -408,7 +408,6 @@ Request::getReferer()
 	/* `Referer` header not exist */
 	if (it == this->m_headers.end())
 		return ("");
-	std::cout << it->second << std::endl;
 	return (this->m_referer = it->second);
 }
 
