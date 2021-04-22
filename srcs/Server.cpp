@@ -613,7 +613,7 @@ Server::writeProcess()
 					{
 						const std::string &body = response.get_m_cgi_response();
 						int content_length = body.size();
-						buffsize = std::min(content_length - pos, CGI_BUFF);
+						buffsize = std::min(content_length - pos, GAEBOKCHI);
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
 						{
 							ft::fdClr(sockfd, this->m_write_fds);

@@ -21,7 +21,7 @@
 # define SOCK_BUFF 10000000
 # define HEADER_BUFF 8000
 // # define SOCK_BUFF 680000
-// # define GAEBOKCHI 100000
+# define GAEBOKCHI 10000
 # define RESV_SIZE INT_MAX
 
 enum Method
