@@ -406,19 +406,20 @@ Server::readProcess()
 						return (true);
 					}
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
+
 					return (false);
 				}
 				if (response.get_m_cgi_chunked_write_end() == true && ret == 0)
 				{
-					Str parent_write_name;
+					// Str parent_write_name;
 					Str parent_read_name;
 
-					parent_write_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(fd_iter->clientfd));
+					// parent_write_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(fd_iter->clientfd));
 					parent_read_name.p->append(this->m_tmp_path + std::string("/.tmp1_") + std::to_string(fd_iter->clientfd));
 
 					close(fd_iter->sockfd);
 
-					unlink((*(parent_write_name.p)).c_str());
+					// unlink((*(parent_write_name.p)).c_str());
 					unlink((*(parent_read_name.p)).c_str());
 					ft::fdClr(fd_iter->sockfd, m_main_fds);
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
@@ -530,7 +531,7 @@ Server::writeProcess()
 				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size())); // body size가 int 넘어갈 경우 위험
 				size_t ret = 0;
 				static int tmp = 0;
-				int status = 0;
+				// int status = 0;
 
 				if (buffsize > 0 && (ret = write(sockfd, body.c_str(), buffsize)) > 0) //buffsize 0으로 write 하면 ret이 size_t max
 				{
@@ -563,9 +564,9 @@ Server::writeProcess()
 				if (buffsize == 0 && ret == 0 && (request.get_m_read_end() == true))
 				{
 					std::cout << "::2:: chunked cgi write end" <<  tmp << std::endl;
-					pid_t ret;
+					// pid_t ret;
 					write(request.get_m_check_fd(), "end", 3);
-					ret = waitpid(request.get_m_cgi_pid(), &status, 0);
+					// ret = waitpid(request.get_m_cgi_pid(), &status, 0);
 					std::cout << "waitpid ret: " << ret  << " " << request.get_m_cgi_pid() << std::endl;
 					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_write_end(true);
@@ -612,7 +613,7 @@ Server::writeProcess()
 					{
 						const std::string &body = response.get_m_cgi_response();
 						int content_length = body.size();
-						buffsize = std::min(content_length - pos, GAEBOKCHI);
+						buffsize = std::min(content_length - pos, CGI_BUFF);
 						if (buffsize == 0 && response.get_m_cgi_chunked_read_end() == false)
 						{
 							ft::fdClr(sockfd, this->m_write_fds);
@@ -625,7 +626,7 @@ Server::writeProcess()
 						memcpy(buf, buff.c_str(), buff.size());
 						buf[buff.size()] = '\0';
 						ret = write(sockfd, buf, buff.size());
-						std::cout << buf << std::endl;
+						// std::cout << buf << std::endl;
 						response.set_m_pos(pos + buffsize);
 						free(buf);
 						std::cout << "written bytes: " << pos + buffsize << std::endl;
@@ -1238,21 +1239,29 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		throw (Server::CgiException());
 	}
 
-	Str parent_write_name;
-	Str cgi_stdin_name;
+	int fd[2];
+
+	if (pipe(fd) < 0)
+		throw (Server::CgiException());
+
+	// Str parent_write_name;
+	// Str cgi_stdin_name;
 	Str cgi_stdout_name;
 	Str parent_read_name;
 
-	parent_write_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(clientfd));
-	cgi_stdin_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(clientfd));
+	// parent_write_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(clientfd));
+	// cgi_stdin_name.p->append(this->m_tmp_path + std::string("/.tmp2_") + std::to_string(clientfd));
 	cgi_stdout_name.p->append(this->m_tmp_path + std::string("/.tmp1_") + std::to_string(clientfd));
 	parent_read_name.p->append(this->m_tmp_path + std::string("/.tmp1_") + std::to_string(clientfd));
 
 
-	int parent_write = open((*(parent_write_name.p)).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	int cgi_stdin = open((*(cgi_stdin_name.p)).c_str(), O_RDONLY);
+	// int parent_write = open((*(parent_write_name.p)).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	// int cgi_stdin = open((*(cgi_stdin_name.p)).c_str(), O_RDONLY);
 	int cgi_stdout = open((*(cgi_stdout_name.p)).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int parent_read = open((*(parent_read_name.p)).c_str(), O_RDONLY);
+
+	int parent_write = fd[1];
+	int cgi_stdin = fd[0];
 
 	/* set fd nonblock */
 	fcntl(cgi_stdin, F_SETFL, O_NONBLOCK);
@@ -1276,23 +1285,23 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	if (pid == 0) // child process
 	{
-		struct stat buff;
+		// struct stat buff;
 
 		close(parent_write);
 		close(parent_read);
-		while (42)
-		{
-			fstat(checkfd, &buff);
-			if (buff.st_size > 0)
-			{
-				close(req.get_m_check_fd());
-				unlink((*(checkfd_name.p)).c_str());
-				break ;
-			}
-		}
+		// while (42)
+		// {
+		// 	fstat(checkfd, &buff);
+		// 	if (buff.st_size > 0)
+		// 	{
+		// 		close(req.get_m_check_fd());
+		// 		unlink((*(checkfd_name.p)).c_str());
+		// 		break ;
+		// 	}
+		// }
 		if (dup2(cgi_stdout, STDOUT_FILENO) < 0)
 			throw(Server::CgiException());
-		if (dup2(cgi_stdin, STDIN_FILENO) < 0)
+		if (dup2(fd[0], STDIN_FILENO) < 0)
 			throw (Server::CgiException());
 
 		if (extension.compare("php") == 0)
