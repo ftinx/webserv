@@ -766,9 +766,11 @@ Request::getBody(int fd)
 				free(buff);
 				return (FAIL);
 			}
+			free(buff);
 			return (FAIL);
 		}
 	}
+	free(buff);
 	return (CONTINUE);
 }
 

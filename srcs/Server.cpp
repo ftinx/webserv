@@ -414,9 +414,11 @@ Server::readProcess()
 					catch (std::exception &e)
 					{
 						std::cout << e.what() << std::endl;
+						free(buff);
 						return (true);
 					}
 					ft::fdSet(fd_iter->clientfd, m_write_fds);
+					free(buff);
 					return (true);
 				}
 				if (response.get_m_cgi_chunked_write_end() == true && ret == 0)
@@ -431,8 +433,18 @@ Server::readProcess()
 					this->m_fd_table.erase(fd_iter);
 					*m_maxfd = findMaxFd();
 					std::cout << "cgi chunked read end @@@@@ " << i << std::endl;
+					free(buff);
 					return (true);
 				}
+				else if (ret <= 0) /* subject standard */
+				{
+					close(fd_iter->sockfd);
+					this->m_fd_table.erase(fd_iter);
+					*m_maxfd = findMaxFd();
+					free(buff);
+					return (true);
+				}
+				free(buff);
 				return (true);
 			}
 			else if(fd_iter->type == C_SOCKET)
@@ -458,14 +470,7 @@ Server::readProcess()
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
 						{
 							ft::fdSet(sockfd, m_write_fds);
-							// std::cout << sockfd << "==========================================================" << std::endl;
-							// for (int i=0; i<1; i++) {
-							// 	std::cout << std::bitset<32>(m_write_fds->fds_bits[i]) << std::endl;
-							// }
-							// std::cout << "\n=========================================================="<< std::endl;
-							// sleep(1);
 						}
-						ft::console_log("444444");
 					}
 					return (true);
 				}
@@ -523,6 +528,7 @@ Server::readProcess()
 			return (true);
 		}
 	}
+
 	return (false);
 }
 
@@ -544,50 +550,13 @@ Server::writeProcess()
 				const std::string &body = request.get_m_body();
 				int pos = request.get_m_pos();
 				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size()) - pos); // body size가 int 넘어갈 경우 위험
-				// int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size()));
-
 				size_t ret = 0;
-				// static int tmp = 0;
 				int status = 0;
 
 				if (buffsize > 0 && (ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0) //buffsize 0으로 write 하면 ret이 size_t max
-				// if (buffsize > 0 && (ret = write(sockfd, body.c_str(), buffsize)) > 0)
 				{
-					// tmp += ret;
-					// if (ret == body.length())
-					// {
-					// 	request.clearBody();
-					// }
-					// else
-					// {
-					// 	// try
-					// 	// {
-					// 		request.set_m_body(body.substr(ret, std::string::npos));
-					// 	// }
-					// 	// catch(const std::exception& e)
-					// 	// {
-					// 	// 	std::cerr << "22222 set BODY"  << ret << '\n';
-					// 	// }
-					// }
 					request.set_m_pos(pos + ret);
 					ft::fdSet(request.get_m_cgi_stdin(), this->m_read_fds);
-				}
-				else if (ret < 0)
-				{
-					std::cout << "ERRNO IS " << errno << std::endl;
-					std::cout << "A" << EAGAIN << std::endl;
-					std::cout << "B" << EWOULDBLOCK << std::endl;
-					std::cout << "C" << EBADF << std::endl;
-					std::cout << "D" << EDESTADDRREQ << std::endl;
-					std::cout << "E" << EDQUOT << std::endl;
-					std::cout << "F" << EFAULT << std::endl;
-					std::cout << "G" << EFBIG << std::endl;
-					std::cout << "H" << EINTR << std::endl;
-					std::cout << "I" << EINVAL << std::endl;
-					std::cout << "J" << EIO << std::endl;
-					std::cout << "K" << ENOSPC << std::endl;
-					std::cout << "L" << EPERM  << std::endl;
-					std::cout << "M" << EPIPE << std::endl;
 				}
 				if (buffsize == 0 && ret == 0 && (request.get_m_read_end() == true))
 				{
@@ -688,28 +657,6 @@ Server::writeProcess()
 						ft::fdClr(sockfd, this->m_write_fds);
 						return (true);
 					}
-				}
-				if (ret < 0)
-				{
-					std::cout << "------ FAIL" << pos << std::endl;
-					std::cout << "ERRNO IS " << errno << std::endl;
-					std::cout << "X" << EACCES << std::endl;
-					std::cout << "A" << EAGAIN << std::endl;
-					std::cout << "B" << EALREADY << std::endl;
-					std::cout << "C" << EBADF << std::endl;
-					std::cout << "D" << ECONNRESET << std::endl;
-					std::cout << "E" << EFAULT  << std::endl;
-					std::cout << "F" << EINTR << std::endl;
-					std::cout << "G" << EINVAL << std::endl;
-					std::cout << "H" << EISCONN << std::endl;
-					std::cout << "I" << EMSGSIZE << std::endl;
-					std::cout << "J" << ENOBUFS << std::endl;
-					std::cout << "K" << ENOMEM << std::endl;
-					std::cout << "L" << ENOTCONN << std::endl;
-					std::cout << "M" << ENOTSOCK << std::endl;
-					std::cout << "N" << EOPNOTSUPP << std::endl;
-					std::cout << "O" << EPIPE << std::endl;
-					std::cout << "P" << EDESTADDRREQ << std::endl;
 				}
 				if (ret == 0)
 				{
