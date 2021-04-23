@@ -542,35 +542,35 @@ Server::writeProcess()
 
 				Request &request = this->m_requests[fd_iter->clientfd];
 				const std::string &body = request.get_m_body();
-				// int pos = request.get_m_pos();
-				// int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size()) - pos); // body size가 int 넘어갈 경우 위험
-				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size()));
+				int pos = request.get_m_pos();
+				int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size()) - pos); // body size가 int 넘어갈 경우 위험
+				// int buffsize = std::min(SOCK_BUFF, static_cast<int>(body.size()));
 
 				size_t ret = 0;
 				// static int tmp = 0;
 				int status = 0;
 
-				// if (buffsize > 0 && (ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0) //buffsize 0으로 write 하면 ret이 size_t max
-				if (buffsize > 0 && (ret = write(sockfd, body.c_str(), buffsize)) > 0)
+				if (buffsize > 0 && (ret = write(sockfd, &(body.c_str()[pos]), buffsize)) > 0) //buffsize 0으로 write 하면 ret이 size_t max
+				// if (buffsize > 0 && (ret = write(sockfd, body.c_str(), buffsize)) > 0)
 				{
 					// tmp += ret;
-					if (ret == body.length())
-					{
-						request.clearBody();
-					}
-					else
-					{
-						// try
-						// {
-							request.set_m_body(body.substr(ret, std::string::npos));
-						// }
-						// catch(const std::exception& e)
-						// {
-						// 	std::cerr << "22222 set BODY"  << ret << '\n';
-						// }
-					}
-					// request.set_m_pos(pos + ret);
-					// ft::fdSet(request.get_m_cgi_stdin(), this->m_read_fds);
+					// if (ret == body.length())
+					// {
+					// 	request.clearBody();
+					// }
+					// else
+					// {
+					// 	// try
+					// 	// {
+					// 		request.set_m_body(body.substr(ret, std::string::npos));
+					// 	// }
+					// 	// catch(const std::exception& e)
+					// 	// {
+					// 	// 	std::cerr << "22222 set BODY"  << ret << '\n';
+					// 	// }
+					// }
+					request.set_m_pos(pos + ret);
+					ft::fdSet(request.get_m_cgi_stdin(), this->m_read_fds);
 				}
 				else if (ret < 0)
 				{
