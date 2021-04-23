@@ -102,6 +102,17 @@ const char* Server::CgiException::what() const throw()
 	return ("Error occured in CGI");
 }
 
+const char* Server::CgiPipeException::what() const throw()
+{
+	return ("Error occured in CGI pipe");
+}
+
+const char* Server::CgiDupException::what() const throw()
+{
+	return ("Error occured in CGI dup");
+}
+
+
 /*============================================================================*/
 /********************************  Getter  ************************************/
 /*============================================================================*/
@@ -1233,7 +1244,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		throw (Server::CgiException());
 	}
 	else if (pipe(fds2) < 0)
-		throw (Server::CgiException());
+		throw (Server::CgiPipeException());
 
 	int parent_write = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int cgi_stdin = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_RDONLY);
@@ -1272,9 +1283,9 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 			}
 		}
 		if (dup2(cgi_stdout, STDOUT_FILENO) < 0)
-			throw(Server::CgiException());
+			throw(Server::CgiDupException());
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0)
-			throw (Server::CgiException());
+			throw (Server::CgiDupException());
 
 		if (extension.compare("php") == 0)
 		{

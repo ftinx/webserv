@@ -82,6 +82,18 @@ class Server
 				virtual const char* what() const throw();
 		};
 
+		class CgiPipeException : public std::exception
+		{
+			public:
+				virtual const char* what() const throw();
+		};
+
+		class CgiDupException : public std::exception
+		{
+			public:
+				virtual const char* what() const throw();
+		};
+
 		/* Getter */
 		std::string get_m_server_name();
 		int get_m_port();
