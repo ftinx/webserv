@@ -439,7 +439,7 @@ Server::readProcess()
 						if (request.checkCGI() == true)
 							executeCgi(request, response, sockfd);
 					}
-					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
+					else if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
@@ -534,7 +534,7 @@ Server::writeProcess()
 					}
 					else
 						request.set_m_body(body.substr(ret, std::string::npos));
-					ft::fdSet(request.get_m_cgi_stdin(), m_read_fds);
+					ft::fdSet(request.get_m_cgi_stdin(), this->m_read_fds);
 				}
 				else if (ret < 0)
 				{
@@ -560,12 +560,12 @@ Server::writeProcess()
 					write(request.get_m_check_fd(), "end", 3);
 					ret = waitpid(request.get_m_cgi_pid(), &status, 0);
 					std::cout << "waitpid ret: " << ret  << " " << request.get_m_cgi_pid() << std::endl;
-					ft::fdSet(request.get_m_cgi_stdin(), m_main_fds);
+					ft::fdSet(request.get_m_cgi_stdin(), this->m_main_fds);
 					m_responses[fd_iter->clientfd].set_m_cgi_chunked_write_end(true);
 					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
-					*m_maxfd = findMaxFd();
+					*this->m_maxfd = findMaxFd();
 					return (true);
 				}
 				else if (ret < 0)
@@ -573,7 +573,7 @@ Server::writeProcess()
 					ft::fdClr(sockfd, this->m_write_fds);
 					close(sockfd);
 					this->m_fd_table.erase(fd_iter);
-					*m_maxfd = findMaxFd();
+					*this->m_maxfd = findMaxFd();
 					return (false);
 				}
 
@@ -650,7 +650,7 @@ Server::writeProcess()
 							std::cout << m_requests[sockfd].get_m_raw_header() << std::endl;
 						this->m_requests[sockfd] = Request();
 						this->m_responses[sockfd] = Response();
-						ft::fdClr(sockfd, m_write_fds);
+						ft::fdClr(sockfd, this->m_write_fds);
 						return (true);
 					}
 				}
@@ -684,7 +684,7 @@ Server::writeProcess()
 					youpiget++;
 					this->m_requests[sockfd] = Request();
 					this->m_responses[sockfd] = Response();
-					ft::fdClr(sockfd, m_write_fds);
+					ft::fdClr(sockfd, this->m_write_fds);
 				}
 			}
 			return (false);
@@ -702,6 +702,9 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 	this->m_write_fds = write_fds;
 	this->m_maxfd = maxfd;
 
+	if (readProcess() == true)
+		return;
+	ft::console_log("after read process");
 	if (writeProcess() == true)
 		return;
 	ft::console_log("after write process");
@@ -711,9 +714,7 @@ Server::getRequest(fd_set *main_fds, fd_set *read_fds, fd_set *copy_write_fds, f
 		return ;
 	}
 	ft::console_log("after accept");
-	if (readProcess() == true)
-		return;
-	ft::console_log("after read process");
+
 	return ;
 }
 
