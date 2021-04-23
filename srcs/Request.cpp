@@ -724,9 +724,9 @@ Request::getBody(int fd)
 			/* 목표한 만큼 다 읽었을 때 */
 			if (ret == m_cut_bytes)
 			{
-				buff[m_cut_bytes - 2] ='\0';
+				buff[m_cut_bytes] ='\0';
 				/* chunked 메세지의 마지막을 탐지 0\r\n\r\n */
-				if (strlen(buff) >= 3 && strncmp(buff + strlen(buff) - 3, "0\r\n", 3) == 0)
+				if (strlen(buff) >= 3 && strncmp(buff + strlen(buff) - 5, "0\r\n\r\n", 5) == 0)
 				{
 					m_should_read = false;
 					free(buff);
