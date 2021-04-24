@@ -11,7 +11,7 @@ Request::Request()
 m_method(DEFAULT), m_uri(), m_raw_header(""), m_headers(), m_body(""),
 m_content_length(-1), m_error_code(0),m_reset_path(""), m_location_block(), m_read_end(false),
 m_path_translated(""), m_path_info(""), m_script_name(""),
-m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1), m_check_fd(-1),
+m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
 m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0),
@@ -47,7 +47,6 @@ Request& Request::operator=(Request const &rhs)
 	this->m_cgi_pid = rhs.get_m_cgi_pid();
 	this->m_cgi_stdin = rhs.get_m_cgi_stdin();
 	this->m_cgi_stdout = rhs.get_m_cgi_stdout();
-	this->m_check_fd = rhs.get_m_check_fd();
 	this->m_content_type = rhs.get_m_content_type();
 	this->m_referer = rhs.get_m_referer();
 	this->m_parse_content_length = rhs.get_m_parse_content_length();
@@ -190,13 +189,6 @@ Request::get_m_cgi_stdout() const
 {
 	return (this->m_cgi_stdout);
 }
-
-int
-Request::get_m_check_fd() const
-{
-	return (this->m_check_fd);
-}
-
 
 std::string
 Request::get_m_content_type() const
@@ -341,12 +333,6 @@ Request::set_m_cgi_stdout(int cgi_stdout)
 }
 
 void
-Request::set_m_check_fd(int check_fd)
-{
-	this->m_check_fd = check_fd;
-}
-
-void
 Request::set_m_cut_bytes(int cut_bytes)
 {
 	this->m_cut_bytes = cut_bytes;
@@ -464,65 +450,6 @@ Request::getAcceptLanguage()
 	}
 	return (this->m_content_type = content_type);
 }
-
-// bool
-// Request::isBreakCondition(bool *chunked, int buff_bytes, std::string buff)
-// {
-// 	size_t pos;
-// 	std::string tmp;
-
-// 	/* Transfered-encoding: chunked 에서 메세지의 끝 탐지하기*/
-// 	if ((pos = this->m_message.find("Transfer-Encoding: chunked")) != std::string::npos)
-// 		*chunked = true;
-// 	else if ((pos = this->m_message.find("transfer-encoding: chunked")) != std::string::npos)
-// 		*chunked = true;
-// 	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) == std::string::npos)
-// 	{
-// 		this->m_cut_bytes = buff_bytes;
-// 		return (false);
-// 	}
-// 	if (*chunked == true && (pos = this->m_message.find("0\r\n\r\n")) != std::string::npos)
-// 	{
-// 		this->m_message = this->m_message.substr(0, pos + 5);
-// 		this->m_body_bytes = this->m_message.size() - m_header_bytes;
-// 		this->m_cut_bytes = buff.find("0\r\n\r\n") + 5;
-// 		this->m_chunked_finished_read = true;
-// 		return (true);
-// 	}
-// 	/* content-length 또는 헤더만 온 경우 메세지 끝 탐지하기 */
-// 	/* -- content-length 파싱하기 */
-// 	int content_length = 0;
-// 	if ((pos = this->m_message.find("Content-Length:")) != std::string::npos)
-// 	{
-// 		tmp = m_message.substr(pos + strlen("Content-Length:"), std::string::npos);
-// 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
-// 		{
-// 			tmp = ft::trim(tmp.substr(0, pos), " \r");
-// 			content_length = ft::stoi(tmp);
-// 			m_content_length = content_length;
-// 			m_body_bytes = m_content_length;
-// 		}
-// 	}
-// 	else if ((pos = this->m_message.find("content-length:")) != std::string::npos)
-// 	{
-// 		tmp = m_message.substr(pos + strlen("content-length:"), std::string::npos);
-// 		if ((pos = tmp.find_first_of("\n")) != std::string::npos)
-// 		{
-// 			tmp = ft::trim(tmp.substr(0, pos), " \r");
-// 			content_length = ft::stoi(tmp);
-// 			m_content_length = content_length;
-// 			m_body_bytes = m_content_length;
-// 		}
-// 	}
-// 	/* 받아온 메세지가 content_length / header_bytes 보다 길때 읽을 위치(m_cut_bytes) 설정*/
-// 	if (*chunked == false && m_content_length >= 0 && (size_t)(m_content_length + m_header_bytes) <= m_message.size())
-// 	{
-// 		this->m_message = this->m_message.substr(0, m_header_bytes + m_content_length);
-// 		m_cut_bytes = m_header_bytes + m_content_length;
-// 		return (true);
-// 	}
-// 	return (false);
-// }
 
 int
 Request::getHeader(int fd)
@@ -774,35 +701,6 @@ Request::getBody(int fd)
 	return (CONTINUE);
 }
 
-// bool
-// Request::parseMessage(bool chunked)
-// {
-// 	size_t i;
-// 	std::vector<std::string> lines = ft::split(this->m_message, "\n");
-
-// 	if (lines.size() == 0)
-// 		return (false);
-// 	if (parseRequestLine(ft::rtrim(lines[0], "\r")) == false)
-// 	{
-// 		return (false);
-// 	}
-// 	for (i = 1; i < lines.size(); i++)
-// 	{
-// 		if (checkBlankLine(ft::rtrim(lines[i], "\r")))
-// 			break;
-// 		if (parseHeader(ft::rtrim(lines[i], "\r")) == false)
-// 			return (false);
-// 	}
-// 	i++;
-// 	while (i < lines.size())
-// 	{
-// 		if (parseBody(lines[i], i, lines.size(), chunked) == false)
-// 			return (false);
-// 		i++;
-// 	}
-// 	return (true);
-// }
-
 bool
 Request::parseRequestLine(std::string request_line)
 {
@@ -906,36 +804,6 @@ Request::parseRawHeader()
 	}
 	return (false);
 }
-
-// bool
-// Request::parseBody(std::string& line, int i, int size, bool chunked)
-// {
-// 	long int num;
-// 	std::string newline;
-
-// 	if (chunked == false)
-// 	{
-// 		newline = line;
-// 		if (i != size - 1)
-// 			newline += "\n";
-// 		this->m_body += newline;
-// 		return (true);
-// 	}
-// 	/* else chunked == true */
-// 	newline = ft::rtrim(line, "\r");
-// 	num = std::strtol(newline.c_str(), 0, 16);
-// 	if (m_parse_content_length != -1 && newline != "0")
-// 	{
-// 		this->m_body += newline.substr(0, m_parse_content_length);
-// 		m_parse_content_length = -1;
-// 	}
-// 	else if (num != 0 && m_parse_content_length == -1)
-// 	{
-// 		m_parse_content_length = num;
-// 		m_content_length += m_parse_content_length;
-// 	}
-// 	return (true);
-// }
 
 bool
 Request::checkMethod()

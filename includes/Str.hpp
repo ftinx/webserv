@@ -8,10 +8,10 @@
 
 class Str
 {
-    public:
+	public:
 		std::string *p;
 
-    public:
+	public:
 		Str();
 		Str(Str const &other);
 		Str& operator=(Str const &rhs);
