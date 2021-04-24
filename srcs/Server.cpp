@@ -807,7 +807,6 @@ Server::resetRequest(Request *req)
 	}
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
-	std::cout <<"44444" << std::endl;
 	if (block.get_m_limit_body_size() < req->get_m_content_length())
 	{
 		req->set_m_error_code(413);
