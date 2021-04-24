@@ -444,13 +444,14 @@ Server::readProcess()
 				{
 					ft::console_log("header_status success", 1);
 					resetRequest(&request);
-					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
-					{
-						/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
-						if (request.checkCGI() == true)
-							executeCgi(request, response, sockfd);
-					}
-					else if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
+					// if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
+					// {
+					// 	/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
+					// 	if (request.checkCGI() == true)
+					// 		executeCgi(request, response, sockfd);
+					// }
+					// else
+					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
@@ -494,6 +495,12 @@ Server::readProcess()
 					}
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
+						if (request.get_m_method() == POST)
+						{
+							/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
+							if (request.checkCGI() == true)
+								executeCgi(request, response, sockfd);
+						}
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
 						std::cout << "::1:: chunked cgi read end" << std::endl;
 						return (true);
@@ -568,7 +575,7 @@ Server::writeProcess()
 				{
 					std::cout << "::2:: chunked cgi write end" <<  tmp << std::endl;
 					pid_t ret;
-					write(request.get_m_check_fd(), "end", 3);
+					// write(request.get_m_check_fd(), "end", 3);
 					ret = waitpid(request.get_m_cgi_pid(), &status, 0);
 					std::cout << "waitpid ret: " << ret  << " " << request.get_m_cgi_pid() << std::endl;
 					ft::fdSet(request.get_m_cgi_stdin(), this->m_main_fds);
@@ -1233,7 +1240,7 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	Response response(res);
 
-	int fds2[2];
+	// int fds2[2];
 	pid_t pid;
 
 	if (envp == NULL)
@@ -1243,8 +1250,8 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		ft::doubleFree(envp);
 		throw (Server::CgiException());
 	}
-	else if (pipe(fds2) < 0)
-		throw (Server::CgiPipeException());
+	// else if (pipe(fds2) < 0)
+	// 	throw (Server::CgiPipeException());
 
 	int parent_write = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int cgi_stdin = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_RDONLY);
@@ -1260,28 +1267,29 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	ft::console_log("Execute Cgi", 1);
 
-	int checkfd = open((this->m_tmp_path + std::string("/.checkfd")).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-	std::cout << "checkfd: " << checkfd << std::endl;
+	// int checkfd = open((this->m_tmp_path + std::string("/.checkfd")).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+	// std::cout << "checkfd: " << checkfd << std::endl;
 	std::cout << "parent_write: " << parent_write << std::endl;
 	std::cout << "parent_read: " << parent_read << std::endl;
-	req.set_m_check_fd(checkfd);
+	// req.set_m_check_fd(checkfd);
 	pid = fork();
 
 	if (pid == 0) // child process
 	{
 		struct stat buff;
 
-		close(parent_write);
 		while (42)
 		{
-			fstat(checkfd, &buff);
-			if (buff.st_size > 0)
+			fstat(parent_write, &buff);
+			if (buff.st_size >= req.get_m_content_length())
 			{
 				close(req.get_m_check_fd());
-				unlink((this->m_tmp_path + std::string("/.checkfd")).c_str());
+				std::cout << "CONTENT LENGTH: " << req.get_m_content_length() << std::endl;
+				// unlink((this->m_tmp_path + std::string("/.checkfd")).c_str());
 				break ;
 			}
 		}
+		close(parent_write);
 		if (dup2(cgi_stdout, STDOUT_FILENO) < 0)
 			throw(Server::CgiDupException());
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0)
