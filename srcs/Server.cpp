@@ -457,7 +457,6 @@ Server::readProcess()
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
-					std::cout << request.get_m_raw_header() << std::endl;
 					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
 					{
 						/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
