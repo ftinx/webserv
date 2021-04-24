@@ -456,15 +456,15 @@ Server::readProcess()
 				ft::console_log(":::::::::::::::::::::::::::::::::::::::::::::::1::", 1);
 				if (header_status == SUCCESS)
 				{
-					ft::console_log("header_status success", 1);
 					resetRequest(&request);
+					std::cout << request.get_m_raw_header() << std::endl;
 					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
 					{
 						/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
 						if (request.checkCGI() == true)
 							executeCgi(request, response, sockfd);
 					}
-					else if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
+					else if (request.get_m_content_length() <= 0 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
@@ -802,9 +802,13 @@ Server::resetRequest(Request *req)
 		return;
 	}
 	if (path_out.find("/.") != std::string::npos)
+	{
 		req->set_m_error_code(404);
+		return ;
+	}
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
+	std::cout <<"44444" << std::endl;
 	if (block.get_m_limit_body_size() < req->get_m_content_length())
 	{
 		req->set_m_error_code(413);
