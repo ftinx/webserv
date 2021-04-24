@@ -312,6 +312,17 @@ Server::acceptSocket()
 		std::cerr << "accept error" << std::endl;
 		return ;
 	}
+        int option;
+        int rn;
+        rn = sizeof(int);
+        getsockopt(this->m_client_socket, SOL_SOCKET, SO_SNDBUF, &option, (socklen_t *)&rn);
+        std::cout << "SIZE OF SOCKET1:::  " <<option << std::endl;
+        option = option * 6;
+        setsockopt(this->m_client_socket, SOL_SOCKET, SO_SNDBUF, &option, (socklen_t)rn);
+        getsockopt(this->m_client_socket, SOL_SOCKET, SO_SNDBUF, &option, (socklen_t *)&rn);
+        std::cout << "SIZE OF SOCKET2:::  " <<option << std::endl;
+
+
 	ft::fdSet(this->m_client_socket, this->m_main_fds);
 	fcntl(m_client_socket, F_SETFL, O_NONBLOCK);
 	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
@@ -1371,7 +1382,7 @@ Server::methodPUT(int clientfd, std::string method)
 	}
 	else
 	{
-		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", "/"));
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.get_m_uri().get_m_path()));
 	}
 	return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
@@ -1477,7 +1488,7 @@ Server::makeResponseMessage(
 		response.setHttpResponseHeader("retry-after", "10");
 	if (status_code == 401)
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
-	if ((300 <= status_code && status_code < 400) || status_code == 201)
+	if (location != "" && ((300 <= status_code && status_code < 400) || status_code == 201))
 		response.setHttpResponseHeader("location", location);
 	if (allow_method != "")
 		response.setHttpResponseHeader("allow", allow_method);
@@ -1540,7 +1551,7 @@ Server::makeResponseBodyMessage(
 		response.setHttpResponseHeader("retry-after", "10");
 	if (status_code == 401)
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
-	if ((300 <= status_code && status_code < 400) || status_code == 201)
+	if (location != "" && ((300 <= status_code && status_code < 400) || status_code == 201))
 		response.setHttpResponseHeader("location", location);
 	if (allow_method != "")
 		response.setHttpResponseHeader("allow", allow_method);
