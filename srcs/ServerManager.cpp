@@ -231,9 +231,7 @@ ServerManager::exitServers(int signo)
 {
 	if (signo == SIGINT)
 	{
-		/* clean child process */
-		// kill(childfd, SIGTERM);
-		// waitpid(childfd, &status, WNOHANG);
+		kill(0, SIGTERM);
 		exit(EXIT_SUCCESS);
 	}
 	return ;
