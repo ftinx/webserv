@@ -44,7 +44,6 @@ class Request
 		pid_t m_cgi_pid;
 		int m_cgi_stdin;
 		int m_cgi_stdout;
-		int m_check_fd;
 
 		/* HTTP Header */
 		std::string m_content_type;
@@ -88,7 +87,6 @@ class Request
 		pid_t get_m_cgi_pid() const;
 		int get_m_cgi_stdin() const;
 		int get_m_cgi_stdout() const;
-		int get_m_check_fd() const;
 		std::string get_m_content_type() const;
 		std::string get_m_referer() const;
 		long int get_m_parse_content_length() const;
@@ -109,7 +107,6 @@ class Request
 		void set_m_cgi_pid(pid_t);
 		void set_m_cgi_stdin(int);
 		void set_m_cgi_stdout(int);
-		void set_m_check_fd(int);
 		void set_m_body(std::string);
 		void set_m_error_code(int);
 		void set_m_reset_path(std::string);
@@ -124,16 +121,13 @@ class Request
 		std::string getContentType();
 		std::string getAcceptLanguage();
 		std::string getReferer();
-		bool isBreakCondition(bool*, int, std::string);
 		int getHeader(int);
 		int getBody(int);
-		bool parseMessage(bool);
 		bool parseRequestLine(std::string);
 		bool checkMethod();
 		bool parseHeader(std::string);
 		bool checkBlankLine(std::string);
 		bool parseRawHeader();
-		bool parseBody(std::string&, int, int, bool);
 		std::string getRestPath();
 		std::string getScriptName(std::string path);
 		bool checkCGI();
