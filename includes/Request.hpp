@@ -60,6 +60,7 @@ class Request
 		int m_cut_bytes;
 		bool m_should_read;
 		int m_count_message;
+		int m_pos;
 
 	public:
 		Request();
@@ -99,6 +100,7 @@ class Request
 		int get_m_cut_bytes() const;
 		bool get_m_should_read() const;
 		int get_m_count_message() const;
+		int get_m_pos() const;
 
 		/* setter */
 		void set_m_http_version(std::string);
@@ -115,6 +117,7 @@ class Request
 		void set_m_read_end(bool);
 		void set_m_cut_bytes(int);
 		void set_m_count_message(int);
+		void set_m_pos(int);
 
 		std::string getMethod();
 		std::string getContentLength();

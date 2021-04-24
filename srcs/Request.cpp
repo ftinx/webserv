@@ -15,7 +15,7 @@ m_cgi_pid(), m_cgi_stdin(0), m_cgi_stdout(1), m_check_fd(-1),
 m_content_type(""), m_referer(""), m_parse_content_length(-1),
 m_found_break_line(false), m_chunked(false), m_chunked_finished_read(false),
 m_header_bytes(0), m_body_bytes(0), m_cut_bytes(0),
-m_should_read(false), m_count_message(0)
+m_should_read(false), m_count_message(0), m_pos(0)
 {
 }
 
@@ -59,6 +59,7 @@ Request& Request::operator=(Request const &rhs)
 	this->m_cut_bytes = rhs.get_m_cut_bytes();
 	this->m_should_read =  rhs.get_m_should_read();
 	this->m_count_message = rhs.get_m_count_message();
+	this->m_pos = rhs.get_m_pos();
 	return (*this);
 }
 
@@ -263,6 +264,12 @@ Request::get_m_count_message() const
 	return (this->m_count_message);
 }
 
+int
+Request::get_m_pos() const
+{
+	return (this->m_pos);
+}
+
 /*============================================================================*/
 /********************************  Setter  ************************************/
 /*============================================================================*/
@@ -349,6 +356,12 @@ void
 Request::set_m_count_message(int count_message)
 {
 	this->m_count_message = count_message;
+}
+
+void
+Request::set_m_pos(int pos)
+{
+	this->m_pos = pos;
 }
 
 /*============================================================================*/
@@ -753,9 +766,11 @@ Request::getBody(int fd)
 				free(buff);
 				return (FAIL);
 			}
+			free(buff);
 			return (FAIL);
 		}
 	}
+	free(buff);
 	return (CONTINUE);
 }
 
