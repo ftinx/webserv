@@ -7,14 +7,14 @@ Str::Str()
 
 Str::Str(Str const &other)
 {
-    *this = other;
+	*this = other;
 }
 
 Str& Str::operator=(Str const &rhs)
 {
-    if (this == &rhs)
-        return (*this);
-    return (*this);
+	if (this == &rhs)
+		return (*this);
+	return (*this);
 }
 
 

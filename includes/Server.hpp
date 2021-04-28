@@ -191,7 +191,7 @@ class Server
 			int date_second=0,
 			std::string allow_method="",
 			std::string content_location="",
-			std::string location="./www/index.html"
+			std::string location=""
 		);
 		static Response makeResponseBodyMessage(
 			int status_code,
@@ -207,7 +207,7 @@ class Server
 			int date_second=0,
 			std::string allow_method="",
 			std::string content_location="",
-			std::string location="./www/index.html"
+			std::string location=""
 		);
 		std::string makeErrorPage(int status);
 

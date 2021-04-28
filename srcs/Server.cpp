@@ -1,32 +1,4 @@
 #include "Server.hpp"
-#include <bitset>
-#include <iostream>
-
-char *bin2hex(const unsigned char *input, size_t len)
-{
-    char *result;
-    std::string hexits = "0123456789ABCDEF";
-
-    if (input == NULL || len <= 0)
-        return (NULL);
-
-    int resultlength = (len*3)+1;
-
-    result = (char*)malloc(resultlength);
-    bzero(result, resultlength);
-
-    for (size_t i=0; i<len; i++)
-    {
-        result[i*3] = hexits[input[i] >> 4];
-        result[(i*3)+1] = hexits[input[i] & 0x0F];
-        result[(i*3)+2] = ' '; //for readability
-    }
-    return result;
-}
-
-/*============================================================================*/
-/****************************  Static variables  ******************************/
-/*============================================================================*/
 
 /*============================================================================*/
 /******************************  Constructor  *********************************/
@@ -312,6 +284,17 @@ Server::acceptSocket()
 		std::cerr << "accept error" << std::endl;
 		return ;
 	}
+        int option;
+        int rn;
+        rn = sizeof(int);
+        getsockopt(this->m_client_socket, SOL_SOCKET, SO_SNDBUF, &option, (socklen_t *)&rn);
+        std::cout << "SIZE OF SOCKET1:::  " <<option << std::endl;
+        option = option * 6;
+        setsockopt(this->m_client_socket, SOL_SOCKET, SO_SNDBUF, &option, (socklen_t)rn);
+        getsockopt(this->m_client_socket, SOL_SOCKET, SO_SNDBUF, &option, (socklen_t *)&rn);
+        std::cout << "SIZE OF SOCKET2:::  " <<option << std::endl;
+
+
 	ft::fdSet(this->m_client_socket, this->m_main_fds);
 	fcntl(m_client_socket, F_SETFL, O_NONBLOCK);
 	m_fd_table.push_back(ft::makeFDT(C_SOCKET, this->m_client_socket, 0));
@@ -457,13 +440,7 @@ Server::readProcess()
 				if (header_status == SUCCESS)
 				{
 					resetRequest(&request);
-					if (request.get_m_method() == POST && request.get_m_check_cgi() == true)
-					{
-						/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
-						if (request.checkCGI() == true)
-							executeCgi(request, response, sockfd);
-					}
-					else if (request.get_m_content_length() <= 0 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
+					if (request.get_m_content_length() == -1 && request.get_m_chunked() == false) // 헤더만 들어온 메세지 처리
 					{
 						handleRequest(sockfd);
 						if (this->m_responses[sockfd].get_m_status_code() != 0)
@@ -484,11 +461,6 @@ Server::readProcess()
 				}
 				else if (header_status == CONTINUE && request.get_m_raw_header() != "") //body 읽어야 함
 				{
-					// std::cout << sockfd << "==========================getBody==========================" << std::endl;
-					// for (int i=0; i<1; i++) {
-					// 	std::cout << std::bitset<32>(m_write_fds->fds_bits[i]) << std::endl;
-					// }
-					// std::cout << "\n=========================================================="<< std::endl;
 					try
 					{
 					body_status = request.getBody(sockfd);
@@ -509,6 +481,12 @@ Server::readProcess()
 					}
 					if (body_status == SUCCESS && request.get_m_check_cgi() == true)
 					{
+						if (request.get_m_method() == POST)
+						{
+							/* 최적화할때 checkCGI 없애야함. 중복 CGI 검사. */
+							if (request.checkCGI() == true)
+								executeCgi(request, response, sockfd);
+						}
 						ft::fdSet(request.get_m_cgi_stdout(), m_write_fds);
 						std::cout << "::1:: chunked cgi read end" << std::endl;
 						return (true);
@@ -561,7 +539,6 @@ Server::writeProcess()
 				{
 					std::cout << "::2:: chunked cgi write end"  << std::endl;
 					pid_t ret;
-					write(request.get_m_check_fd(), "end", 3);
 					ret = waitpid(request.get_m_cgi_pid(), &status, 0);
 					std::cout << "waitpid ret: " << ret  << " " << request.get_m_cgi_pid() << std::endl;
 					ft::fdSet(request.get_m_cgi_stdin(), this->m_main_fds);
@@ -1205,8 +1182,6 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 	char** argv = Server::makeCgiArgv(req);
 
 	Response response(res);
-
-	int fds2[2];
 	pid_t pid;
 
 	if (envp == NULL)
@@ -1216,14 +1191,6 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 		ft::doubleFree(envp);
 		throw (Server::CgiException());
 	}
-	else if (pipe(fds2) < 0)
-		throw (Server::CgiPipeException());
-
-	// int parent_write = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	// int cgi_stdin = open((this->m_tmp_path + std::string("/.tmp2")).c_str(), O_RDONLY);
-	// int cgi_stdout = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	// int parent_read = open((this->m_tmp_path + std::string("/.tmp1")).c_str(), O_RDONLY);
-
 	Str parent_write_name;
 	Str cgi_stdin_name;
 	Str cgi_stdout_name;
@@ -1247,35 +1214,20 @@ Server::executeCgi(Request &req, Response &res, int clientfd)
 
 	std::string extension = req.get_m_reset_path().substr(req.get_m_reset_path().find_last_of(".") + 1, std::string::npos);
 	ft::console_log("Execute Cgi", 1);
-
-	// int checkfd = open((this->m_tmp_path + std::string("/.checkfd")).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-
-	Str checkfd_name;
-	checkfd_name.p->append(this->m_tmp_path + std::string("/.checkfd") + std::to_string(clientfd));
-	int checkfd = open((*(checkfd_name.p)).c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-
-	std::cout << "checkfd: " << checkfd << std::endl;
-	std::cout << "parent_write: " << parent_write << std::endl;
-	std::cout << "parent_read: " << parent_read << std::endl;
-	req.set_m_check_fd(checkfd);
 	pid = fork();
-
-
 	if (pid == 0) // child process
 	{
 		struct stat buff;
 
-		close(parent_write);
 		while (42)
 		{
-			fstat(checkfd, &buff);
-			if (buff.st_size > 0)
+			fstat(parent_write, &buff);
+			if (buff.st_size >= req.get_m_content_length())
 			{
-				close(req.get_m_check_fd());
-				unlink((*(checkfd_name.p)).c_str());
 				break ;
 			}
 		}
+		close(parent_write);
 		if (dup2(cgi_stdout, STDOUT_FILENO) < 0)
 			throw(Server::CgiDupException());
 		if (dup2(cgi_stdin, STDIN_FILENO) < 0)
@@ -1370,7 +1322,7 @@ Server::methodPUT(int clientfd, std::string method)
 	}
 	else
 	{
-		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", "/"));
+		return (Server::makeResponseMessage(status_code, this->m_server_name, "", "", req.getAcceptLanguage(), method, "", req.getReferer(), 0, 0, 0, "", req.get_m_uri().get_m_path()));
 	}
 	return (Server::makeResponseBodyMessage(404, this->m_server_name, "", "", req.getAcceptLanguage(), method, getMimeType("html"), req.getReferer()));
 }
@@ -1476,7 +1428,7 @@ Server::makeResponseMessage(
 		response.setHttpResponseHeader("retry-after", "10");
 	if (status_code == 401)
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
-	if ((300 <= status_code && status_code < 400) || status_code == 201)
+	if (location != "" && ((300 <= status_code && status_code < 400) || status_code == 201))
 		response.setHttpResponseHeader("location", location);
 	if (allow_method != "")
 		response.setHttpResponseHeader("allow", allow_method);
@@ -1539,7 +1491,7 @@ Server::makeResponseBodyMessage(
 		response.setHttpResponseHeader("retry-after", "10");
 	if (status_code == 401)
 		response.setHttpResponseHeader("WWW-Authenticate", "Basic realm=\"simple\"");
-	if ((300 <= status_code && status_code < 400) || status_code == 201)
+	if (location != "" && ((300 <= status_code && status_code < 400) || status_code == 201))
 		response.setHttpResponseHeader("location", location);
 	if (allow_method != "")
 		response.setHttpResponseHeader("allow", allow_method);
