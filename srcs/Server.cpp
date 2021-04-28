@@ -778,7 +778,10 @@ Server::resetRequest(Request *req)
 		return;
 	}
 	if (path_out.find("/.") != std::string::npos)
+	{
 		req->set_m_error_code(404);
+		return ;
+	}
 	req->set_m_reset_path(path_out);
 	req->set_m_location_block(block);
 	if (block.get_m_limit_body_size() < req->get_m_content_length())

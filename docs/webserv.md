@@ -114,3 +114,29 @@ HTTP(Hypertext Transfer Protocol)는 분산, 협업, 하이퍼 텍스트 정보 
 
 [RFC 7230](https://hochan049.gitbook.io/cs-interview/web/rfc-7320)에 명시되어 있다.
 
+## HTTP Request, Response 
+
+- Chrome
+<img src="https://user-images.githubusercontent.com/22424891/115949417-fea12c00-a50f-11eb-8cd7-f8f57e87f8d2.png" height="600px"/>
+
+- Raw Message
+```
+---------------------------------------------------------------------------
+GET / HTTP/1.1
+Accept: */*
+User-Agent: rawtester
+Host: localhost:8080
+Host: rawtester
+Authorization: Basic andvbjowNTE4
+
+
+###########################################################################
+HTTP/1.1 400 Bad Request
+content-language: ko
+content-length: 0
+content-type: text/html
+date: Sat, 24 Apr 2021 14:01:28 KST
+last-modified: Sat, 24 Apr 2021 14:01:28 KST
+server: ftinx/0.1: first_server
+status: 400
+```
