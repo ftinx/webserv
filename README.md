@@ -21,7 +21,7 @@
   - Transfer-Encoding
   - User-Agent
   - WWW-Authenticate
-- 
+- [세부 구현 내용](https://github.com/ftinx/webserv/issues/196)
 
 ## 성능 측정
 
